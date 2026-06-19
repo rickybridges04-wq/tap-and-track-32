@@ -30,10 +30,18 @@ function ProjectDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const project = mounted ? getProject(id) : undefined;
-  const runs = runsForProject(id);
+  const runs = mounted ? runsForProject(id) : [];
   const [running, setRunning] = useState(false);
   const [cron, setCron] = useState(project?.schedule?.cron ?? "0 9 * * *");
   const [schedEnabled, setSchedEnabled] = useState(project?.schedule?.enabled ?? false);
+
+  if (!mounted) {
+    return (
+      <AppShell>
+        <div className="h-40 animate-pulse rounded-md bg-muted/40" />
+      </AppShell>
+    );
+  }
 
   if (!project) {
     return (
