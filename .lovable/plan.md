@@ -1,104 +1,118 @@
 
-# Bridges Tester — AI Web App Testing Platform
+# AI Agent Trigger System
 
-A platform to register your web apps and run automated AI-driven usability walkthroughs that click every button/tab, capture screenshots, log errors, and produce a written usability report. Supports manual review, scheduling, and CI-triggered runs.
+Layer an "AI operations center" on top of the existing Bridges Tester app. All 7 agents, simulated execution today (LLM-only reasoning, tool calls, approval gates), swap to real Cloud-backed execution once credits are added.
 
-## Core Loop
+## What gets built
+
+### 1. Data model (localStorage, mirrors target Postgres schema)
+
+Extend `src/lib/store.ts` with:
+
+- `agent_tasks` — id, userId, title, description, status (pending/running/needs_approval/completed/failed), priority (low/med/high), agentType, source (user/db/error/webhook/schedule), createdAt, updatedAt
+- `agent_runs` — id, taskId, agentType, input, output, status, approvalRequired, steps[] (per-tool log), retries, createdAt, completedAt
+- `agent_approvals` — id, runId, actionSummary, riskLevel (low/med/high), payload, status (pending/approved/rejected), approvedBy, createdAt
+- `errors` — id, userId, source (frontend/backend), message, stack, status (open/triaged/resolved), createdAt
+
+Same `read/write/useStoreVersion` pattern as today.
+
+### 2. Agent registry — `src/lib/agents.ts`
+
+Seven agents, same scaffold, different persona + tool allow-list:
 
 ```text
-[Add App URL] → [Trigger Run: manual / schedule / webhook]
-       ↓
-[Server fn enqueues run]
-       ↓
-[Worker: Playwright crawls app, AI plans actions per page]
-       ↓
-[Captures: screenshots, console logs, network errors, element pass/fail]
-       ↓
-[AI summarizes → usability report]
-       ↓
-[Review UI: timeline, screenshots, checklist, findings, annotate]
+debug        → bugs, errors, failed runs
+research     → missing info, knowledge gaps
+ceo          → business decisions, prioritization
+cfo          → money, pricing, billing
+marketing    → content, copy, campaigns
+architect    → app structure, code, schema
+pm           → task planning, breakdowns
 ```
 
-## v1 Scope
+Each entry: `{ id, name, systemPrompt, tools: ToolName[], color }`.
 
-**Projects**
-- Add/edit/delete a project (name, base URL, notes, tags)
-- Multi-project dashboard with last-run status
+Router (`routeRequest(text, source)`) returns an `agentType` from keyword + LLM classification (single Lovable AI call, fallback to keyword rules).
 
-**Test Runs**
-- One-click "Run now" per project
-- Scheduled runs (cron expression, e.g. daily/hourly)
-- CI/webhook trigger: public endpoint `/api/public/runs/trigger` with HMAC signature
-- Run config: max pages, max depth, viewport (desktop/mobile)
+### 3. Agent tools (typed, allow-listed per agent)
 
-**Execution (Hybrid AI + capture)**
-- Headless Chromium (Playwright) crawls the public URL
-- For each page: enumerate clickable elements (buttons, links, tabs, form inputs)
-- AI agent decides exploration order + flags suspicious UX
-- Each interaction: pre/post screenshot, mark pass/fail (error thrown, navigation broken, console error spike)
-- Capture full console log + network log (4xx/5xx flagged)
+Defined with AI SDK `tool()` shape. Today they hit localStorage; tomorrow they hit Cloud.
 
-**Reporting (per run)**
-- Step-by-step timeline with screenshots
-- Pass/fail checklist of every element interacted with
-- Console + network error log (grouped, deduped)
-- AI-written usability report: confusing flows, dead ends, accessibility flags, recommendations
-- Compare to previous run: regressions highlighted
-- Export as PDF/Markdown to `/mnt/documents`
+- `readTable({ table, filters })` — read-only DB access
+- `listProjects()`, `listRuns()`, `listErrors()`
+- `runBridgesTester({ projectId })` — calls existing `simulateRun`, returns summary
+- `updateRow({ table, id, patch })` — **risky**, queues approval
+- `deleteRow({ table, id })` — **risky**
+- `sendEmail({ to, subject, body })` — **risky**
+- `chargeMoney(...)`, `deploy(...)`, `updateProdSetting(...)` — **risky**
+- `proposePlan({ steps })` — non-risky, stored on run
+- `markResolved({ entityId })` — low-risk write
 
-**Review**
-- Annotate any step (comment, mark as known issue, ignore)
-- Mark findings resolved
-- Alert badge on dashboard when new regressions appear
+Risky tools don't execute. They create an `agent_approvals` row, set run status `needs_approval`, and pause. On approval the run resumes and the tool is replayed.
 
-**Alerts (basic)**
-- On run completion with new failures: in-app notification + optional email (Lovable Email)
+### 4. Trigger surfaces (all 7 required triggers)
 
-## Architecture
+| # | Trigger | Where |
+|---|---|---|
+| 1 | User action | `Run Agent` button (global, in shell), `Fix This` button on every error card + the runtime error screen, `/agents/new` form |
+| 2 | DB trigger | `subscribe()` hook on `agent_tasks/errors/failed_jobs/support_requests/project_issues` keys — any new row auto-enqueues a run |
+| 3 | Error trigger | Patch `reportLovableError` + global `window.onerror`/`unhandledrejection` to insert into `errors` and fire Debug Agent |
+| 4 | Webhook | `src/routes/api/public/webhooks.agent-event.tsx` — accepts JSON `{ source, type, payload }`, HMAC-verified (today: dev-mode skip with warning banner), inserts task |
+| 5 | Scheduled | Client-side interval (every 60s while app open) scans for open issues, stuck tasks (>5m running), missing secrets, failed Bridges runs; enqueues sweeper tasks. Real `pg_cron` swap noted in code comment |
+| 6 | Approval | Risky tool → approval row → blocks run → user clicks Approve/Reject in `/agents/approvals` → run resumes |
+| 7 | Completion | Run finishes → updates task, saves output, increments stats, toast + dashboard refresh |
 
-**Stack**
-- Frontend: TanStack Start (already scaffolded), Tailwind v4, shadcn
-- Backend: Lovable Cloud (Postgres, auth, storage for screenshots)
-- AI: Lovable AI Gateway (`google/gemini-3-flash-preview`) via AI SDK for action planning + report generation
-- Execution: Browserbase (managed headless browser) — user adds API key as secret
+### 5. Execution engine — `src/lib/agent-runner.ts`
 
-**Database (Lovable Cloud)**
-- `projects` — id, owner, name, base_url, notes, created_at
-- `schedules` — id, project_id, cron, enabled
-- `runs` — id, project_id, status (queued/running/done/failed), trigger (manual/schedule/webhook), started_at, finished_at, summary_json
-- `run_steps` — id, run_id, idx, page_url, element_desc, action, status (pass/fail), screenshot_path, console_snapshot, network_snapshot
-- `findings` — id, run_id, severity, title, body_md, status (open/ignored/resolved)
-- `user_roles` — standard pattern
-- RLS: owner-scoped; service_role for worker writes
+`runAgent(task)`:
+1. Mark task `running`, create run row.
+2. Build prompt: system from registry + task + tool catalog (filtered by agent).
+3. Call Lovable AI Gateway (`google/gemini-3-flash-preview`) via `streamText` with `stopWhen: stepCountIs(50)`.
+4. On each tool call: log step. If risky → queue approval, pause, return.
+5. On finish: write `output` (markdown), set task `completed`, fire completion trigger.
+6. On error: retry once, then mark `failed`.
 
-**Server Functions**
-- `createProject`, `listProjects`, `getProject`
-- `triggerRun` (auth'd) → enqueue
-- `getRun`, `listRuns`, `annotateStep`, `resolveFinding`
-- `upsertSchedule`
+Today the call goes through a `src/lib/ai.functions.ts` `createServerFn` that uses the existing `LOVABLE_API_KEY`. (This part is real — Cloud isn't required for AI Gateway calls.)
 
-**Server Routes**
-- `POST /api/public/runs/trigger` — HMAC-signed webhook from CI
-- `POST /api/public/runs/callback` — Browserbase worker posts results back
+### 6. UI
 
-**UI Routes**
-- `/` — dashboard (projects + recent runs)
-- `/projects/$id` — project detail, run history, schedule config, trigger
-- `/runs/$id` — timeline + screenshots + checklist + AI report + annotations
-- `/settings` — webhook secret, email alerts
+New routes:
+- `/agents` — task dashboard: filters by status/agent, badges, "Run Agent" button.
+- `/agents/new` — submit a problem (title, description, priority, agent override). Router suggests agent.
+- `/agents/$taskId` — task detail: input, full run timeline (step-by-step tool log, with tool name + args + result), output markdown, status pill.
+- `/agents/approvals` — queue of pending approvals: action summary, risk badge, payload preview, Approve / Reject buttons.
+- `/agents/history` — chronological log viewer across all runs.
 
-## Technical Details
+Shell updates:
+- Sidebar adds: Agents, Approvals (with count badge), History.
+- Global "Run Agent" button in shell header.
+- "Fix This" button injected into existing error UI (root `ErrorComponent`, runtime-error reporter, every failed run step in `/runs/$id`).
 
-- AI loop uses AI SDK `streamText` + tools (`clickElement`, `fillInput`, `navigate`, `reportFinding`) with `stepCountIs(50)`
-- Screenshots stored in Lovable Cloud Storage bucket `run-artifacts`, signed URLs for viewing
-- Schedules executed via pg_cron calling `/api/public/runs/trigger` with stable preview URL
-- Webhook security: HMAC-SHA256 over raw body, timing-safe compare, secret stored via `add_secret`
-- Report generation: after run, second AI call summarizes all steps into markdown
-- Regression diff: compare current `findings` set to previous run's
+### 7. Status & safety
 
-## Out of Scope for v1
+- Statuses shown everywhere: `pending`, `running`, `needs approval`, `completed`, `failed`.
+- All agent activity logged to run.steps (timestamp, tool, args, result, agentType).
+- Risky-action whitelist enforced server-side in the runner — frontend cannot bypass.
+- Secret note: today only `LOVABLE_API_KEY` is needed (already configured). Once Cloud is on, Settings page adds: real DB-backed agent tables, `pg_cron` schedule, real webhook HMAC secret.
 
-- Testing apps behind login (would need credential storage)
-- Visual regression diffing (pixel comparison)
-- Multi-user team collaboration
-- Mobile native app testing
+## Technical notes
+
+- Hydration: agent UI components are gated behind `useStoreVersion()` which only reads on the client; on SSR they render skeletons. Also fixes the existing `/runs/$id` hydration mismatch by rendering a stable placeholder until mount.
+- Files added/modified:
+  - `src/lib/store.ts` (extend with 4 tables + subscribe helper)
+  - `src/lib/agents.ts` (registry, router)
+  - `src/lib/agent-tools.ts` (tool definitions, risk classification)
+  - `src/lib/agent-runner.ts` (execution loop)
+  - `src/lib/ai.functions.ts` (server fn → Lovable AI Gateway)
+  - `src/lib/ai-gateway.server.ts` (provider helper per knowledge doc)
+  - `src/components/AppShell.tsx` (sidebar items, Run Agent button)
+  - `src/components/RunAgentDialog.tsx`, `FixThisButton.tsx`, `AgentStatusBadge.tsx`
+  - `src/routes/agents.index.tsx`, `agents.new.tsx`, `agents.$taskId.tsx`, `agents.approvals.tsx`, `agents.history.tsx`
+  - `src/routes/api/public/webhooks.agent-event.tsx`
+  - `src/routes/settings.tsx` (note webhook URL + future Cloud secrets)
+
+## Explicitly out of scope (for this pass)
+
+- Real Postgres tables, RLS, pg_cron, Edge-side webhook HMAC enforcement — all marked with TODO + comment, swap-in when Cloud is enabled.
+- Multi-user accounts — single local user.
+- Real email/payments/deploy actions — risky tools log the approved payload but no external call fires.
