@@ -12,9 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as AgentsNewRouteImport } from './routes/agents.new'
+import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
+import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
+import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
+import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -29,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsIndexRoute = AgentsIndexRouteImport.update({
+  id: '/agents/',
+  path: '/agents/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RunsIdRoute = RunsIdRouteImport.update({
@@ -46,66 +57,134 @@ const ProjectsIdRoute = ProjectsIdRouteImport.update({
   path: '/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsNewRoute = AgentsNewRouteImport.update({
+  id: '/agents/new',
+  path: '/agents/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsHistoryRoute = AgentsHistoryRouteImport.update({
+  id: '/agents/history',
+  path: '/agents/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsApprovalsRoute = AgentsApprovalsRouteImport.update({
+  id: '/agents/approvals',
+  path: '/agents/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
+  id: '/agents/$taskId',
+  path: '/agents/$taskId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhooksAgentEventRoute =
+  ApiPublicWebhooksAgentEventRouteImport.update({
+    id: '/api/public/webhooks/agent-event',
+    path: '/api/public/webhooks/agent-event',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/agents/$taskId': typeof AgentsTaskIdRoute
+  '/agents/approvals': typeof AgentsApprovalsRoute
+  '/agents/history': typeof AgentsHistoryRoute
+  '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/runs/$id': typeof RunsIdRoute
+  '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/agents/$taskId': typeof AgentsTaskIdRoute
+  '/agents/approvals': typeof AgentsApprovalsRoute
+  '/agents/history': typeof AgentsHistoryRoute
+  '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/runs/$id': typeof RunsIdRoute
+  '/agents': typeof AgentsIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/agents/$taskId': typeof AgentsTaskIdRoute
+  '/agents/approvals': typeof AgentsApprovalsRoute
+  '/agents/history': typeof AgentsHistoryRoute
+  '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/runs/$id': typeof RunsIdRoute
+  '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/settings'
+    | '/agents/$taskId'
+    | '/agents/approvals'
+    | '/agents/history'
+    | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
     | '/runs/$id'
+    | '/agents/'
     | '/projects/'
+    | '/api/public/webhooks/agent-event'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/settings'
+    | '/agents/$taskId'
+    | '/agents/approvals'
+    | '/agents/history'
+    | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
     | '/runs/$id'
+    | '/agents'
     | '/projects'
+    | '/api/public/webhooks/agent-event'
   id:
     | '__root__'
     | '/'
     | '/settings'
+    | '/agents/$taskId'
+    | '/agents/approvals'
+    | '/agents/history'
+    | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
     | '/runs/$id'
+    | '/agents/'
     | '/projects/'
+    | '/api/public/webhooks/agent-event'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
+  AgentsTaskIdRoute: typeof AgentsTaskIdRoute
+  AgentsApprovalsRoute: typeof AgentsApprovalsRoute
+  AgentsHistoryRoute: typeof AgentsHistoryRoute
+  AgentsNewRoute: typeof AgentsNewRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   RunsIdRoute: typeof RunsIdRoute
+  AgentsIndexRoute: typeof AgentsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
+  ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/': {
+      id: '/agents/'
+      path: '/agents'
+      fullPath: '/agents/'
+      preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/runs/$id': {
       id: '/runs/$id'
       path: '/runs/$id'
@@ -152,16 +238,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/new': {
+      id: '/agents/new'
+      path: '/agents/new'
+      fullPath: '/agents/new'
+      preLoaderRoute: typeof AgentsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/history': {
+      id: '/agents/history'
+      path: '/agents/history'
+      fullPath: '/agents/history'
+      preLoaderRoute: typeof AgentsHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/approvals': {
+      id: '/agents/approvals'
+      path: '/agents/approvals'
+      fullPath: '/agents/approvals'
+      preLoaderRoute: typeof AgentsApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/$taskId': {
+      id: '/agents/$taskId'
+      path: '/agents/$taskId'
+      fullPath: '/agents/$taskId'
+      preLoaderRoute: typeof AgentsTaskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/agent-event': {
+      id: '/api/public/webhooks/agent-event'
+      path: '/api/public/webhooks/agent-event'
+      fullPath: '/api/public/webhooks/agent-event'
+      preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
+  AgentsTaskIdRoute: AgentsTaskIdRoute,
+  AgentsApprovalsRoute: AgentsApprovalsRoute,
+  AgentsHistoryRoute: AgentsHistoryRoute,
+  AgentsNewRoute: AgentsNewRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   RunsIdRoute: RunsIdRoute,
+  AgentsIndexRoute: AgentsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
+  ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

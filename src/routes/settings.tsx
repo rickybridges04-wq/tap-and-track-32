@@ -2,14 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, KeyRound, Cloud, Globe } from "lucide-react";
+import { ExternalLink, KeyRound, Cloud, Globe, Bot } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings · Bridges Tester" }] }),
+  head: () => ({ meta: [{ title: "Settings · Bridges Ops" }] }),
   component: Settings,
 });
 
 const secrets: Array<{ name: string; what: string; where: string; link: string }> = [
+  {
+    name: "LOVABLE_API_KEY",
+    what: "Already provisioned. Powers Lovable AI Gateway calls — every agent reasoning step uses this.",
+    where: "Auto-managed by Lovable. No action required.",
+    link: "https://docs.lovable.dev/features/ai",
+  },
   {
     name: "BROWSERBASE_API_KEY",
     what: "Lets Bridges Tester drive a real headless Chromium to walk through your apps.",
@@ -24,13 +30,13 @@ const secrets: Array<{ name: string; what: string; where: string; link: string }
   },
   {
     name: "TESTER_WEBHOOK_SECRET",
-    what: "Signs CI / external trigger requests to /api/public/runs/trigger so we can verify them.",
+    what: "Signs CI / external trigger requests to /api/public/runs/trigger and /api/public/webhooks/agent-event so we can verify them.",
     where: "Pick any long random string (you generate it).",
     link: "https://generate-secret.vercel.app/64",
   },
   {
     name: "RESEND_API_KEY (optional)",
-    what: "Sends email alerts when a run finishes with new regressions.",
+    what: "Sends email alerts on completion, failed runs, or approval requests.",
     where: "Resend dashboard → API Keys",
     link: "https://resend.com/api-keys",
   },
@@ -41,7 +47,7 @@ function Settings() {
     <AppShell>
       <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        What you still need to wire up to switch from simulated runs to real ones.
+        What you need to wire up to switch from simulated to real backend execution.
       </p>
 
       <Card className="mt-6 border-amber-500/40 bg-amber-500/5">
@@ -50,9 +56,9 @@ function Settings() {
             <Cloud className="h-4 w-4" /> Step 1 — Enable Lovable Cloud
           </CardTitle>
           <CardDescription>
-            Cloud provides the database (projects, runs, findings), auth, file storage for screenshots,
-            and the scheduler (pg_cron) that fires scheduled runs. Cloud could not be enabled automatically
-            because the workspace is out of credits. Add credits, then ask me to enable it.
+            Cloud provides Postgres-backed agent_tasks / agent_runs / agent_approvals / errors tables,
+            RLS, auth, screenshot storage, and pg_cron for the scheduled-trigger sweep. Cloud could not
+            be enabled automatically — workspace is out of credits. Add credits, then ask me to enable it.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,10 +73,22 @@ function Settings() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <KeyRound className="h-4 w-4" /> Step 2 — Secrets you'll need
+            <Bot className="h-4 w-4" /> Agents are live now
           </CardTitle>
           <CardDescription>
-            Once Cloud is on, I'll prompt you to enter each of these securely. Here's what each one is and where to get it.
+            Agent reasoning uses Lovable AI Gateway today — no Cloud required. Tasks, runs, and
+            approvals are persisted in localStorage and will swap to real tables once Cloud is on.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <KeyRound className="h-4 w-4" /> Step 2 — Secrets
+          </CardTitle>
+          <CardDescription>
+            Once Cloud is on, I'll prompt you to enter each of these securely.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,22 +114,25 @@ function Settings() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Globe className="h-4 w-4" /> Step 3 — Public webhook URL
+            <Globe className="h-4 w-4" /> Step 3 — Webhook URLs (live)
           </CardTitle>
-          <CardDescription>
-            Once Cloud is on, point your CI / pg_cron at this stable URL:
-          </CardDescription>
+          <CardDescription>External callers can POST to these endpoints today.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-2">
           <code className="block break-all rounded-md bg-muted p-2 text-xs">
-            POST https://&lt;your-project&gt;.lovable.app/api/public/runs/trigger
+            POST /api/public/webhooks/agent-event
+            {"\n"}{`{ "source": "ci", "type": "build_failed", "title": "...", "description": "...", "agentType": "debug" }`}
+          </code>
+          <code className="block break-all rounded-md bg-muted p-2 text-xs">
+            POST /api/public/runs/trigger  (Bridges Tester run)
           </code>
         </CardContent>
       </Card>
 
       <p className="mt-8 text-xs text-muted-foreground">
-        Until Cloud + Browserbase are connected, all runs are <strong>simulated</strong> client-side so you can
-        explore the UI and reporting flow end-to-end.
+        Today: agents reason via Lovable AI; risky actions queue approvals but don't fire real external calls
+        (no email/charge/deploy). Bridges Tester runs are simulated. All of this swaps to real execution
+        when Cloud + Browserbase + optional Resend are configured.
       </p>
     </AppShell>
   );

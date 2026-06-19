@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { getRun, getProject, saveRun, useStoreVersion } from "@/lib/store";
 import type { Run, RunStep, Finding } from "@/lib/store";
+import { useMounted } from "@/lib/agent-store";
 import { CheckCircle2, XCircle, AlertTriangle, Download } from "lucide-react";
 
 export const Route = createFileRoute("/runs/$id")({
@@ -17,9 +18,18 @@ export const Route = createFileRoute("/runs/$id")({
 
 function RunDetail() {
   useStoreVersion();
+  const mounted = useMounted();
   const { id } = Route.useParams();
-  const run = getRun(id);
+  const run = mounted ? getRun(id) : undefined;
   const project = run ? getProject(run.projectId) : undefined;
+
+  if (!mounted) {
+    return (
+      <AppShell>
+        <div className="h-40 animate-pulse rounded-md bg-muted/40" />
+      </AppShell>
+    );
+  }
 
   if (!run) {
     return (

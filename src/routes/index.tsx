@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listProjects, listRuns, useStoreVersion } from "@/lib/store";
+import { useMounted } from "@/lib/agent-store";
 import { Plus, CheckCircle2, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -19,8 +20,9 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   useStoreVersion();
-  const projects = listProjects();
-  const runs = listRuns();
+  const mounted = useMounted();
+  const projects = mounted ? listProjects() : [];
+  const runs = mounted ? listRuns() : [];
 
   const stats = useMemo(() => {
     const last = runs.slice(0, 50);
