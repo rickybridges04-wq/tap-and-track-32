@@ -1,17 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, KeyRound, Cloud, Globe, Bot } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink, KeyRound, Cloud, Globe, Bot, Eye, EyeOff, Check } from "lucide-react";
+import { useMounted } from "@/lib/agent-store";
+import { useSecret, setSecret, clearSecret } from "@/lib/secrets-store";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings · Bridges Ops" }] }),
   component: Settings,
 });
 
-const secrets: Array<{ name: string; what: string; where: string; link: string }> = [
+type SecretDef = {
+  name: string;
+  managed?: boolean;
+  what: string;
+  where: string;
+  link: string;
+};
+
+const secrets: SecretDef[] = [
   {
     name: "LOVABLE_API_KEY",
+    managed: true,
     what: "Already provisioned. Powers Lovable AI Gateway calls — every agent reasoning step uses this.",
     where: "Auto-managed by Lovable. No action required.",
     link: "https://docs.lovable.dev/features/ai",
@@ -35,12 +49,94 @@ const secrets: Array<{ name: string; what: string; where: string; link: string }
     link: "https://generate-secret.vercel.app/64",
   },
   {
-    name: "RESEND_API_KEY (optional)",
-    what: "Sends email alerts on completion, failed runs, or approval requests.",
+    name: "RESEND_API_KEY",
+    what: "Sends email alerts on completion, failed runs, or approval requests. (optional)",
     where: "Resend dashboard → API Keys",
     link: "https://resend.com/api-keys",
   },
 ];
+
+function SecretRow({ def }: { def: SecretDef }) {
+  const mounted = useMounted();
+  const stored = useSecret(def.name);
+  const [draft, setDraft] = useState("");
+  const [reveal, setReveal] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  const hasValue = mounted && !!stored;
+  const masked = stored ? "•".repeat(Math.min(stored.length, 24)) : "";
+
+  return (
+    <li className="py-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <code className="rounded bg-muted px-2 py-1 text-xs font-medium">{def.name}</code>
+          {def.managed ? (
+            <Badge variant="secondary" className="text-[10px]">Managed by Lovable</Badge>
+          ) : hasValue ? (
+            <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
+              <Check className="mr-1 h-3 w-3" /> Saved locally
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px]">Not set</Badge>
+          )}
+        </div>
+        <Button asChild size="sm" variant="ghost">
+          <a href={def.link} target="_blank" rel="noreferrer">
+            Get it <ExternalLink className="ml-1 h-3.5 w-3.5" />
+          </a>
+        </Button>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">{def.what}</p>
+      <p className="text-xs text-muted-foreground">Where: {def.where}</p>
+
+      {!def.managed && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Input
+              type={reveal ? "text" : "password"}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={hasValue ? masked : `Paste ${def.name}`}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="pr-9 font-mono text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => setReveal((v) => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={reveal ? "Hide" : "Show"}
+            >
+              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <Button
+            size="sm"
+            disabled={!draft.trim()}
+            onClick={() => {
+              setSecret(def.name, draft.trim());
+              setDraft("");
+              setJustSaved(true);
+              setTimeout(() => setJustSaved(false), 1500);
+            }}
+          >
+            {justSaved ? "Saved" : "Save"}
+          </Button>
+          {hasValue && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => clearSecret(def.name)}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
 
 function Settings() {
   return (
@@ -88,24 +184,15 @@ function Settings() {
             <KeyRound className="h-4 w-4" /> Step 2 — Secrets
           </CardTitle>
           <CardDescription>
-            Once Cloud is on, I'll prompt you to enter each of these securely.
+            Paste keys as you get them. Stored in this browser only (localStorage) until Lovable Cloud is
+            enabled — then I'll promote them to real Cloud secrets. Don't paste production secrets on a
+            shared device.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="divide-y divide-border">
             {secrets.map((s) => (
-              <li key={s.name} className="py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <code className="rounded bg-muted px-2 py-1 text-xs font-medium">{s.name}</code>
-                  <Button asChild size="sm" variant="ghost">
-                    <a href={s.link} target="_blank" rel="noreferrer">
-                      Get it <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </a>
-                  </Button>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{s.what}</p>
-                <p className="text-xs text-muted-foreground">Where: {s.where}</p>
-              </li>
+              <SecretRow key={s.name} def={s} />
             ))}
           </ul>
         </CardContent>
