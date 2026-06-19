@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-store";
 
-const nav = [
+const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boolean }> = [
   { to: "/", label: "Dashboard", icon: Activity },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/agents/history", label: "History", icon: History },
   { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
