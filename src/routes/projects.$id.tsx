@@ -15,6 +15,7 @@ import {
   upsertProject,
   useStoreVersion,
 } from "@/lib/store";
+import { useMounted } from "@/lib/agent-store";
 import { toast } from "sonner";
 import { Play, Trash2, Calendar, Webhook } from "lucide-react";
 
@@ -25,9 +26,10 @@ export const Route = createFileRoute("/projects/$id")({
 
 function ProjectDetail() {
   useStoreVersion();
+  const mounted = useMounted();
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const project = getProject(id);
+  const project = mounted ? getProject(id) : undefined;
   const runs = runsForProject(id);
   const [running, setRunning] = useState(false);
   const [cron, setCron] = useState(project?.schedule?.cron ?? "0 9 * * *");
