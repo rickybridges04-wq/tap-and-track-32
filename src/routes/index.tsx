@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listProjects, listRuns, useStoreVersion } from "@/lib/store";
+import { useMounted } from "@/lib/agent-store";
 import { Plus, CheckCircle2, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/")({
