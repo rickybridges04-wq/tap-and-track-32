@@ -60,7 +60,7 @@ A platform to register your web apps and run automated AI-driven usability walkt
 - Frontend: TanStack Start (already scaffolded), Tailwind v4, shadcn
 - Backend: Lovable Cloud (Postgres, auth, storage for screenshots)
 - AI: Lovable AI Gateway (`google/gemini-3-flash-preview`) via AI SDK for action planning + report generation
-- Execution: Playwright cannot run inside the Worker runtime — needs an external worker. **Decision needed (see Questions).**
+- Execution: Browserbase (managed headless browser) — user adds API key as secret
 
 **Database (Lovable Cloud)**
 - `projects` — id, owner, name, base_url, notes, created_at
@@ -79,22 +79,13 @@ A platform to register your web apps and run automated AI-driven usability walkt
 
 **Server Routes**
 - `POST /api/public/runs/trigger` — HMAC-signed webhook from CI
-- `POST /api/public/runs/callback` — worker posts step/run results back
+- `POST /api/public/runs/callback` — Browserbase worker posts results back
 
 **UI Routes**
 - `/` — dashboard (projects + recent runs)
 - `/projects/$id` — project detail, run history, schedule config, trigger
 - `/runs/$id` — timeline + screenshots + checklist + AI report + annotations
 - `/settings` — webhook secret, email alerts
-
-## Key Question Before Build
-
-**Playwright cannot run in the Cloudflare Worker runtime that hosts server functions.** Two viable paths:
-
-1. **Browserless.io / Browserbase (recommended)** — managed headless browser API; we call it from a server function, stream results back. No infra to run. Requires user to add their API key as a secret.
-2. **Self-hosted worker** — separate Node service the user deploys (Render/Fly/Railway) that polls our DB or receives webhooks. More setup, no third-party cost.
-
-I will ask which path you want before building.
 
 ## Technical Details
 
