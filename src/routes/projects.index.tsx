@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listProjects, useStoreVersion } from "@/lib/store";
+import { useMounted } from "@/lib/agent-store";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/projects/")({
@@ -12,7 +13,8 @@ export const Route = createFileRoute("/projects/")({
 
 function ProjectsList() {
   useStoreVersion();
-  const projects = listProjects();
+  const mounted = useMounted();
+  const projects = mounted ? listProjects() : [];
   return (
     <AppShell>
       <div className="flex items-end justify-between">

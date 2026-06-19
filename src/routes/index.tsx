@@ -20,8 +20,9 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   useStoreVersion();
-  const projects = listProjects();
-  const runs = listRuns();
+  const mounted = useMounted();
+  const projects = mounted ? listProjects() : [];
+  const runs = mounted ? listRuns() : [];
 
   const stats = useMemo(() => {
     const last = runs.slice(0, 50);
