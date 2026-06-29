@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { getRun, getProject, saveRun, useStoreVersion } from "@/lib/store";
 import type { Run, RunStep, Finding } from "@/lib/store";
 import { useMounted } from "@/lib/agent-store";
-import { CheckCircle2, XCircle, AlertTriangle, Download } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Download, Wrench, Sparkles } from "lucide-react";
+import { RunAgentDialog } from "@/components/RunAgentDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/runs/$id")({
   head: () => ({ meta: [{ title: "Run · Bridges Tester" }] }),
