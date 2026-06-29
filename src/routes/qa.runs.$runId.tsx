@@ -35,24 +35,25 @@ function QaRunDetail() {
     <AppShell>
       <div className="mb-6">
         <Link to="/qa" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-3 w-3" /> All runs
+          <ArrowLeft className="h-3 w-3" aria-hidden="true" /> All runs
         </Link>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-tight">{run.url}</h1>
             <div className="mt-1 text-xs text-muted-foreground">
-              {new Date(run.createdAt).toLocaleString()} · {run.depth} · {run.personas.length} personas
+              {new Date(run.createdAt).toLocaleString()} · {run.depth} crawl · {run.personas.length} personas
             </div>
           </div>
           {run.status === "completed" && score ? (
-            <div className="text-right">
-              <div className="text-4xl font-semibold">{score.score}</div>
+            <div className="text-right" aria-label={`Release readiness score ${score.score} out of 100, ${verdictLabel(score.verdict)}`}>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
+              <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
               <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
                 {verdictLabel(score.verdict)}
               </span>
             </div>
           ) : (
-            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">
+            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600" aria-label={`Run status: ${run.status}`}>
               {run.status}
             </span>
           )}
@@ -62,33 +63,50 @@ function QaRunDetail() {
       {run.status !== "completed" && run.status !== "failed" && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
           <div className="text-sm font-medium">{run.progress.stage}</div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-valuenow={run.progress.pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Crawl progress: ${run.progress.stage}`}
+          >
             <div className="h-full bg-primary transition-all" style={{ width: `${run.progress.pct}%` }} />
           </div>
         </div>
       )}
 
       {run.status === "failed" && (
-        <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700">
+        <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700" role="alert">
           {run.error || "Run failed"}
         </div>
       )}
 
-      <div className="mb-4 flex gap-1 border-b border-border">
-        {(["summary", "findings", "pages"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize ${
-              tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
-            }`}
-          >
-            {t}
-            {t === "findings" && ` (${run.findings.length})`}
-            {t === "pages" && ` (${run.pages.length})`}
-          </button>
-        ))}
+      <div role="tablist" aria-label="Run report sections" className="mb-4 flex gap-1 border-b border-border">
+        {(["summary", "findings", "pages"] as const).map((t) => {
+          const tabLabel =
+            t === "summary" ? "Summary" : t === "findings" ? `Findings (${run.findings.length})` : `Pages crawled (${run.pages.length})`;
+          const isActive = tab === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              id={`qa-tab-${t}`}
+              aria-selected={isActive}
+              aria-controls={`qa-panel-${t}`}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => setTab(t)}
+              className={`-mb-px border-b-2 px-3 py-2 text-sm ${
+                isActive ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tabLabel}
+            </button>
+          );
+        })}
       </div>
+
 
       {tab === "summary" && score && (
         <div className="grid gap-3 sm:grid-cols-4">
