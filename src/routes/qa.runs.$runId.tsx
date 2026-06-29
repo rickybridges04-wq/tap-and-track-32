@@ -109,13 +109,13 @@ function QaRunDetail() {
 
 
       {tab === "summary" && score && (
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div role="tabpanel" id="qa-panel-summary" aria-labelledby="qa-tab-summary" className="grid gap-3 sm:grid-cols-4">
           <Stat label="Functional" v={score.subscores.functional} />
           <Stat label="Visual" v={score.subscores.visual} />
           <Stat label="Accessibility" v={score.subscores.accessibility} />
           <Stat label="Coverage" v={score.subscores.coverage} />
           <div className="sm:col-span-4 rounded-lg border border-border bg-card p-4">
-            <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">By severity</div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Findings by severity</div>
             <div className="flex flex-wrap gap-3 text-sm">
               <SevPill label="Critical" n={score.counts.critical} cls="bg-rose-500/15 text-rose-700" />
               <SevPill label="High" n={score.counts.high} cls="bg-orange-500/15 text-orange-700" />
@@ -127,7 +127,7 @@ function QaRunDetail() {
       )}
 
       {tab === "findings" && (
-        <div className="space-y-2">
+        <div role="tabpanel" id="qa-panel-findings" aria-labelledby="qa-tab-findings" className="space-y-2">
           {run.findings.length === 0 ? (
             <p className="text-sm text-muted-foreground">No findings yet.</p>
           ) : (
@@ -140,12 +140,21 @@ function QaRunDetail() {
       )}
 
       {tab === "pages" && (
-        <div className="space-y-2">
+        <div role="tabpanel" id="qa-panel-pages" aria-labelledby="qa-tab-pages" className="space-y-2">
+          {run.pages.length === 0 && (
+            <p className="text-sm text-muted-foreground">No pages crawled yet.</p>
+          )}
           {run.pages.map((p) => (
             <div key={p.url} className="rounded-lg border border-border bg-card p-3">
               <div className="flex items-center justify-between gap-2">
-                <a href={p.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 truncate text-sm font-medium hover:underline">
-                  {p.title || p.url} <ExternalLink className="h-3 w-3 shrink-0" />
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Open ${p.title || p.url} in new tab`}
+                  className="flex items-center gap-1 truncate text-sm font-medium hover:underline"
+                >
+                  {p.title || p.url} <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
                 </a>
                 <span className="text-xs text-muted-foreground">{p.links.length} links</span>
               </div>
@@ -154,6 +163,7 @@ function QaRunDetail() {
           ))}
         </div>
       )}
+
     </AppShell>
   );
 }
