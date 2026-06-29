@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrashButton } from "@/components/TrashButton";
 import { AGENTS } from "@/lib/agents";
 import {
+  deleteAgentRun,
   listAgentRuns,
   listAgentTasks,
   useAgentsVersion,
   useMounted,
 } from "@/lib/agent-store";
 import { AgentStatusBadge } from "@/components/AgentStatusBadge";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/agents/history")({
   head: () => ({ meta: [{ title: "Agent history · Bridges Ops" }] }),
@@ -52,7 +55,17 @@ function HistoryPage() {
                         <span className={a.color}>{a.emoji} {a.name}</span> · {r.steps.length} step(s) · {new Date(r.createdAt).toLocaleString()}
                       </div>
                     </Link>
-                    <AgentStatusBadge status={r.status} />
+                    <div className="flex items-center gap-1">
+                      <AgentStatusBadge status={r.status} />
+                      <TrashButton
+                        label="Delete run"
+                        confirm="Delete this run? Its approvals will also be removed."
+                        onDelete={() => {
+                          deleteAgentRun(r.id);
+                          toast.success("Run deleted");
+                        }}
+                      />
+                    </div>
                   </li>
                 );
               })}

@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { TrashButton } from "@/components/TrashButton";
 import { AGENTS } from "@/lib/agents";
 import {
+  deleteAgentTask,
   listAgentRuns,
   listAgentTasks,
   pendingApprovalCount,
@@ -14,6 +15,7 @@ import {
 import { AgentStatusBadge } from "@/components/AgentStatusBadge";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { Bot, ShieldCheck, History, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/agents/")({
   head: () => ({ meta: [{ title: "Agents · Bridges Ops" }] }),
@@ -87,7 +89,17 @@ function AgentsDashboard() {
                           <span className={a.color}>{a.emoji} {a.name}</span> · {t.source} · {new Date(t.createdAt).toLocaleString()}
                         </div>
                       </Link>
-                      <AgentStatusBadge status={t.status} />
+                      <div className="flex items-center gap-1">
+                        <AgentStatusBadge status={t.status} />
+                        <TrashButton
+                          label="Delete task"
+                          confirm={`Delete task "${t.title}" and its run?`}
+                          onDelete={() => {
+                            deleteAgentTask(t.id);
+                            toast.success("Task deleted");
+                          }}
+                        />
+                      </div>
                     </li>
                   );
                 })}

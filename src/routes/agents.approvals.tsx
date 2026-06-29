@@ -3,7 +3,9 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TrashButton } from "@/components/TrashButton";
 import {
+  deleteApproval,
   getAgentRun,
   getAgentTask,
   listApprovals,
@@ -13,6 +15,7 @@ import {
 import { AGENTS } from "@/lib/agents";
 import { decideApproval } from "@/lib/agent-runner";
 import { ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/agents/approvals")({
   head: () => ({ meta: [{ title: "Approvals · Bridges Ops" }] }),
@@ -93,12 +96,21 @@ function Approvals() {
               {decided.map((a) => (
                 <li key={a.id} className="flex items-center justify-between py-2 text-sm">
                   <span className="truncate">{a.actionSummary}</span>
-                  <Badge
-                    variant="outline"
-                    className={a.status === "approved" ? "bg-emerald-500/15 text-emerald-600" : "bg-muted"}
-                  >
-                    {a.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={a.status === "approved" ? "bg-emerald-500/15 text-emerald-600" : "bg-muted"}
+                    >
+                      {a.status}
+                    </Badge>
+                    <TrashButton
+                      label="Delete approval record"
+                      onDelete={() => {
+                        deleteApproval(a.id);
+                        toast.success("Approval removed");
+                      }}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>

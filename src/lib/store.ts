@@ -121,6 +121,10 @@ export function saveRun(r: Run) {
   write(K_RUNS, all);
 }
 
+export function deleteRun(id: string) {
+  write(K_RUNS, listRuns().filter((r) => r.id !== id));
+}
+
 export function uid(prefix = "id"): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }

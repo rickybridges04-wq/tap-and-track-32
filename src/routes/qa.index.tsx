@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useQaRuns, useMounted, type QaRun } from "@/lib/qa/qa-store";
+import { TrashButton } from "@/components/TrashButton";
+import { deleteRun, useQaRuns, useMounted, type QaRun } from "@/lib/qa/qa-store";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { Activity, Plus, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/qa/")({
   component: QaDashboard,
@@ -66,51 +68,63 @@ function EmptyState() {
 function RunCard({ run }: { run: QaRun }) {
   const created = new Date(run.createdAt).toLocaleString();
   return (
-    <Link
-      to="/qa/runs/$runId"
-      params={{ runId: run.id }}
-      className="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">{run.url}</div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            {created} · {run.depth} · {run.personas.length} personas · {run.pages.length} pages ·{" "}
-            {run.findings.length} findings
-          </div>
-          {run.status !== "completed" && run.status !== "failed" && (
-            <div className="mt-2">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${run.progress.pct}%` }}
-                />
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">{run.progress.stage}</div>
+    <div className="relative">
+      <Link
+        to="/qa/runs/$runId"
+        params={{ runId: run.id }}
+        className="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3 pr-10">
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">{run.url}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {created} · {run.depth} · {run.personas.length} personas · {run.pages.length} pages ·{" "}
+              {run.findings.length} findings
             </div>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          {run.status === "completed" && run.score !== undefined && run.verdict ? (
-            <>
-              <div className="text-2xl font-semibold">{run.score}</div>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(run.verdict)}`}
-              >
-                {verdictLabel(run.verdict)}
+            {run.status !== "completed" && run.status !== "failed" && (
+              <div className="mt-2">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${run.progress.pct}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{run.progress.stage}</div>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {run.status === "completed" && run.score !== undefined && run.verdict ? (
+              <>
+                <div className="text-2xl font-semibold">{run.score}</div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(run.verdict)}`}
+                >
+                  {verdictLabel(run.verdict)}
+                </span>
+              </>
+            ) : run.status === "failed" ? (
+              <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+                Failed
               </span>
-            </>
-          ) : run.status === "failed" ? (
-            <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-medium text-rose-600">
-              Failed
-            </span>
-          ) : (
-            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-              {run.status}
-            </span>
-          )}
+            ) : (
+              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                {run.status}
+              </span>
+            )}
+          </div>
         </div>
+      </Link>
+      <div className="absolute right-2 top-2">
+        <TrashButton
+          label="Delete QA run"
+          confirm="Delete this QA run? Findings and pages will be removed."
+          onDelete={() => {
+            deleteRun(run.id);
+            toast.success("Run deleted");
+          }}
+        />
       </div>
-    </Link>
+    </div>
   );
 }
