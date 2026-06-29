@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -232,12 +232,13 @@ function Settings() {
 function ProviderSelector() {
   const mounted = useMounted();
   const [provider, setProviderState] = useState<"lovable" | "anthropic">("lovable");
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const v = window.localStorage.getItem("bridges.agentProvider");
       if (v === "anthropic" || v === "lovable") setProviderState(v);
     }
-  });
+  }, []);
+
   function pick(p: "lovable" | "anthropic") {
     setProviderState(p);
     if (typeof window !== "undefined") window.localStorage.setItem("bridges.agentProvider", p);
