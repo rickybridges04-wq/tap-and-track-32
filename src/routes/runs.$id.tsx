@@ -82,17 +82,24 @@ function RunDetail() {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-4">
         <Stat label="Status" value={run.status} />
-        <Stat label="Pass" value={run.stats.pass} tone="good" />
-        <Stat label="Warn" value={run.stats.warn} tone="warn" />
-        <Stat label="Fail" value={run.stats.fail} tone="bad" />
+        <Stat label="Interactions passed" value={run.stats.pass} tone="good" />
+        <Stat label="Warnings" value={run.stats.warn} tone="warn" />
+        <Stat label="Failed interactions" value={run.stats.fail} tone="bad" />
       </div>
 
-      <Tabs defaultValue="timeline" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="errors">Errors</TabsTrigger>
-          <TabsTrigger value="findings">Findings</TabsTrigger>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Each interaction below is a detected click, input, or navigation captured during the run.
+        Open a tab to inspect the flow, errors, or AI analysis.
+      </p>
+
+      <Tabs defaultValue="timeline" className="mt-4">
+        <TabsList aria-label="Run report sections">
+          <TabsTrigger value="timeline">Step-by-step ({run.steps.length})</TabsTrigger>
+          <TabsTrigger value="checklist">Interactions checklist</TabsTrigger>
+          <TabsTrigger value="errors">
+            Errors ({run.steps.reduce((n, s) => n + s.consoleErrors.length + s.networkErrors.length, 0)})
+          </TabsTrigger>
+          <TabsTrigger value="findings">Findings ({run.findings.length})</TabsTrigger>
           <TabsTrigger value="report">AI report</TabsTrigger>
         </TabsList>
 
@@ -101,8 +108,14 @@ function RunDetail() {
             {run.steps.map((s) => (
               <StepCard key={s.id} run={run} step={s} />
             ))}
+            {run.steps.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No interactions were detected in this run.
+              </p>
+            )}
           </div>
         </TabsContent>
+
 
         <TabsContent value="checklist" className="mt-4">
           <Card>
@@ -176,10 +189,12 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
       <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pb-3">
         <div className="min-w-0">
           <CardTitle className="text-sm">
-            #{step.idx} · {step.element}
+            <span className="text-muted-foreground">Step #{step.idx}</span> · {step.element}
           </CardTitle>
           <CardDescription className="truncate">
-            {step.action} · {step.pageUrl}
+            <span className="font-medium capitalize text-foreground">{step.action}</span>
+            <span aria-hidden> · </span>
+            <span title={step.pageUrl}>{step.pageUrl}</span>
           </CardDescription>
         </div>
         <StatusIcon status={step.status} />
@@ -188,7 +203,7 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
         {step.screenshot && (
           <img
             src={step.screenshot}
-            alt={step.element}
+            alt={`Screenshot for step ${step.idx}: ${step.action} on ${step.element}`}
             className="rounded-md border border-border"
             loading="lazy"
           />
@@ -208,7 +223,12 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
           </div>
         )}
         <div className="mt-3">
+          <label htmlFor={`note-${step.id}`} className="sr-only">
+            Note for step {step.idx}
+          </label>
           <Textarea
+            id={`note-${step.id}`}
+            aria-label={`Note for step ${step.idx}`}
             placeholder="Add a note or mark known issue…"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -220,6 +240,7 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
     </Card>
   );
 }
+
 
 function FindingCard({ run, finding }: { run: Run; finding: Finding }) {
   function setStatus(status: Finding["status"]) {
@@ -272,9 +293,10 @@ function ErrorList({ items }: { items: string[] }) {
 }
 
 function StatusIcon({ status }: { status: "pass" | "warn" | "fail" }) {
-  if (status === "pass") return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
-  if (status === "warn") return <AlertTriangle className="h-5 w-5 text-amber-600" />;
-  return <XCircle className="h-5 w-5 text-destructive" />;
+  const label = status === "pass" ? "Passed" : status === "warn" ? "Warning" : "Failed";
+  const Icon = status === "pass" ? CheckCircle2 : status === "warn" ? AlertTriangle : XCircle;
+  const color = status === "pass" ? "text-emerald-500" : status === "warn" ? "text-amber-500" : "text-destructive";
+  return <Icon role="img" aria-label={`Status: ${label}`} className={`h-5 w-5 ${color}`} />;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string | number; tone?: "good" | "warn" | "bad" }) {
