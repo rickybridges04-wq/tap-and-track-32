@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output } from "ai";
 import { z } from "zod";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const PlanSchema = z.object({
@@ -42,16 +43,39 @@ const InputSchema = z.object({
     description: z.string(),
     context: z.string().optional(),
   }),
+  provider: z.enum(["lovable", "anthropic"]).optional(),
+  model: z.string().optional(),
 });
 
 export const planAgentTask = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+    const provider = data.provider ?? "lovable";
 
-    const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-3-flash-preview");
+    let model;
+    let providerLabel: string;
+    try {
+      if (provider === "anthropic") {
+        const akey = process.env.ANTHROPIC_API_KEY;
+        if (!akey) throw new Error("ANTHROPIC_API_KEY is not configured");
+        const anthropic = createAnthropic({ apiKey: akey });
+        model = anthropic(data.model ?? "claude-sonnet-4-5");
+        providerLabel = "Anthropic";
+      } else {
+        const key = process.env.LOVABLE_API_KEY;
+        if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+        const gateway = createLovableAiGatewayProvider(key);
+        model = gateway(data.model ?? "google/gemini-3-flash-preview");
+        providerLabel = "Lovable AI";
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        agentSummary: `Agent ${data.agentType} could not initialize provider.`,
+        plan: [],
+        finalReport: `## Agent error\n\nProvider init failed:\n\n\`\`\`\n${message}\n\`\`\``,
+      };
+    }
 
     const system = `${data.systemPrompt}
 
@@ -81,11 +105,11 @@ ${data.task.context ? `\nContext:\n${data.task.context}` : ""}`;
       return output;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      // Fallback so the agent loop never hard-fails the UI.
       return {
-        agentSummary: `Agent ${data.agentType} could not reach the AI gateway.`,
+        agentSummary: `Agent ${data.agentType} could not reach ${providerLabel}.`,
         plan: [],
-        finalReport: `## Agent error\n\nThe AI gateway returned an error:\n\n\`\`\`\n${message}\n\`\`\`\n\nThe task has been marked failed. Check your credits or try again.`,
+        finalReport: `## Agent error\n\n${providerLabel} returned an error:\n\n\`\`\`\n${message}\n\`\`\`\n\nThe task has been marked failed. Check your credits/key or try again.`,
       };
     }
   });
+
