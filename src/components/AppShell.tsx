@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
@@ -15,24 +15,39 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
+function sectionLabel(path: string): string {
+  if (path === "/") return "Dashboard";
+  const match = nav.find((n) => n.to !== "/" && (path === n.to || path.startsWith(n.to + "/")));
+  return match?.label ?? "Workspace";
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   useAgentsVersion();
   const mounted = useMounted();
   const pending = mounted ? pendingApprovalCount() : 0;
+  const section = sectionLabel(path);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-sidebar md:flex md:flex-col">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Zap className="h-4 w-4" />
+    <div className="relative min-h-screen text-foreground">
+      {/* Decorative orbs for depth */}
+      <div aria-hidden className="pointer-events-none fixed -left-32 top-10 -z-0 h-80 w-80 rounded-full bg-[color:var(--neon)] opacity-20 blur-3xl floaty" />
+      <div aria-hidden className="pointer-events-none fixed right-[-6rem] top-1/3 -z-0 h-96 w-96 rounded-full bg-[color:var(--neon-2)] opacity-20 blur-3xl floaty" />
+
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sidebar-border md:flex md:flex-col glass">
+        <div className="flex items-center gap-3 px-5 py-5">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl btn-3d">
+            <Zap className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Bridges Ops</div>
-            <div className="text-xs text-muted-foreground">Tester + Agents</div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-tight gradient-text">Walkthrough Wizard</span>
+              <span className="beta-pill">Beta</span>
+            </div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">QAOS · v0.3</div>
           </div>
         </div>
+
         <nav className="flex flex-col gap-1 px-3 py-2">
           {nav.map((n) => {
             const active =
@@ -46,31 +61,58 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={n.to}
                 to={n.to as never}
                 className={cn(
-                  "flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
+                  "group relative flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60",
+                    ? "bg-gradient-to-r from-[color:var(--neon)]/15 to-[color:var(--neon-2)]/15 text-foreground ring-neon"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-foreground",
                 )}
               >
-                <span className="flex items-center gap-2">
-                  <n.icon className="h-4 w-4" />
+                <span className="flex items-center gap-2.5">
+                  <n.icon className={cn("h-4 w-4 transition-transform group-hover:scale-110", active && "text-[color:var(--neon)]")} />
                   {n.label}
                 </span>
-                {n.badge && pending > 0 && (
-                  <span className="rounded-full bg-amber-500/20 px-1.5 text-xs font-medium text-amber-700">
-                    {pending}
-                  </span>
-                )}
+                <span className="flex items-center gap-1.5">
+                  <span className="beta-pill scale-75 origin-right opacity-70">β</span>
+                  {n.badge && pending > 0 && (
+                    <span className="rounded-full bg-accent/30 px-1.5 text-xs font-semibold text-accent-foreground ring-1 ring-accent/50">
+                      {pending}
+                    </span>
+                  )}
+                </span>
               </Link>
             );
           })}
         </nav>
-        <div className="mt-auto space-y-2 px-3 pb-4">
+
+        <div className="mt-auto space-y-3 px-3 pb-4">
           <RunAgentDialog />
-          <div className="px-2 text-xs text-muted-foreground">v0.2 · agents</div>
+          <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
+            <div className="flex items-center gap-1.5">
+              <FlaskConical className="h-3 w-3 text-[color:var(--neon-2)]" />
+              <span className="font-semibold tracking-wide">BETA TESTING</span>
+            </div>
+            <p className="mt-1 leading-snug">Every tab, section, and flow is under active beta. Report anything weird.</p>
+          </div>
         </div>
       </aside>
-      <main className="md:pl-60">
+
+      <main className="relative z-10 md:pl-64">
+        {/* Sticky beta header for every page/section */}
+        <div className="sticky top-0 z-10 border-b border-border/60 glass">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-2 w-2 rounded-full bg-[color:var(--neon)] pulse-dot" />
+              <div className="min-w-0">
+                <div className="truncate text-xs uppercase tracking-[0.18em] text-muted-foreground">Walkthrough Wizard QAOS</div>
+                <div className="truncate text-sm font-semibold">{section}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="beta-pill">Beta · {section}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</div>
       </main>
     </div>
