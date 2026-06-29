@@ -17,6 +17,8 @@ import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
+import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
+import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
 import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
@@ -65,6 +67,16 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
 const RunsIdRoute = RunsIdRouteImport.update({
   id: '/runs/$id',
   path: '/runs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RosterPersonasRoute = RosterPersonasRouteImport.update({
+  id: '/roster/personas',
+  path: '/roster/personas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RosterAgentsRoute = RosterAgentsRouteImport.update({
+  id: '/roster/agents',
+  path: '/roster/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QaNewRoute = QaNewRouteImport.update({
@@ -126,6 +138,8 @@ export interface FileRoutesByFullPath {
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
+  '/roster/agents': typeof RosterAgentsRoute
+  '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -145,6 +159,8 @@ export interface FileRoutesByTo {
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
+  '/roster/agents': typeof RosterAgentsRoute
+  '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
   '/projects': typeof ProjectsIndexRoute
@@ -165,6 +181,8 @@ export interface FileRoutesById {
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
+  '/roster/agents': typeof RosterAgentsRoute
+  '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -186,6 +204,8 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
+    | '/roster/agents'
+    | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
@@ -205,6 +225,8 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
+    | '/roster/agents'
+    | '/roster/personas'
     | '/runs/$id'
     | '/agents'
     | '/projects'
@@ -224,6 +246,8 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
+    | '/roster/agents'
+    | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
@@ -244,6 +268,8 @@ export interface RootRouteChildren {
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   QaNewRoute: typeof QaNewRoute
+  RosterAgentsRoute: typeof RosterAgentsRoute
+  RosterPersonasRoute: typeof RosterPersonasRoute
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
@@ -308,6 +334,20 @@ declare module '@tanstack/react-router' {
       path: '/runs/$id'
       fullPath: '/runs/$id'
       preLoaderRoute: typeof RunsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roster/personas': {
+      id: '/roster/personas'
+      path: '/roster/personas'
+      fullPath: '/roster/personas'
+      preLoaderRoute: typeof RosterPersonasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roster/agents': {
+      id: '/roster/agents'
+      path: '/roster/agents'
+      fullPath: '/roster/agents'
+      preLoaderRoute: typeof RosterAgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/qa/new': {
@@ -388,6 +428,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   QaNewRoute: QaNewRoute,
+  RosterAgentsRoute: RosterAgentsRoute,
+  RosterPersonasRoute: RosterPersonasRoute,
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,

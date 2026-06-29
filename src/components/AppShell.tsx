@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
@@ -10,6 +10,8 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
   { to: "/agents", label: "Agents", icon: Bot },
+  { to: "/roster/agents", label: "Agent roster", icon: BookUser },
+  { to: "/roster/personas", label: "Persona roster", icon: Users },
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/history", label: "Beta history", icon: History },
   { to: "/pathways", label: "Pathways", icon: RouteIcon },
