@@ -293,9 +293,10 @@ function ErrorList({ items }: { items: string[] }) {
 }
 
 function StatusIcon({ status }: { status: "pass" | "warn" | "fail" }) {
-  if (status === "pass") return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
-  if (status === "warn") return <AlertTriangle className="h-5 w-5 text-amber-600" />;
-  return <XCircle className="h-5 w-5 text-destructive" />;
+  const label = status === "pass" ? "Passed" : status === "warn" ? "Warning" : "Failed";
+  const Icon = status === "pass" ? CheckCircle2 : status === "warn" ? AlertTriangle : XCircle;
+  const color = status === "pass" ? "text-emerald-500" : status === "warn" ? "text-amber-500" : "text-destructive";
+  return <Icon role="img" aria-label={`Status: ${label}`} className={`h-5 w-5 ${color}`} />;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string | number; tone?: "good" | "warn" | "bad" }) {
