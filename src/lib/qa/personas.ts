@@ -260,4 +260,9 @@ export const ALL_PERSONA_IDS: PersonaId[] = [
   "seo_marketer",
   "edge_case_input",
   "developer",
+  "load_spike",
+  "concurrent_collaborator",
+  "global_locale",
+  "churn_risk",
+  "compliance_reviewer",
 ];
