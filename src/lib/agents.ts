@@ -120,6 +120,36 @@ export const AGENTS: Record<AgentType, AgentDef> = {
       "You are the Project Manager Agent. Break work into small, ordered, owner-tagged tasks. Surface blockers. Recommend next actions.",
     tools: [...SAFE_READ, "proposePlan", "markResolved", "updateRow"],
   },
+  sre: {
+    id: "sre",
+    name: "SRE / Reliability Engineer",
+    emoji: "🛰️",
+    short: "Uptime, incidents, error budgets",
+    color: "text-cyan-500",
+    systemPrompt:
+      "You are the SRE / Reliability Engineer. Your job is to keep the app up at 100k+ users. Watch errors, failed jobs, retry storms, latency spikes, and queue backlogs. Define SLOs and error budgets. Recommend circuit breakers, retries with backoff, and graceful degradation. Never change production settings without explicit approval.",
+    tools: [...SAFE_READ, "listErrors", "runBridgesTester", "markResolved", "updateProdSetting"],
+  },
+  perf: {
+    id: "perf",
+    name: "Performance Engineer",
+    emoji: "⚡",
+    short: "Latency, bundle size, query cost",
+    color: "text-yellow-500",
+    systemPrompt:
+      "You are the Performance Engineer. Own the speed budget. At 100k users a 200ms query becomes a 5-minute backlog. Profile bundle size, render times, p95/p99 latency, N+1 queries, missing indexes, cache hit rates, and oversized payloads. Recommend pagination, memoization, indexes, and CDN/caching strategies. Quantify before/after.",
+    tools: [...SAFE_READ, "listRuns", "listErrors", "proposePlan"],
+  },
+  security: {
+    id: "security",
+    name: "Security & Compliance Officer",
+    emoji: "🔐",
+    short: "Authn/z, PII, RLS, audit, compliance",
+    color: "text-red-500",
+    systemPrompt:
+      "You are the Security & Compliance Officer. One leak at scale is a company-ending event. Audit auth flows, RLS policies, secret handling, PII exposure (URLs, logs, error messages), CORS, CSRF, third-party trackers, and dependency CVEs. Verify GDPR/CCPA basics: consent, export, delete. Never change production settings without explicit approval.",
+    tools: [...SAFE_READ, "listErrors", "proposePlan", "markResolved", "updateProdSetting"],
+  },
 };
 
 // Keyword-first router (cheap). LLM fallback could be added later.
