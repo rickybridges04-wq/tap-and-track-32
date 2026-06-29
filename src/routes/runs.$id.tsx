@@ -189,10 +189,12 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
       <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pb-3">
         <div className="min-w-0">
           <CardTitle className="text-sm">
-            #{step.idx} · {step.element}
+            <span className="text-muted-foreground">Step #{step.idx}</span> · {step.element}
           </CardTitle>
           <CardDescription className="truncate">
-            {step.action} · {step.pageUrl}
+            <span className="font-medium capitalize text-foreground">{step.action}</span>
+            <span aria-hidden> · </span>
+            <span title={step.pageUrl}>{step.pageUrl}</span>
           </CardDescription>
         </div>
         <StatusIcon status={step.status} />
@@ -201,7 +203,7 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
         {step.screenshot && (
           <img
             src={step.screenshot}
-            alt={step.element}
+            alt={`Screenshot for step ${step.idx}: ${step.action} on ${step.element}`}
             className="rounded-md border border-border"
             loading="lazy"
           />
@@ -221,7 +223,12 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
           </div>
         )}
         <div className="mt-3">
+          <label htmlFor={`note-${step.id}`} className="sr-only">
+            Note for step {step.idx}
+          </label>
           <Textarea
+            id={`note-${step.id}`}
+            aria-label={`Note for step ${step.idx}`}
             placeholder="Add a note or mark known issue…"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -233,6 +240,7 @@ function StepCard({ run, step }: { run: Run; step: RunStep }) {
     </Card>
   );
 }
+
 
 function FindingCard({ run, finding }: { run: Run; finding: Finding }) {
   function setStatus(status: Finding["status"]) {
