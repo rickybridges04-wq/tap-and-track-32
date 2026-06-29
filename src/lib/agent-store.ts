@@ -194,6 +194,28 @@ export function aid(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+export function deleteAgentTask(id: string) {
+  const tasks = read<AgentTask[]>(K.tasks, []).filter((t) => t.id !== id);
+  const runs = read<AgentRun[]>(K.runs, []).filter((r) => r.taskId !== id);
+  const approvals = read<AgentApproval[]>(K.approvals, []).filter((a) => a.taskId !== id);
+  write(K.tasks, tasks);
+  write(K.runs, runs);
+  write(K.approvals, approvals);
+}
+
+export function deleteAgentRun(id: string) {
+  write(K.runs, read<AgentRun[]>(K.runs, []).filter((r) => r.id !== id));
+  write(K.approvals, read<AgentApproval[]>(K.approvals, []).filter((a) => a.runId !== id));
+}
+
+export function deleteApproval(id: string) {
+  write(K.approvals, read<AgentApproval[]>(K.approvals, []).filter((a) => a.id !== id));
+}
+
+export function deleteError(id: string) {
+  write(K.errors, read<ErrorRecord[]>(K.errors, []).filter((e) => e.id !== id));
+}
+
 export function useAgentsVersion() {
   const [v, setV] = useState(0);
   useEffect(() => {
