@@ -228,7 +228,7 @@ function FindingCard({ f }: { f: QaFinding }) {
           )}
         </div>
       </div>
-      <a href={f.pageUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline">
+      <a href={f.pageUrl} target="_blank" rel="noreferrer" aria-label={`Open page ${f.pageUrl} in new tab`} className="mt-2 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline">
         {f.pageUrl} <ExternalLink className="h-3 w-3" aria-hidden="true" />
       </a>
     </div>
