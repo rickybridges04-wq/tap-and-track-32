@@ -71,6 +71,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
   };
   saveAgentRun(run);
 
+  const provider = readProvider();
   let result;
   try {
     result = await planner({
@@ -79,6 +80,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
         systemPrompt: agentDef.systemPrompt,
         toolCatalog: toolCatalogFor(task.agentType),
         task: { title: task.title, description: task.description },
+        provider,
       },
     });
   } catch (err) {
@@ -90,6 +92,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
           systemPrompt: agentDef.systemPrompt,
           toolCatalog: toolCatalogFor(task.agentType),
           task: { title: task.title, description: task.description },
+          provider,
         },
       });
       run.retries = 1;
@@ -102,6 +105,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
       return run;
     }
   }
+
 
   run.agentSummary = result.agentSummary;
   run.output = result.finalReport;
