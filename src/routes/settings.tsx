@@ -172,11 +172,15 @@ function Settings() {
             <Bot className="h-4 w-4" /> Agents are live now
           </CardTitle>
           <CardDescription>
-            Agent reasoning uses Lovable AI Gateway today — no Cloud required. Tasks, runs, and
-            approvals are persisted in localStorage and will swap to real tables once Cloud is on.
+            Agent reasoning uses Lovable AI Gateway by default. Switch to Anthropic (Claude) below to
+            A/B test reasoning quality. Tasks/runs/approvals persist in localStorage.
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <ProviderSelector />
+        </CardContent>
       </Card>
+
 
       <Card className="mt-6">
         <CardHeader>
