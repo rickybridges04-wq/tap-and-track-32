@@ -1,85 +1,39 @@
+Add 15 new beta tester personas to `src/lib/qa/personas.ts`, bringing the total from 5 → 20. Each gets a unique id, name, emoji, one-line description, and a distinct system prompt that biases the AI inspector toward that persona's lens. All 20 stay selectable on `/qa/new`.
 
-# Synapse QA OS — phased plan
+## New personas (15)
 
-The full spec (200–500 concurrent testers, native iOS/Android/desktop, CI/CD, security pentest, perf profiling) is a multi-month enterprise build that needs real infrastructure we don't have in-app (browser farms, native runners, signed CI tokens). I'll ship it in phases. Each phase is a complete, usable product on its own; you approve before the next phase starts.
+1. Mobile-only user 📱 — small screens, thumb reach, tap targets
+2. Slow-network user 🐢 — perceived perf, loading states, skeletons
+3. Non-English speaker 🌐 — copy clarity, translation gaps, locale assumptions
+4. Senior user 👵 — font size, jargon, dense UI, multi-step confusion
+5. Skeptical buyer 🧐 — trust signals, pricing transparency, social proof
+6. Privacy-conscious user 🔒 — data collection prompts, cookie banners, tracking
+7. Keyboard-only user ⌨️ — focus order, visible focus rings, tab traps
+8. Screen-reader user 🦻 — landmarks, alt text, ARIA, reading order
+9. Color-blind user 🎨 — color-only signaling, contrast pairs
+10. Returning user 🔁 — state persistence, recognition vs recall
+11. Distracted multitasker 🤹 — interruption recovery, autosave, confirmation clarity
+12. Security tester 🛡️ — exposed inputs, error leakage, unsafe links
+13. SEO/marketer 📈 — titles, meta, headings, semantic HTML
+14. Edge-case input tester 🧪 — long strings, emoji, paste, special chars
+15. Developer/integrator 🧑‍💻 — API hints, docs links, error messages, console noise
 
-This plan covers **Phase 1 only**. Phases 2–5 are listed so you can see the trajectory.
+## Implementation
 
----
+- Append the 15 entries to the existing `personas` array, matching the current `Persona` type shape.
+- Keep ids kebab-case and unique.
+- Keep system prompts tight (~2–3 sentences) and focused on what that persona notices/reports.
+- No UI changes needed — `/qa/new` already renders the full list and `runner.ts` iterates whichever are selected.
 
-## Phase 1 — Synapse QA OS shell + real web crawler (this build)
+## Out of scope
 
-Goal: paste any URL → autonomous AI explores it → get a real bug list, coverage map, and Readiness Score.
+- No scoring weight changes.
+- No new categories beyond functional/visual/accessibility/performance already supported.
 
-### What ships
+&nbsp;
 
-1. **New section `/qa`** (Synapse QA OS), separate from Bridges Tester. Top-level nav entry.
-2. **New Run screen** — paste a URL, pick depth (Quick / Standard / Deep), pick 1–3 personas from a built-in roster (First-time user, Power user, Accessibility user, Frustrated customer, Random explorer — 5 to start, not 500). Start run.
-3. **Crawler engine** (server-side, via Firecrawl connector):
-   - `firecrawl.map` to discover URLs.
-   - `firecrawl.scrape` per page with `formats: ['markdown','links','screenshot']`.
-   - Build a **navigation graph** (nodes = URLs, edges = links).
-4. **AI inspection pass** per page via Lovable AI Gateway (`google/gemini-3-flash-preview`):
-   - Functional findings (broken links, missing forms, dead ends)
-   - Visual findings from the screenshot (empty states, overlapping, missing images)
-   - Accessibility findings from the HTML (missing alt, low contrast hints, missing labels)
-   - Each finding: severity, confidence, suggested fix, page URL.
-5. **Persona simulation** — each selected persona re-evaluates the same crawl with its own system prompt and produces its own findings stream. (Sequential, not 500-concurrent.)
-6. **Dashboard `/qa`**:
-   - Active run status, pages crawled, findings count by severity
-   - Navigation graph (simple force/tree view)
-   - Bug list (filter by severity / persona / page)
-   - **Production Readiness Score 0–100** with weighted sub-scores (Functionality, Visual, Accessibility, Coverage) and a verdict: Ready / Minor / Major / Block.
-7. **Run history** — every run stored, re-openable.
-8. **Storage** — Lovable Cloud (enable it now). Tables: `qa_runs`, `qa_pages`, `qa_findings`, `qa_personas`, with RLS scoped to the user.
-9. **Required secret** — Firecrawl connector (I'll prompt to connect it; nothing for you to paste manually).
+Test deployable pathways
 
-### Out of scope for Phase 1 (deferred to later phases)
+Add trash buttons to all tabs 
 
-- Native iOS/Android/Windows/macOS/Linux apps
-- Real concurrent 200–500 testers (Phase 2 raises this to ~25 via worker queue)
-- Actual click/form/upload interaction (Phase 2 adds Browserbase for real DOM interaction)
-- Security testing (XSS/CSRF/SQLi) — Phase 3
-- Perf profiling (Lighthouse, CPU, memory) — Phase 3
-- CI/CD integrations (GitHub/GitLab webhooks) — Phase 4
-- Learning engine / historical regression memory — Phase 5
-
-### Technical sketch
-
-```text
-/qa (dashboard)
-/qa/new (start run)
-/qa/runs/$runId (live run + findings)
-/qa/runs/$runId/graph (navigation graph)
-
-src/lib/qa/
-  crawler.functions.ts     createServerFn → Firecrawl map+scrape
-  inspector.functions.ts   createServerFn → AI Gateway per-page analysis
-  personas.ts              5 persona definitions (system prompts)
-  scoring.ts               Readiness Score formula
-  qa-store.ts              Cloud-backed CRUD (replaces localStorage pattern)
-
-src/routes/api/public/qa-webhook.tsx   (Phase 4 placeholder, not wired)
-supabase/migrations/<ts>_qa_schema.sql
-```
-
-Readiness Score formula (transparent, tweakable):
-`score = 100 − (critical*15 + high*7 + medium*3 + low*1) · coverage_factor`
-
-### Verification before I call Phase 1 done
-
-- Run against `https://example.com` and a real multi-page site (your choice).
-- Show: ≥1 page crawled per link discovered, ≥1 finding per persona, score renders, history persists across reload.
-
----
-
-## Phases 2–5 (preview only — approve Phase 1 first)
-
-- **Phase 2 — Real interaction + concurrency.** Browserbase integration (uses the secret already in Settings). Agents actually click buttons, fill forms, follow flows. Worker queue runs ~25 personas in parallel. Adds login/auth-flow testing.
-- **Phase 3 — Perf + a11y + security.** Lighthouse run per page, axe-core a11y scan, OWASP-lite checks (open redirects, missing headers, form CSRF tokens, exposed `.env`/admin paths).
-- **Phase 4 — Dev integrations.** GitHub/GitLab webhooks → auto-run on new deploy. Status checks back to PRs. Webhook already scaffolded in current app.
-- **Phase 5 — Learning engine + native targets.** Historical regression memory (which components fail repeatedly), trend charts. Native app testing requires external runners — I'll scope cost and infra then.
-
----
-
-Reply **"approve Phase 1"** to build, or tell me what to change (e.g. swap Firecrawl for Browserbase from the start, more/fewer personas, different score formula, different route prefix).
+Add beta test history
