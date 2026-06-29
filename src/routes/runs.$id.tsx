@@ -82,17 +82,24 @@ function RunDetail() {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-4">
         <Stat label="Status" value={run.status} />
-        <Stat label="Pass" value={run.stats.pass} tone="good" />
-        <Stat label="Warn" value={run.stats.warn} tone="warn" />
-        <Stat label="Fail" value={run.stats.fail} tone="bad" />
+        <Stat label="Interactions passed" value={run.stats.pass} tone="good" />
+        <Stat label="Warnings" value={run.stats.warn} tone="warn" />
+        <Stat label="Failed interactions" value={run.stats.fail} tone="bad" />
       </div>
 
-      <Tabs defaultValue="timeline" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="errors">Errors</TabsTrigger>
-          <TabsTrigger value="findings">Findings</TabsTrigger>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Each interaction below is a detected click, input, or navigation captured during the run.
+        Open a tab to inspect the flow, errors, or AI analysis.
+      </p>
+
+      <Tabs defaultValue="timeline" className="mt-4">
+        <TabsList aria-label="Run report sections">
+          <TabsTrigger value="timeline">Step-by-step ({run.steps.length})</TabsTrigger>
+          <TabsTrigger value="checklist">Interactions checklist</TabsTrigger>
+          <TabsTrigger value="errors">
+            Errors ({run.steps.reduce((n, s) => n + s.consoleErrors.length + s.networkErrors.length, 0)})
+          </TabsTrigger>
+          <TabsTrigger value="findings">Findings ({run.findings.length})</TabsTrigger>
           <TabsTrigger value="report">AI report</TabsTrigger>
         </TabsList>
 
@@ -101,8 +108,14 @@ function RunDetail() {
             {run.steps.map((s) => (
               <StepCard key={s.id} run={run} step={s} />
             ))}
+            {run.steps.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No interactions were detected in this run.
+              </p>
+            )}
           </div>
         </TabsContent>
+
 
         <TabsContent value="checklist" className="mt-4">
           <Card>
