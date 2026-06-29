@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PathwaysRouteImport } from './routes/pathways'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
@@ -28,6 +30,16 @@ import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.pu
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PathwaysRoute = PathwaysRouteImport.update({
+  id: '/pathways',
+  path: '/pathways',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -104,6 +116,8 @@ const ApiPublicWebhooksAgentEventRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
+  '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -121,6 +135,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
+  '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -139,6 +155,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
+  '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -158,6 +176,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/history'
+    | '/pathways'
     | '/settings'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -175,6 +195,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/history'
+    | '/pathways'
     | '/settings'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -192,6 +214,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/history'
+    | '/pathways'
     | '/settings'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -210,6 +234,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HistoryRoute: typeof HistoryRoute
+  PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
   AgentsTaskIdRoute: typeof AgentsTaskIdRoute
   AgentsApprovalsRoute: typeof AgentsApprovalsRoute
@@ -233,6 +259,20 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pathways': {
+      id: '/pathways'
+      path: '/pathways'
+      fullPath: '/pathways'
+      preLoaderRoute: typeof PathwaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -338,6 +378,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HistoryRoute: HistoryRoute,
+  PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
   AgentsTaskIdRoute: AgentsTaskIdRoute,
   AgentsApprovalsRoute: AgentsApprovalsRoute,
