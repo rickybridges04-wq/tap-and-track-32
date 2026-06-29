@@ -102,6 +102,7 @@ function RunDetail() {
             Errors ({run.steps.reduce((n, s) => n + s.consoleErrors.length + s.networkErrors.length, 0)})
           </TabsTrigger>
           <TabsTrigger value="findings">Findings ({run.findings.length})</TabsTrigger>
+          <TabsTrigger value="fixes">Fix suggestions ({run.findings.length + extractReportSuggestions(run.report).length})</TabsTrigger>
           <TabsTrigger value="report">AI report</TabsTrigger>
         </TabsList>
 
