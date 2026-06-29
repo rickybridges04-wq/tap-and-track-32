@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
@@ -8,6 +8,7 @@ import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-
 const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boolean }> = [
   { to: "/", label: "Dashboard", icon: Activity },
   { to: "/projects", label: "Projects", icon: FolderKanban },
+  { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/agents/history", label: "History", icon: History },

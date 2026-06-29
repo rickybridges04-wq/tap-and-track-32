@@ -22,6 +22,7 @@ import { Route as AgentsNewRouteImport } from './routes/agents.new'
 import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
 import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
+import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -89,6 +90,11 @@ const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
   path: '/agents/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
+  id: '/qa/runs/$runId',
+  path: '/qa/runs/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksAgentEventRoute =
   ApiPublicWebhooksAgentEventRouteImport.update({
     id: '/api/public/webhooks/agent-event',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesByTo {
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesById {
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRouteTypes {
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/projects/'
     | '/qa/'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/projects'
     | '/qa'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   id:
     | '__root__'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/projects/'
     | '/qa/'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   fileRoutesById: FileRoutesById
 }
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   AgentsIndexRoute: typeof AgentsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
+  QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
 }
 
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qa/runs/$runId': {
+      id: '/qa/runs/$runId'
+      path: '/qa/runs/$runId'
+      fullPath: '/qa/runs/$runId'
+      preLoaderRoute: typeof QaRunsRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/agent-event': {
       id: '/api/public/webhooks/agent-event'
       path: '/api/public/webhooks/agent-event'
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsIndexRoute: AgentsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
+  QaRunsRunIdRoute: QaRunsRunIdRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
 }
 export const routeTree = rootRouteImport
