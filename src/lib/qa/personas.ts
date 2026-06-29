@@ -21,7 +21,12 @@ export type PersonaId =
   | "security_tester"
   | "seo_marketer"
   | "edge_case_input"
-  | "developer";
+  | "developer"
+  | "load_spike"
+  | "concurrent_collaborator"
+  | "global_locale"
+  | "churn_risk"
+  | "compliance_reviewer";
 
 export type Persona = {
   id: PersonaId;
