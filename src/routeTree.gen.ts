@@ -11,15 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
+import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
 import { Route as AgentsNewRouteImport } from './routes/agents.new'
 import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
 import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
+import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -30,6 +33,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaIndexRoute = QaIndexRouteImport.update({
+  id: '/qa/',
+  path: '/qa/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
@@ -45,6 +53,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
 const RunsIdRoute = RunsIdRouteImport.update({
   id: '/runs/$id',
   path: '/runs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaNewRoute = QaNewRouteImport.update({
+  id: '/qa/new',
+  path: '/qa/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsNewRoute = ProjectsNewRouteImport.update({
@@ -77,6 +90,11 @@ const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
   path: '/agents/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
+  id: '/qa/runs/$runId',
+  path: '/qa/runs/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksAgentEventRoute =
   ApiPublicWebhooksAgentEventRouteImport.update({
     id: '/api/public/webhooks/agent-event',
@@ -93,9 +111,12 @@ export interface FileRoutesByFullPath {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/qa/': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesByTo {
@@ -107,9 +128,12 @@ export interface FileRoutesByTo {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/qa': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesById {
@@ -122,9 +146,12 @@ export interface FileRoutesById {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/qa/': typeof QaIndexRoute
+  '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRouteTypes {
@@ -138,9 +165,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
+    | '/qa/'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -152,9 +182,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents'
     | '/projects'
+    | '/qa'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   id:
     | '__root__'
@@ -166,9 +199,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
+    | '/qa/'
+    | '/qa/runs/$runId'
     | '/api/public/webhooks/agent-event'
   fileRoutesById: FileRoutesById
 }
@@ -181,9 +217,12 @@ export interface RootRouteChildren {
   AgentsNewRoute: typeof AgentsNewRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
+  QaNewRoute: typeof QaNewRoute
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
+  QaIndexRoute: typeof QaIndexRoute
+  QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
 }
 
@@ -201,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/': {
+      id: '/qa/'
+      path: '/qa'
+      fullPath: '/qa/'
+      preLoaderRoute: typeof QaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/': {
@@ -222,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/runs/$id'
       fullPath: '/runs/$id'
       preLoaderRoute: typeof RunsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/new': {
+      id: '/qa/new'
+      path: '/qa/new'
+      fullPath: '/qa/new'
+      preLoaderRoute: typeof QaNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/new': {
@@ -266,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qa/runs/$runId': {
+      id: '/qa/runs/$runId'
+      path: '/qa/runs/$runId'
+      fullPath: '/qa/runs/$runId'
+      preLoaderRoute: typeof QaRunsRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/agent-event': {
       id: '/api/public/webhooks/agent-event'
       path: '/api/public/webhooks/agent-event'
@@ -285,9 +345,12 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsNewRoute: AgentsNewRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
+  QaNewRoute: QaNewRoute,
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
+  QaIndexRoute: QaIndexRoute,
+  QaRunsRunIdRoute: QaRunsRunIdRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
 }
 export const routeTree = rootRouteImport
