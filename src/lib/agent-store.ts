@@ -8,7 +8,10 @@ export type AgentType =
   | "cfo"
   | "marketing"
   | "architect"
-  | "pm";
+  | "pm"
+  | "sre"
+  | "perf"
+  | "security";
 
 export type TaskStatus =
   | "pending"
