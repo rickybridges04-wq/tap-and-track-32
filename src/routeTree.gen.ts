@@ -15,6 +15,7 @@ import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
+import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
 import { Route as AgentsNewRouteImport } from './routes/agents.new'
@@ -51,6 +52,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
 const RunsIdRoute = RunsIdRouteImport.update({
   id: '/runs/$id',
   path: '/runs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaNewRoute = QaNewRouteImport.update({
+  id: '/qa/new',
+  path: '/qa/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsNewRoute = ProjectsNewRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
   '/projects': typeof ProjectsIndexRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/agents/new': typeof AgentsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/new': typeof QaNewRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents'
     | '/projects'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/new'
     | '/runs/$id'
     | '/agents/'
     | '/projects/'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   AgentsNewRoute: typeof AgentsNewRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
+  QaNewRoute: typeof QaNewRoute
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/runs/$id'
       fullPath: '/runs/$id'
       preLoaderRoute: typeof RunsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/new': {
+      id: '/qa/new'
+      path: '/qa/new'
+      fullPath: '/qa/new'
+      preLoaderRoute: typeof QaNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/new': {
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsNewRoute: AgentsNewRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
+  QaNewRoute: QaNewRoute,
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
