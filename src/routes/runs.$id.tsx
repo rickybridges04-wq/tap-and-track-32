@@ -166,6 +166,12 @@ function RunDetail() {
           )}
         </TabsContent>
 
+        <TabsContent value="fixes" className="mt-4 space-y-3">
+          <FixSuggestions run={run} />
+        </TabsContent>
+
+
+
         <TabsContent value="report" className="mt-4">
           <Card>
             <CardContent className="pt-6">
