@@ -320,3 +320,129 @@ function Stat({ label, value, tone }: { label: string; value: string | number; t
     </Card>
   );
 }
+
+// Parse markdown bullets from a "Recommendations" / "Suggestions" / "Next steps" section of the AI report.
+function extractReportSuggestions(report?: string): string[] {
+  if (!report) return [];
+  const lines = report.split(/\r?\n/);
+  const out: string[] = [];
+  let inSection = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (/^#{1,6}\s+(recommendations?|suggestions?|next steps|fixes?)\b/i.test(line)) {
+      inSection = true;
+      continue;
+    }
+    if (inSection && /^#{1,6}\s+/.test(line)) break;
+    if (inSection) {
+      const m = line.match(/^(?:[-*]|\d+[.)])\s+(.*)$/);
+      if (m && m[1].trim()) out.push(m[1].trim());
+    }
+  }
+  return out;
+}
+
+function FixSuggestions({ run }: { run: Run }) {
+  const reportItems = extractReportSuggestions(run.report);
+  const project = getProject(run.projectId);
+  const ctx = `Project: ${project?.name ?? "Unknown"}\nRun: ${run.id}\nReport excerpt:\n${(run.report ?? "").slice(0, 1200)}`;
+
+  if (run.findings.length === 0 && reportItems.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          No fix suggestions yet. Run the tester again to generate recommendations.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      {run.findings.map((f) => {
+        const title = `Fix: ${f.title}`;
+        const desc = `${f.body}\n\n---\n${ctx}`;
+        const sev = {
+          high: "bg-destructive/15 text-destructive",
+          medium: "bg-amber-500/15 text-amber-700",
+          low: "bg-muted text-foreground",
+        }[f.severity];
+        return (
+          <Card key={f.id}>
+            <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pb-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${sev}`}>{f.severity}</span>
+                  <CardTitle className="text-sm">{f.title}</CardTitle>
+                  <Badge variant="outline" className="ml-1">{f.status}</Badge>
+                </div>
+                <CardDescription className="mt-1">{f.body}</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2 pt-0">
+              <RunAgentDialog
+                defaultTitle={title}
+                defaultDescription={desc}
+                defaultAgent="debug"
+                source="error"
+                trigger={
+                  <Button size="sm">
+                    <Wrench className="mr-1 h-4 w-4" /> Apply fix
+                  </Button>
+                }
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  saveRun({
+                    ...run,
+                    findings: run.findings.map((x) =>
+                      x.id === f.id ? { ...x, status: "resolved" } : x,
+                    ),
+                  });
+                  toast.success("Marked as applied");
+                }}
+              >
+                Mark as applied
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {reportItems.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Sparkles className="h-4 w-4" /> From AI report
+            </CardTitle>
+            <CardDescription>Recommendations extracted from the report.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {reportItems.map((item, i) => (
+              <div
+                key={i}
+                className="flex items-start justify-between gap-3 rounded-md border border-border p-3"
+              >
+                <p className="text-sm leading-6">{item}</p>
+                <RunAgentDialog
+                  defaultTitle={`Fix: ${item.slice(0, 80)}`}
+                  defaultDescription={`${item}\n\n---\n${ctx}`}
+                  defaultAgent="debug"
+                  source="error"
+                  trigger={
+                    <Button size="sm" variant="outline" className="shrink-0">
+                      <Wrench className="mr-1 h-4 w-4" /> Apply fix
+                    </Button>
+                  }
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </>
+  );
+}
+
