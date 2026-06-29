@@ -155,6 +155,12 @@ export const AGENTS: Record<AgentType, AgentDef> = {
 // Keyword-first router (cheap). LLM fallback could be added later.
 export function routeAgent(text: string): AgentType {
   const t = text.toLowerCase();
+  if (/(uptime|outage|downtime|incident|alert|sla|slo|reliab|retry storm|circuit breaker|queue backlog)/.test(t))
+    return "sre";
+  if (/(slow|perf|performance|p95|p99|bundle|cache|query plan|throughput|latency|memoiz|pagination)/.test(t))
+    return "perf";
+  if (/(security|rls|pii|leak|vuln|cve|compliance|gdpr|ccpa|hipaa|pci|secret|credential|csrf|cors)/.test(t))
+    return "security";
   if (/(bug|error|crash|broken|exception|stack|failed|fail|throw|null|undefined)/.test(t))
     return "debug";
   if (/(price|pricing|cost|invoice|refund|billing|money|stripe|subscription|charge|payout)/.test(t))
