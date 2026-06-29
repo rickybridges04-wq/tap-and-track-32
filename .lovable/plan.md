@@ -1,31 +1,85 @@
-## Goal
 
-Make the Step 2 — Secrets card on `/settings` actually accept input. You can paste each value now, save it, and reveal/clear it. Values are stored locally until Lovable Cloud is enabled — then a single "Promote to Cloud" action will move them into real Cloud secrets.
+# Synapse QA OS — phased plan
 
-## Changes
+The full spec (200–500 concurrent testers, native iOS/Android/desktop, CI/CD, security pentest, perf profiling) is a multi-month enterprise build that needs real infrastructure we don't have in-app (browser farms, native runners, signed CI tokens). I'll ship it in phases. Each phase is a complete, usable product on its own; you approve before the next phase starts.
 
-### `src/routes/settings.tsx`
-- For each secret row, add:
-  - A masked `<Input type="password">` with show/hide eye toggle
-  - "Save" button (writes to localStorage via the new store)
-  - "Clear" button (removes it)
-  - A small status pill: `Not set` / `Saved locally` / `Managed by Lovable` (for `LOVABLE_API_KEY`, which stays read-only)
-- Keep the existing "Get it" external link on each row.
-- `LOVABLE_API_KEY` row stays informational (no input) — it's auto-provisioned.
-- Add a top-of-card note: "Stored in this browser only until Cloud is enabled. Don't paste production secrets on a shared device."
+This plan covers **Phase 1 only**. Phases 2–5 are listed so you can see the trajectory.
 
-### `src/lib/secrets-store.ts` (new)
-- Tiny localStorage wrapper: `getSecret(name)`, `setSecret(name, value)`, `clearSecret(name)`, `listSecrets()`.
-- Namespaced key: `bridges.secrets.v1.<NAME>`.
-- Uses the same `useMounted` pattern already used in `agent-store.ts` so SSR/CSR don't mismatch.
+---
 
-### Agent runner / tools wiring (light touch)
-- `src/lib/agent-tools.ts`: when a tool needs `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID`, `RESEND_API_KEY`, or `TESTER_WEBHOOK_SECRET`, read from `getSecret(...)` first. If missing, the tool returns a structured "missing_secret" result instead of failing silently — the agent run shows it in the timeline and the task surfaces "needs secret: X" so you know exactly what to paste on `/settings`.
-- No behavior change for `LOVABLE_API_KEY` (server-side, already provisioned).
+## Phase 1 — Synapse QA OS shell + real web crawler (this build)
 
-## Out of scope
-- Real Cloud secret promotion (one-click "Move to Cloud") — stub button shown but disabled with tooltip "Enable Lovable Cloud first." Wired up once Cloud is on.
-- Server-side use of these secrets. They remain client-side until Cloud is on; the runner today is client-driven so this is fine for simulated execution.
+Goal: paste any URL → autonomous AI explores it → get a real bug list, coverage map, and Readiness Score.
 
-## Security note
-Browser localStorage is fine for dev/simulated mode but is readable by any script on the origin. The card will say so. Real production secrets should land in Lovable Cloud secrets (Step 1) — this is explicitly a stopgap so you can paste keys the moment you receive them.
+### What ships
+
+1. **New section `/qa`** (Synapse QA OS), separate from Bridges Tester. Top-level nav entry.
+2. **New Run screen** — paste a URL, pick depth (Quick / Standard / Deep), pick 1–3 personas from a built-in roster (First-time user, Power user, Accessibility user, Frustrated customer, Random explorer — 5 to start, not 500). Start run.
+3. **Crawler engine** (server-side, via Firecrawl connector):
+   - `firecrawl.map` to discover URLs.
+   - `firecrawl.scrape` per page with `formats: ['markdown','links','screenshot']`.
+   - Build a **navigation graph** (nodes = URLs, edges = links).
+4. **AI inspection pass** per page via Lovable AI Gateway (`google/gemini-3-flash-preview`):
+   - Functional findings (broken links, missing forms, dead ends)
+   - Visual findings from the screenshot (empty states, overlapping, missing images)
+   - Accessibility findings from the HTML (missing alt, low contrast hints, missing labels)
+   - Each finding: severity, confidence, suggested fix, page URL.
+5. **Persona simulation** — each selected persona re-evaluates the same crawl with its own system prompt and produces its own findings stream. (Sequential, not 500-concurrent.)
+6. **Dashboard `/qa`**:
+   - Active run status, pages crawled, findings count by severity
+   - Navigation graph (simple force/tree view)
+   - Bug list (filter by severity / persona / page)
+   - **Production Readiness Score 0–100** with weighted sub-scores (Functionality, Visual, Accessibility, Coverage) and a verdict: Ready / Minor / Major / Block.
+7. **Run history** — every run stored, re-openable.
+8. **Storage** — Lovable Cloud (enable it now). Tables: `qa_runs`, `qa_pages`, `qa_findings`, `qa_personas`, with RLS scoped to the user.
+9. **Required secret** — Firecrawl connector (I'll prompt to connect it; nothing for you to paste manually).
+
+### Out of scope for Phase 1 (deferred to later phases)
+
+- Native iOS/Android/Windows/macOS/Linux apps
+- Real concurrent 200–500 testers (Phase 2 raises this to ~25 via worker queue)
+- Actual click/form/upload interaction (Phase 2 adds Browserbase for real DOM interaction)
+- Security testing (XSS/CSRF/SQLi) — Phase 3
+- Perf profiling (Lighthouse, CPU, memory) — Phase 3
+- CI/CD integrations (GitHub/GitLab webhooks) — Phase 4
+- Learning engine / historical regression memory — Phase 5
+
+### Technical sketch
+
+```text
+/qa (dashboard)
+/qa/new (start run)
+/qa/runs/$runId (live run + findings)
+/qa/runs/$runId/graph (navigation graph)
+
+src/lib/qa/
+  crawler.functions.ts     createServerFn → Firecrawl map+scrape
+  inspector.functions.ts   createServerFn → AI Gateway per-page analysis
+  personas.ts              5 persona definitions (system prompts)
+  scoring.ts               Readiness Score formula
+  qa-store.ts              Cloud-backed CRUD (replaces localStorage pattern)
+
+src/routes/api/public/qa-webhook.tsx   (Phase 4 placeholder, not wired)
+supabase/migrations/<ts>_qa_schema.sql
+```
+
+Readiness Score formula (transparent, tweakable):
+`score = 100 − (critical*15 + high*7 + medium*3 + low*1) · coverage_factor`
+
+### Verification before I call Phase 1 done
+
+- Run against `https://example.com` and a real multi-page site (your choice).
+- Show: ≥1 page crawled per link discovered, ≥1 finding per persona, score renders, history persists across reload.
+
+---
+
+## Phases 2–5 (preview only — approve Phase 1 first)
+
+- **Phase 2 — Real interaction + concurrency.** Browserbase integration (uses the secret already in Settings). Agents actually click buttons, fill forms, follow flows. Worker queue runs ~25 personas in parallel. Adds login/auth-flow testing.
+- **Phase 3 — Perf + a11y + security.** Lighthouse run per page, axe-core a11y scan, OWASP-lite checks (open redirects, missing headers, form CSRF tokens, exposed `.env`/admin paths).
+- **Phase 4 — Dev integrations.** GitHub/GitLab webhooks → auto-run on new deploy. Status checks back to PRs. Webhook already scaffolded in current app.
+- **Phase 5 — Learning engine + native targets.** Historical regression memory (which components fail repeatedly), trend charts. Native app testing requires external runners — I'll scope cost and infra then.
+
+---
+
+Reply **"approve Phase 1"** to build, or tell me what to change (e.g. swap Firecrawl for Browserbase from the start, more/fewer personas, different score formula, different route prefix).
