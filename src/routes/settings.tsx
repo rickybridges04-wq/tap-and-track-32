@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -172,11 +172,15 @@ function Settings() {
             <Bot className="h-4 w-4" /> Agents are live now
           </CardTitle>
           <CardDescription>
-            Agent reasoning uses Lovable AI Gateway today — no Cloud required. Tasks, runs, and
-            approvals are persisted in localStorage and will swap to real tables once Cloud is on.
+            Agent reasoning uses Lovable AI Gateway by default. Switch to Anthropic (Claude) below to
+            A/B test reasoning quality. Tasks/runs/approvals persist in localStorage.
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <ProviderSelector />
+        </CardContent>
       </Card>
+
 
       <Card className="mt-6">
         <CardHeader>
@@ -224,3 +228,42 @@ function Settings() {
     </AppShell>
   );
 }
+
+function ProviderSelector() {
+  const mounted = useMounted();
+  const [provider, setProviderState] = useState<"lovable" | "anthropic">("lovable");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const v = window.localStorage.getItem("bridges.agentProvider");
+      if (v === "anthropic" || v === "lovable") setProviderState(v);
+    }
+  }, []);
+
+  function pick(p: "lovable" | "anthropic") {
+    setProviderState(p);
+    if (typeof window !== "undefined") window.localStorage.setItem("bridges.agentProvider", p);
+  }
+  if (!mounted) return null;
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant={provider === "lovable" ? "default" : "outline"}
+        onClick={() => pick("lovable")}
+      >
+        Lovable AI (Gemini) {provider === "lovable" && <Check className="ml-1 h-3.5 w-3.5" />}
+      </Button>
+      <Button
+        size="sm"
+        variant={provider === "anthropic" ? "default" : "outline"}
+        onClick={() => pick("anthropic")}
+      >
+        Anthropic (Claude Sonnet 4.5) {provider === "anthropic" && <Check className="ml-1 h-3.5 w-3.5" />}
+      </Button>
+      <Badge variant="secondary" className="ml-auto">
+        Requires ANTHROPIC_API_KEY {provider === "anthropic" ? "· active" : ""}
+      </Badge>
+    </div>
+  );
+}
+

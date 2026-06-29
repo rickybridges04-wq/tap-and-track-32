@@ -33,12 +33,25 @@ type Planner = (args: {
     systemPrompt: string;
     toolCatalog: string;
     task: { title: string; description: string; context?: string };
+    provider?: "lovable" | "anthropic";
+    model?: string;
   };
 }) => Promise<{
   agentSummary: string;
   plan: Array<{ tool: ToolName; reasoning: string; args: string }>;
   finalReport: string;
 }>;
+
+function readProvider(): "lovable" | "anthropic" {
+  if (typeof window === "undefined") return "lovable";
+  try {
+    const v = window.localStorage.getItem("bridges.agentProvider");
+    return v === "anthropic" ? "anthropic" : "lovable";
+  } catch {
+    return "lovable";
+  }
+}
+
 
 async function startRunInternal(task: AgentTask, planner: Planner): Promise<AgentRun> {
   const agentDef = AGENTS[task.agentType];
@@ -58,6 +71,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
   };
   saveAgentRun(run);
 
+  const provider = readProvider();
   let result;
   try {
     result = await planner({
@@ -66,6 +80,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
         systemPrompt: agentDef.systemPrompt,
         toolCatalog: toolCatalogFor(task.agentType),
         task: { title: task.title, description: task.description },
+        provider,
       },
     });
   } catch (err) {
@@ -77,6 +92,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
           systemPrompt: agentDef.systemPrompt,
           toolCatalog: toolCatalogFor(task.agentType),
           task: { title: task.title, description: task.description },
+          provider,
         },
       });
       run.retries = 1;
@@ -89,6 +105,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
       return run;
     }
   }
+
 
   run.agentSummary = result.agentSummary;
   run.output = result.finalReport;
