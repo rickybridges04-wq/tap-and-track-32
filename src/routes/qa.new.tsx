@@ -6,6 +6,8 @@ import { createRun } from "@/lib/qa/runner";
 import { startRun } from "@/lib/qa/runner";
 import { ArrowLeft, Play } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { PaywallCard, TrialBadge } from "@/components/PaywallCard";
 
 export const Route = createFileRoute("/qa/new")({
   component: NewQaRun,
@@ -13,6 +15,7 @@ export const Route = createFileRoute("/qa/new")({
 
 function NewQaRun() {
   const navigate = useNavigate();
+  const sub = useSubscription();
   const [url, setUrl] = useState("");
   const [depth, setDepth] = useState<"quick" | "standard" | "deep">("quick");
   const [selected, setSelected] = useState<PersonaId[]>(["first_time", "accessibility", "frustrated"]);
@@ -24,12 +27,12 @@ function NewQaRun() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!url.trim() || selected.length === 0 || submitting) return;
+    if (!url.trim() || selected.length === 0 || submitting || !sub.canRun) return;
     setSubmitting(true);
     let normalized = url.trim();
     if (!/^https?:\/\//.test(normalized)) normalized = `https://${normalized}`;
     const run = createRun({ url: normalized, depth, personas: selected });
-    // Kick off async — don't await; navigate to run page
+    if (!sub.active) incrementRunsUsed();
     void startRun(run.id);
     navigate({ to: "/qa/runs/$runId", params: { runId: run.id } });
   }
@@ -40,13 +43,23 @@ function NewQaRun() {
         <Link to="/qa" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3 w-3" /> Back to QA
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Start an autonomous crawl</h1>
+        <div className="mt-2 flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Start an autonomous crawl</h1>
+          <TrialBadge />
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Synapse QA OS will discover pages, scrape them, and inspect each one with every persona you select.
         </p>
       </div>
 
+      {!sub.canRun && (
+        <div className="mb-6 max-w-2xl">
+          <PaywallCard what="run" />
+        </div>
+      )}
+
       <form onSubmit={onSubmit} className="max-w-2xl space-y-6 rounded-lg border border-border bg-card p-6">
+
         <div>
           <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Target URL
@@ -114,10 +127,10 @@ function NewQaRun() {
 
         <button
           type="submit"
-          disabled={!url.trim() || selected.length === 0 || submitting}
+          disabled={!url.trim() || selected.length === 0 || submitting || !sub.canRun}
           className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          <Play className="h-4 w-4" /> {submitting ? "Starting..." : "Start crawl"}
+          <Play className="h-4 w-4" /> {submitting ? "Starting..." : !sub.canRun ? "Upgrade to run" : "Start crawl"}
         </button>
         <p className="text-xs text-muted-foreground">
           Each page × persona uses one AI call. Quick + 3 personas ≈ 9 calls.

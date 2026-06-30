@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
@@ -15,6 +15,7 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/history", label: "Beta history", icon: History },
   { to: "/pathways", label: "Pathways", icon: RouteIcon },
+  { to: "/upgrade", label: "Upgrade", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

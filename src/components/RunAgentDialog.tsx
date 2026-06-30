@@ -18,6 +18,8 @@ import { AGENTS, routeAgent } from "@/lib/agents";
 import type { AgentType, TaskPriority, TaskSource } from "@/lib/agent-store";
 import { enqueueTask } from "@/lib/agent-triggers";
 import { useStartAgentRun } from "@/lib/agent-runner";
+import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { PaywallCard } from "@/components/PaywallCard";
 import { Sparkles } from "lucide-react";
 
 type Props = {
@@ -43,11 +45,13 @@ export function RunAgentDialog({
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const startRun = useStartAgentRun();
+  const sub = useSubscription();
 
   const suggested = agent === "auto" ? routeAgent(`${title} ${description}`) : agent;
 
   async function submit() {
     if (!title.trim() && !description.trim()) return;
+    if (!sub.canRun) return;
     setBusy(true);
     try {
       const task = enqueueTask({
@@ -57,8 +61,8 @@ export function RunAgentDialog({
         agentType: suggested,
         source,
       });
+      if (!sub.active) incrementRunsUsed();
       setOpen(false);
-      // Fire and forget — UI updates via store events
       startRun(task).catch(() => {});
       navigate({ to: "/agents/$taskId", params: { taskId: task.id } });
     } finally {
@@ -82,6 +86,7 @@ export function RunAgentDialog({
             Describe the problem, task, bug, or request. The router will pick the right agent — you can override it.
           </DialogDescription>
         </DialogHeader>
+        {!sub.canRun && <PaywallCard what="agent task" />}
         <div className="space-y-3">
           <div>
             <Label htmlFor="t">Title</Label>
@@ -125,8 +130,8 @@ export function RunAgentDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={busy || (!title.trim() && !description.trim())}>
-            {busy ? "Queueing…" : "Run agent"}
+          <Button onClick={submit} disabled={busy || !sub.canRun || (!title.trim() && !description.trim())}>
+            {busy ? "Queueing…" : !sub.canRun ? "Upgrade to run" : "Run agent"}
           </Button>
         </DialogFooter>
       </DialogContent>
