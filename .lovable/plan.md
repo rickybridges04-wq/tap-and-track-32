@@ -1,39 +1,33 @@
 ## Goal
-Make the app robust at 100k+ user scale by expanding both rosters with scale-focused roles.
+Monetize Walkthrough Wizard QAOS as a subscription (2 free QA runs, then paywall), give it a real app icon, and make it installable on your phone.
 
-## 1. Add 5 beta tester personas (20 → 25)
-Edit `src/lib/qa/personas.ts` — append to `PERSONAS` and `ALL_PERSONA_IDS`. Each gets a system prompt that biases the AI inspector toward a scale/reliability lens.
+## 1. Payments — Stripe subscription
+Run `recommend_payment_provider` then enable Stripe via `enable_stripe_payments` (built-in, no account needed to start in test mode). Create one subscription product:
+- **Pro** — single monthly tier, unlimited QA runs + agent tasks.
+Price + exact $ to be set when we create the product (I'll ask before creating).
 
-| New persona | Lens it adds |
-|---|---|
-| **Load-spike user** 🌊 | Behaves like one of 100k concurrent users — flags anything that implies per-user state, unbounded lists, missing pagination, N+1 calls, no rate-limit messaging, or UI that assumes a quiet backend. |
-| **Concurrent collaborator** 👥 | Two people on the same record at once — flags missing optimistic-UI conflict handling, no "someone else edited this" warning, last-write-wins data loss, no realtime refresh. |
-| **Global / timezone user** 🌍 | Non-US locale, different timezone, RTL, large numbers — flags hardcoded $/USD/MM-DD-YY, server-time displayed as local, missing i18n hooks, broken layout in RTL. |
-| **Churn-risk user** 🚪 | Decides in 10 seconds whether to stay — flags slow first paint, no value on empty state, forced signup walls, friction before "aha" moment, no progress feedback. |
-| **Compliance / legal reviewer** ⚖️ | Audits for production-readiness at scale — flags missing ToS/Privacy/Cookie notice, no data-export/delete path, PII shown in URLs/logs, missing age gate, unclear data retention. |
+## 2. Free-trial gate (paywall after 2 runs)
+- Add `src/lib/usage-store.ts` — tracks lifetime count of completed QA runs in localStorage (`bridges.usage.qaRuns`). When Cloud/Stripe is live, this moves to a `usage` table keyed by user.
+- Add `src/lib/subscription.ts` — `useSubscription()` hook. Returns `{ status: "trial" | "active", runsUsed, runsRemaining, canRun }`. `active` once Stripe webhook flips a flag; until then, `canRun = runsUsed < 2`.
+- Gate `src/routes/qa.new.tsx` "Start crawl" button: if `!canRun`, show a `<PaywallCard />` with run counter + "Upgrade" CTA instead of starting the run.
+- Same gate on `src/components/RunAgentDialog.tsx` submit (agent tasks count toward the same 2-run budget so both surfaces are covered).
+- New route `src/routes/upgrade.tsx` — pricing card, "Subscribe" button → Stripe Checkout.
+- Webhook `src/routes/api/public/webhooks.stripe.tsx` — on `checkout.session.completed` / `customer.subscription.updated`, mark the user active. Until Cloud is on, this flag also lives in localStorage as `bridges.subscription.active`.
 
-No other files need to change — `qa.new.tsx` reads from `ALL_PERSONA_IDS` and renders them automatically.
+## 3. App icon
+Generate a premium 1024×1024 icon matching the Deep Cosmic theme (neon gradient wizard/wand glyph on dark) → `public/icon-512.png` + `public/icon-192.png` + `public/apple-touch-icon.png` + `public/favicon.ico`.
 
-## 2. Expand agent roster (7 → 10)
-Edit `src/lib/agents.ts` — add 3 new agents to the `AGENTS` map, the `AgentType` union in `src/lib/agent-store.ts`, and the keyword router. Each new agent gets system prompt, allowed tools, risk posture, and a routing rule. All three target the "runs reliably at scale" goal.
+## 4. Installable PWA (manifest-only — home-screen install, no offline)
+- `public/manifest.webmanifest` with name "Walkthrough Wizard QAOS", short_name "Wizard QAOS", `display: standalone`, theme/bg colors from cosmic theme, icons above.
+- Add `<link rel="manifest">`, `theme-color`, `apple-touch-icon` to `src/routes/__root.tsx` head.
+- No service worker, no `vite-plugin-pwa` (per skill/pwa rules — you asked for install, not offline).
 
-| New agent | Position | Why it matters at 100k users | Tools |
-|---|---|---|---|
-| **SRE / Reliability Engineer** 🛰️ | Uptime, error budgets, alerting, incident response | Catches outages, latency spikes, failed jobs, retry storms before they cascade | read*, listErrors, runBridgesTester, markResolved, proposePlan, **updateProdSetting** (risky) |
-| **Performance Engineer** ⚡ | Load, latency, bundle size, DB query cost | At 100k users, a 200ms query becomes a 5-minute backlog — owns the speed budget | read*, listRuns, listErrors, proposePlan |
-| **Security & Compliance Officer** 🔐 | Authn/z, secrets, RLS, PII, audit logs, vulnerability triage | One leak at scale = company-ending event; owns approval-gate for risky data ops | read*, listErrors, proposePlan, markResolved, **updateProdSetting** (risky) |
+## 5. Install instructions
+After build, I'll give you the published URL + 1-tap install steps for iOS (Share → Add to Home Screen) and Android (Chrome menu → Install app). I can't push-install to your device remotely — only the browser prompt can.
 
-Router keyword additions:
-- `uptime|outage|downtime|latency|alert|incident|sla|slo|reliab` → **sre**
-- `slow|perf|performance|p95|p99|bundle|cache|query plan|index|throughput` → **perf**
-- `security|auth|rls|pii|leak|vuln|cve|compliance|gdpr|hipaa|pci|secret|credential` → **security**
-
-Risk: `updateProdSetting` stays in `RISKY_TOOLS=true`, so both SRE and Security must request approval for prod changes — matches the existing approval-queue pattern.
-
-## Files changed
-- `src/lib/qa/personas.ts` — append 5 personas + IDs
-- `src/lib/agents.ts` — add 3 agents, 3 router rules, extend tool grants
-- `src/lib/agent-store.ts` — extend `AgentType` union with `"sre" | "perf" | "security"`
+## Questions before I build
+1. **Subscription price** — $19/mo? $29/mo? Something else?
+2. **Trial budget** — you said "after the testing of the first two apps." I read that as 2 total QA runs free, then paywall. Correct, or did you mean 2 QA runs *per project*?
 
 ## Out of scope
-No backend, no schema, no UI restructuring — both surfaces already auto-render from the registries.
+Annual plan, team seats, coupon codes, in-app upgrade modal animations — easy to add after the base is live.
