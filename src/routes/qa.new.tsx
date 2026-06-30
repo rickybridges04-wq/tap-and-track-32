@@ -43,13 +43,23 @@ function NewQaRun() {
         <Link to="/qa" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3 w-3" /> Back to QA
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Start an autonomous crawl</h1>
+        <div className="mt-2 flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Start an autonomous crawl</h1>
+          <TrialBadge />
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Synapse QA OS will discover pages, scrape them, and inspect each one with every persona you select.
         </p>
       </div>
 
+      {!sub.canRun && (
+        <div className="mb-6 max-w-2xl">
+          <PaywallCard what="run" />
+        </div>
+      )}
+
       <form onSubmit={onSubmit} className="max-w-2xl space-y-6 rounded-lg border border-border bg-card p-6">
+
         <div>
           <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Target URL
