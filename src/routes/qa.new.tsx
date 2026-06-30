@@ -15,6 +15,7 @@ export const Route = createFileRoute("/qa/new")({
 
 function NewQaRun() {
   const navigate = useNavigate();
+  const sub = useSubscription();
   const [url, setUrl] = useState("");
   const [depth, setDepth] = useState<"quick" | "standard" | "deep">("quick");
   const [selected, setSelected] = useState<PersonaId[]>(["first_time", "accessibility", "frustrated"]);
@@ -26,12 +27,12 @@ function NewQaRun() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!url.trim() || selected.length === 0 || submitting) return;
+    if (!url.trim() || selected.length === 0 || submitting || !sub.canRun) return;
     setSubmitting(true);
     let normalized = url.trim();
     if (!/^https?:\/\//.test(normalized)) normalized = `https://${normalized}`;
     const run = createRun({ url: normalized, depth, personas: selected });
-    // Kick off async — don't await; navigate to run page
+    if (!sub.active) incrementRunsUsed();
     void startRun(run.id);
     navigate({ to: "/qa/runs/$runId", params: { runId: run.id } });
   }
