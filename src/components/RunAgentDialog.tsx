@@ -18,6 +18,8 @@ import { AGENTS, routeAgent } from "@/lib/agents";
 import type { AgentType, TaskPriority, TaskSource } from "@/lib/agent-store";
 import { enqueueTask } from "@/lib/agent-triggers";
 import { useStartAgentRun } from "@/lib/agent-runner";
+import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { PaywallCard } from "@/components/PaywallCard";
 import { Sparkles } from "lucide-react";
 
 type Props = {
