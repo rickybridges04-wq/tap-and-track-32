@@ -45,11 +45,13 @@ export function RunAgentDialog({
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const startRun = useStartAgentRun();
+  const sub = useSubscription();
 
   const suggested = agent === "auto" ? routeAgent(`${title} ${description}`) : agent;
 
   async function submit() {
     if (!title.trim() && !description.trim()) return;
+    if (!sub.canRun) return;
     setBusy(true);
     try {
       const task = enqueueTask({
@@ -59,8 +61,8 @@ export function RunAgentDialog({
         agentType: suggested,
         source,
       });
+      if (!sub.active) incrementRunsUsed();
       setOpen(false);
-      // Fire and forget — UI updates via store events
       startRun(task).catch(() => {});
       navigate({ to: "/agents/$taskId", params: { taskId: task.id } });
     } finally {
