@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
