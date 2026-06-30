@@ -130,8 +130,8 @@ export function RunAgentDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={busy || (!title.trim() && !description.trim())}>
-            {busy ? "Queueing…" : "Run agent"}
+          <Button onClick={submit} disabled={busy || !sub.canRun || (!title.trim() && !description.trim())}>
+            {busy ? "Queueing…" : !sub.canRun ? "Upgrade to run" : "Run agent"}
           </Button>
         </DialogFooter>
       </DialogContent>
