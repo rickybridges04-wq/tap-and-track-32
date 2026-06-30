@@ -90,19 +90,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Walkthrough Wizard QAOS — Beta" },
-      { name: "description", content: "Walkthrough Wizard QAOS: autonomous QA, AI agents, and release-readiness scoring for any web app. Currently in beta." },
-      { name: "author", content: "Bridges AI Enterprises" },
-      { property: "og:title", content: "Walkthrough Wizard QAOS — Beta" },
-      { property: "og:description", content: "Autonomous QA + AI agent operations center. Beta." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Walkthrough Wizard QAOS — Beta" },
-      { name: "twitter:description", content: "Autonomous QA + AI agent operations center. Beta." },
-    ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
