@@ -127,10 +127,10 @@ function NewQaRun() {
 
         <button
           type="submit"
-          disabled={!url.trim() || selected.length === 0 || submitting}
+          disabled={!url.trim() || selected.length === 0 || submitting || !sub.canRun}
           className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          <Play className="h-4 w-4" /> {submitting ? "Starting..." : "Start crawl"}
+          <Play className="h-4 w-4" /> {submitting ? "Starting..." : !sub.canRun ? "Upgrade to run" : "Start crawl"}
         </button>
         <p className="text-xs text-muted-foreground">
           Each page × persona uses one AI call. Quick + 3 personas ≈ 9 calls.
