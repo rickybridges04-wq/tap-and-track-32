@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -29,6 +30,11 @@ import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/pathways'
     | '/settings'
+    | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/pathways'
     | '/settings'
+    | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/pathways'
     | '/settings'
+    | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
+  UpgradeRoute: typeof UpgradeRoute
   AgentsTaskIdRoute: typeof AgentsTaskIdRoute
   AgentsApprovalsRoute: typeof AgentsApprovalsRoute
   AgentsHistoryRoute: typeof AgentsHistoryRoute
@@ -280,6 +293,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -421,6 +441,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
+  UpgradeRoute: UpgradeRoute,
   AgentsTaskIdRoute: AgentsTaskIdRoute,
   AgentsApprovalsRoute: AgentsApprovalsRoute,
   AgentsHistoryRoute: AgentsHistoryRoute,
