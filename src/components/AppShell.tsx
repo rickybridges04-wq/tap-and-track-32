@@ -15,6 +15,7 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/history", label: "Beta history", icon: History },
   { to: "/pathways", label: "Pathways", icon: RouteIcon },
+  { to: "/upgrade", label: "Upgrade", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
