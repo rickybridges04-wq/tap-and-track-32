@@ -86,6 +86,7 @@ export function RunAgentDialog({
             Describe the problem, task, bug, or request. The router will pick the right agent — you can override it.
           </DialogDescription>
         </DialogHeader>
+        {!sub.canRun && <PaywallCard what="agent task" />}
         <div className="space-y-3">
           <div>
             <Label htmlFor="t">Title</Label>
