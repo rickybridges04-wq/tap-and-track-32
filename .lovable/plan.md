@@ -1,56 +1,24 @@
-## Goal
-1. Add a **Sync All** button that scrapes the app's live URL and auto-fills every field, checklist, and data table so registering a new app is a one-click experience.
-2. Verify the **Submit to Stores** wizard actually saves each step and produces a valid packet end-to-end.
+## Problem
 
----
+The QA run failed at "Inspecting SEO / marketer (12/50)" with a bare `TypeError: Failed to fetch`. This is the browser losing one server-function call mid-run (Vite dev-server reload, transient network blip, or gateway hiccup). Because `startRun` wraps the whole loop in one `try/catch`, a single failed `inspectPage`/`scrapePage` call aborts the entire crawl and marks it `failed` — even though 11 pages had already been inspected successfully.
 
-## Part 1 — Sync All (auto-fill from crawl)
+## Fix
 
-### New server function `syncAppFromCrawl` (in `src/lib/apps.functions.ts`)
-Given `appId`, load the app, then in parallel via Firecrawl:
-- `scrape(base_url, { formats: ['markdown','links','screenshot','branding','summary'] })` → title, description, colors, logo, favicon, fonts, hero image
-- `map(base_url, { limit: 50 })` → link inventory (used to detect `/privacy`, `/support`, `/contact`)
-- Fetch `/manifest.webmanifest`, `/sw.js`, `/apple-touch-icon.png`, `/icon-192.png`, `/icon-512.png`, `/robots.txt` via `fetch()` (HEAD) → PWA readiness signals
-- Pull latest `qa_runs` row for this base URL (if any) → surface beta-test findings
+Harden `src/lib/qa/runner.ts` so one flaky call can't kill the run:
 
-Then update in one transaction:
-- **apps**: name (if empty), short_desc (from branding/summary, 80 chars), long_desc (from summary), theme_color + bg_color (from branding.colors), icon_url (from branding.logo), category (heuristic from summary keywords)
-- **app_store_submissions** (upsert per store): pre-check PWA items detected (`manifest`, `icon192`, `icon512`, `apple_touch`, `service_worker`, `https`, `responsive`); pre-fill Apple/Google `privacy_url`, `support_url`, `description`, `short_desc`
-- **app_tables**: if none exist, seed a `Feedback` table (name/email/message) and a `Contacts` table (name/email) so the Data Manager is ready
+1. **Per-call retry with backoff** — wrap each `scrapePage` and `inspectPage` call in a small helper that retries up to 2× on thrown errors (500ms, then 1500ms). Handles Vite HMR reconnects and transient gateway 5xx.
+2. **Non-fatal per-page/per-persona failures** — after retries exhaust, log the error into `findings` as a low-severity `crawler` note (`"Inspection failed for <persona> on <url>"`) and continue the loop instead of throwing.
+3. **Track soft errors on the run** — accumulate a `warnings: string[]` list and surface count in the progress stage (`"Inspecting X (5/50, 1 skipped)"`) so users see partial degradation.
+4. **Only hard-fail if `mapSite` fails or every inspection fails** — otherwise finish with `status: "completed"` and let scoring reflect what was gathered.
 
-Return `{ ok, filled: {...}, warnings: [...] }` for the UI toast.
+## Files
 
-### UI wiring
-- `src/routes/apps.new.tsx`: after `createApp` succeeds, call `syncAppFromCrawl` (only when a base URL was provided) with a "Syncing from your site…" loading state, then navigate to `/apps/$id`.
-- `src/routes/apps.$id.tsx`: add a **Sync All** button next to Delete that reruns the sync on demand and refetches. Show last-sync timestamp.
-- `src/routes/apps.index.tsx`: add a small Sync icon-button on each card (stops event propagation) for one-click refresh from the list.
-
-### Prereqs
-- Firecrawl connector is already linked (`FIRECRAWL_API_KEY` present in secrets), so no new setup.
-
----
-
-## Part 2 — Verify Submit to Stores works
-
-Reproduce the full flow against the running preview with Playwright:
-1. Register a throwaway app with a base URL.
-2. Open `/apps/$id/submit`, click through Step 1 → PWA → Apple → Google.
-3. Tick every checkbox in each store step, click **Save & continue** / **Mark ready & continue**.
-4. Confirm each click round-trips to Supabase (row appears in `app_store_submissions`, progress bar hits 100%, status flips to `ready`).
-5. Click **Download submission packet (JSON)** and inspect the file for the three store entries with checklist=true.
-6. Fix any breakage found (upsert error, step advancement, packet contents).
-
-Screenshots at each step saved to `/tmp/browser/submit-verify/`; report Built vs Verified per the app-readiness rules.
-
----
-
-## Files touched
-- `src/lib/apps.functions.ts` — add `syncAppFromCrawl`
-- `src/routes/apps.new.tsx` — auto-sync after create
-- `src/routes/apps.$id.tsx` — Sync All button + last-sync display
-- `src/routes/apps.index.tsx` — per-card sync button
-- No DB migration needed (existing columns/tables cover it)
+- `src/lib/qa/runner.ts` — add `withRetry()` helper, wrap scrape/inspect calls, convert catches to soft warnings, adjust final status logic.
+- `src/lib/qa/qa-store.ts` — add optional `warnings?: string[]` to `QaRun` type (backward compatible; existing runs read as undefined).
+- `src/routes/qa.runs.$runId.tsx` — if `warnings.length > 0` on a completed run, show a small "N steps skipped" note under the header. (Read-only display; no behavior change.)
 
 ## Out of scope
-- Real Apple/Google API submission (still manual packet download — no public API for either store).
-- Icon generation / resizing (uses detected logo as-is; can add later).
+
+- Retrying the entire failed run automatically (user can hit Run again).
+- Reducing default page/persona counts — the 50-step deep crawl is by design; resiliency is the real gap.
+- Backend changes to `inspectPage`/`scrapePage` — those already return `{ ok: false, error }` on handler errors; the failure here is at the transport layer before the handler is reached.
