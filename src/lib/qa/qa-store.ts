@@ -50,6 +50,7 @@ export type QaRun = {
   score?: number;
   verdict?: "ready" | "minor" | "major" | "block";
   error?: string;
+  warnings?: string[];
   createdAt: string;
   completedAt?: string;
 };
