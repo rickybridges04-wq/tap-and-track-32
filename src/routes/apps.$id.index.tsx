@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { getApp, updateApp, deleteApp } from "@/lib/apps.functions";
+import { getApp, updateApp, deleteApp, syncAppFromCrawl } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { Smartphone, Trash2, Upload, Bell, Database, Inbox } from "lucide-react";
+import { Smartphone, Trash2, Upload, Bell, Database, Inbox, RefreshCw } from "lucide-react";
 
-export const Route = createFileRoute("/apps/$id")({
+export const Route = createFileRoute("/apps/$id/")({
   head: () => ({ meta: [{ title: "App · Walkthrough Wizard QAOS" }] }),
   component: AppDetail,
 });
@@ -20,7 +20,10 @@ function AppDetail() {
   const q = useQuery({ queryKey: ["app", id], queryFn: () => getApp({ data: { id } }), enabled: !!user });
   const update = useServerFn(updateApp);
   const del = useServerFn(deleteApp);
+  const sync = useServerFn(syncAppFromCrawl);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [form, setForm] = useState<any>(null);
 
   useEffect(() => { if (q.data && !form) setForm(q.data); }, [q.data, form]);
@@ -39,22 +42,41 @@ function AppDetail() {
     nav({ to: "/apps", replace: true });
   };
 
+  const runSync = async () => {
+    setSyncing(true); setSyncMsg(null);
+    try {
+      const res: any = await sync({ data: { id } });
+      if (res?.ok) {
+        setSyncMsg("Synced — branding, PWA checklist, and data tables refreshed.");
+        setForm(null);
+        await q.refetch();
+      } else setSyncMsg(res?.error ?? "Sync failed");
+    } catch (e: any) { setSyncMsg(e.message); }
+    setSyncing(false);
+  };
+
   return (
     <AppShell>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg" style={{ background: form.theme_color }}>
-            <Smartphone className="h-6 w-6 text-white" />
+            {form.icon_url ? <img src={form.icon_url} alt="" className="h-12 w-12 rounded-lg object-cover" /> : <Smartphone className="h-6 w-6 text-white" />}
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{form.name}</h1>
             <div className="text-xs text-muted-foreground uppercase tracking-wide">{form.status}</div>
           </div>
         </div>
-        <button onClick={remove} className="rounded-md border border-red-500/40 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 inline-flex items-center gap-1">
-          <Trash2 className="h-3 w-3" /> Delete
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={runSync} disabled={syncing || !form.base_url} title={!form.base_url ? "Add a base URL first" : "Re-crawl and auto-fill everything"} className="rounded-md border border-fuchsia-500/40 px-3 py-1.5 text-xs text-fuchsia-300 hover:bg-fuchsia-500/10 disabled:opacity-50 inline-flex items-center gap-1">
+            <RefreshCw className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "Syncing…" : "Sync All"}
+          </button>
+          <button onClick={remove} className="rounded-md border border-red-500/40 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 inline-flex items-center gap-1">
+            <Trash2 className="h-3 w-3" /> Delete
+          </button>
+        </div>
       </div>
+      {syncMsg && <div className="mt-3 rounded-md border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-xs text-fuchsia-200">{syncMsg}</div>}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-4">
         <Link to="/apps/$id/submit" params={{ id }} className="rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
