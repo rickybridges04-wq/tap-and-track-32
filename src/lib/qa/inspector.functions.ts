@@ -65,23 +65,22 @@ function normalize(raw: unknown): { summary: string; findings: NormalizedFinding
   const parsed = LooseInspection.safeParse(raw);
   const obj = parsed.success ? parsed.data : {};
   const summary = truncate(obj.summary ?? "", 400);
-  const findings: NormalizedFinding[] = (obj.findings ?? [])
-    .map((f) => {
-      const title = truncate(f?.title, 160);
-      const detail = truncate(f?.detail, 900);
-      if (!title && !detail) return null;
-      const suggestion = f?.suggestion == null ? undefined : truncate(f.suggestion, 500);
-      return {
-        category: coerceCategory(f?.category),
-        severity: coerceSeverity(f?.severity),
-        confidence: clamp(f?.confidence, 0, 1, 0.6),
-        title: title || detail.slice(0, 80),
-        detail: detail || title,
-        suggestion,
-      } satisfies NormalizedFinding;
-    })
-    .filter((x): x is NormalizedFinding => x != null)
-    .slice(0, 6);
+  const findings: NormalizedFinding[] = [];
+  for (const f of obj.findings ?? []) {
+    const title = truncate(f?.title, 160);
+    const detail = truncate(f?.detail, 900);
+    if (!title && !detail) continue;
+    const suggestion = f?.suggestion == null ? undefined : truncate(f.suggestion, 500);
+    findings.push({
+      category: coerceCategory(f?.category),
+      severity: coerceSeverity(f?.severity),
+      confidence: clamp(f?.confidence, 0, 1, 0.6),
+      title: title || detail.slice(0, 80),
+      detail: detail || title,
+      suggestion,
+    });
+    if (findings.length >= 6) break;
+  }
   return { summary, findings };
 }
 
