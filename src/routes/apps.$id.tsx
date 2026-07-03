@@ -20,7 +20,10 @@ function AppDetail() {
   const q = useQuery({ queryKey: ["app", id], queryFn: () => getApp({ data: { id } }), enabled: !!user });
   const update = useServerFn(updateApp);
   const del = useServerFn(deleteApp);
+  const sync = useServerFn(syncAppFromCrawl);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [form, setForm] = useState<any>(null);
 
   useEffect(() => { if (q.data && !form) setForm(q.data); }, [q.data, form]);
