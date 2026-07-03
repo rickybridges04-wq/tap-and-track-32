@@ -82,6 +82,19 @@ function QaRunDetail() {
         </div>
       )}
 
+      {run.status === "completed" && run.warnings && run.warnings.length > 0 && (
+        <details className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800">
+          <summary className="cursor-pointer font-medium">
+            {run.warnings.length} step{run.warnings.length === 1 ? "" : "s"} skipped due to transient errors
+          </summary>
+          <ul className="mt-2 max-h-40 space-y-1 overflow-auto text-xs">
+            {run.warnings.map((w, i) => (
+              <li key={i} className="font-mono">{w}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+
       <div role="tablist" aria-label="Run report sections" className="mb-4 flex gap-1 border-b border-border">
         {(["summary", "findings", "pages"] as const).map((t) => {
           const tabLabel =
