@@ -82,7 +82,7 @@ function DataManager() {
 
         <div className="rounded-lg border border-border bg-card p-4">
           {!table && <p className="text-sm text-muted-foreground">Select a table.</p>}
-          {table && <TableView table={table} rows={rowsQ.data ?? []} onInsert={async (data) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }} />}
+          {table && <TableView table={table} rows={rowsQ.data ?? []} onInsert={async (data: Record<string, unknown>) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }} />}
         </div>
       </div>
       <style>{`.input{width:100%;border-radius:.375rem;border:1px solid hsl(var(--input));background:hsl(var(--background));padding:.5rem .75rem;font-size:.875rem}`}</style>
