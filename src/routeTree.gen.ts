@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as SubmissionsRouteImport } from './routes/submissions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -43,6 +44,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.publi
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubmissionsRoute = SubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
@@ -398,6 +410,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
+  SubmissionsRoute: typeof SubmissionsRoute
   UpgradeRoute: typeof UpgradeRoute
   AgentsTaskIdRoute: typeof AgentsTaskIdRoute
   AgentsApprovalsRoute: typeof AgentsApprovalsRoute
@@ -428,6 +441,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/submissions': {
+      id: '/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof SubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -656,6 +676,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
+  SubmissionsRoute: SubmissionsRoute,
   UpgradeRoute: UpgradeRoute,
   AgentsTaskIdRoute: AgentsTaskIdRoute,
   AgentsApprovalsRoute: AgentsApprovalsRoute,
