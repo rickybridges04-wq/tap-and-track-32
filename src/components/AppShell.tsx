@@ -136,6 +136,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               )}
             </div>
+            <div className="mt-2 flex justify-end"><ThemeToggle /></div>
           </div>
           <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
             <div className="flex items-center gap-1.5">
