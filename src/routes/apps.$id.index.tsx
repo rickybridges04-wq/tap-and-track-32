@@ -7,7 +7,7 @@ import { getApp, updateApp, deleteApp, syncAppFromCrawl } from "@/lib/apps.funct
 import { useAuth } from "@/hooks/useAuth";
 import { Smartphone, Trash2, Upload, Bell, Database, Inbox, RefreshCw } from "lucide-react";
 
-export const Route = createFileRoute("/apps/$id")({
+export const Route = createFileRoute("/apps/$id/")({
   head: () => ({ meta: [{ title: "App · Walkthrough Wizard QAOS" }] }),
   component: AppDetail,
 });
