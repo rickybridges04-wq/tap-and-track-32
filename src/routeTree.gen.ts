@@ -10,14 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as SubmissionsRouteImport } from './routes/submissions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DataRouteImport } from './routes/data'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as AppsIndexRouteImport } from './routes/apps.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
 import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
@@ -25,17 +29,27 @@ import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
 import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as AppsPublishedRouteImport } from './routes/apps.published'
+import { Route as AppsNewRouteImport } from './routes/apps.new'
+import { Route as AppsIdRouteImport } from './routes/apps.$id'
 import { Route as AgentsNewRouteImport } from './routes/agents.new'
 import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
 import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
+import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
+import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
 
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubmissionsRoute = SubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -48,9 +62,19 @@ const PathwaysRoute = PathwaysRouteImport.update({
   path: '/pathways',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -76,6 +100,11 @@ const QaIndexRoute = QaIndexRouteImport.update({
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppsIndexRoute = AppsIndexRouteImport.update({
+  id: '/apps/',
+  path: '/apps/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
@@ -113,6 +142,21 @@ const ProjectsIdRoute = ProjectsIdRouteImport.update({
   path: '/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppsPublishedRoute = AppsPublishedRouteImport.update({
+  id: '/apps/published',
+  path: '/apps/published',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppsNewRoute = AppsNewRouteImport.update({
+  id: '/apps/new',
+  path: '/apps/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppsIdRoute = AppsIdRouteImport.update({
+  id: '/apps/$id',
+  path: '/apps/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsNewRoute = AgentsNewRouteImport.update({
   id: '/agents/new',
   path: '/agents/new',
@@ -138,6 +182,11 @@ const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
   path: '/qa/runs/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => AppsIdRoute,
+} as any)
 const ApiPublicWebhooksAgentEventRoute =
   ApiPublicWebhooksAgentEventRouteImport.update({
     id: '/api/public/webhooks/agent-event',
@@ -150,19 +199,31 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicFormsAppIdFormNameRoute =
+  ApiPublicFormsAppIdFormNameRouteImport.update({
+    id: '/api/public/forms/$appId/$formName',
+    path: '/api/public/forms/$appId/$formName',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/data': typeof DataRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
+  '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -170,24 +231,33 @@ export interface FileRoutesByFullPath {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/data': typeof DataRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
+  '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -195,25 +265,34 @@ export interface FileRoutesByTo {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
+  '/apps': typeof AppsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/data': typeof DataRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
+  '/submissions': typeof SubmissionsRoute
   '/upgrade': typeof UpgradeRoute
   '/agents/$taskId': typeof AgentsTaskIdRoute
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
+  '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -221,11 +300,14 @@ export interface FileRoutesById {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -233,14 +315,20 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/auth'
+    | '/data'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
     | '/agents/new'
+    | '/apps/$id'
+    | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -248,24 +336,33 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
+    | '/apps/'
     | '/projects/'
     | '/qa/'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
     | '/auth'
+    | '/data'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
     | '/agents/new'
+    | '/apps/$id'
+    | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -273,24 +370,33 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents'
+    | '/apps'
     | '/projects'
     | '/qa'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
     | '/'
     | '/analytics'
     | '/auth'
+    | '/data'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
+    | '/submissions'
     | '/upgrade'
     | '/agents/$taskId'
     | '/agents/approvals'
     | '/agents/history'
     | '/agents/new'
+    | '/apps/$id'
+    | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -298,25 +404,34 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
+    | '/apps/'
     | '/projects/'
     | '/qa/'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
+  DataRoute: typeof DataRoute
   HistoryRoute: typeof HistoryRoute
+  NotificationsRoute: typeof NotificationsRoute
   PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
+  SubmissionsRoute: typeof SubmissionsRoute
   UpgradeRoute: typeof UpgradeRoute
   AgentsTaskIdRoute: typeof AgentsTaskIdRoute
   AgentsApprovalsRoute: typeof AgentsApprovalsRoute
   AgentsHistoryRoute: typeof AgentsHistoryRoute
   AgentsNewRoute: typeof AgentsNewRoute
+  AppsIdRoute: typeof AppsIdRouteWithChildren
+  AppsNewRoute: typeof AppsNewRoute
+  AppsPublishedRoute: typeof AppsPublishedRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   QaNewRoute: typeof QaNewRoute
@@ -324,11 +439,13 @@ export interface RootRouteChildren {
   RosterPersonasRoute: typeof RosterPersonasRoute
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
+  AppsIndexRoute: typeof AppsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
+  ApiPublicFormsAppIdFormNameRoute: typeof ApiPublicFormsAppIdFormNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -338,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/submissions': {
+      id: '/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof SubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -354,11 +478,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PathwaysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history': {
       id: '/history'
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -394,6 +532,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects/'
       preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apps/': {
+      id: '/apps/'
+      path: '/apps'
+      fullPath: '/apps/'
+      preLoaderRoute: typeof AppsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/': {
@@ -445,6 +590,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apps/published': {
+      id: '/apps/published'
+      path: '/apps/published'
+      fullPath: '/apps/published'
+      preLoaderRoute: typeof AppsPublishedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apps/new': {
+      id: '/apps/new'
+      path: '/apps/new'
+      fullPath: '/apps/new'
+      preLoaderRoute: typeof AppsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apps/$id': {
+      id: '/apps/$id'
+      path: '/apps/$id'
+      fullPath: '/apps/$id'
+      preLoaderRoute: typeof AppsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/new': {
       id: '/agents/new'
       path: '/agents/new'
@@ -480,6 +646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QaRunsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apps/$id/submit': {
+      id: '/apps/$id/submit'
+      path: '/submit'
+      fullPath: '/apps/$id/submit'
+      preLoaderRoute: typeof AppsIdSubmitRouteImport
+      parentRoute: typeof AppsIdRoute
+    }
     '/api/public/webhooks/agent-event': {
       id: '/api/public/webhooks/agent-event'
       path: '/api/public/webhooks/agent-event'
@@ -494,21 +667,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/forms/$appId/$formName': {
+      id: '/api/public/forms/$appId/$formName'
+      path: '/api/public/forms/$appId/$formName'
+      fullPath: '/api/public/forms/$appId/$formName'
+      preLoaderRoute: typeof ApiPublicFormsAppIdFormNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AppsIdRouteChildren {
+  AppsIdSubmitRoute: typeof AppsIdSubmitRoute
+}
+
+const AppsIdRouteChildren: AppsIdRouteChildren = {
+  AppsIdSubmitRoute: AppsIdSubmitRoute,
+}
+
+const AppsIdRouteWithChildren =
+  AppsIdRoute._addFileChildren(AppsIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
+  DataRoute: DataRoute,
   HistoryRoute: HistoryRoute,
+  NotificationsRoute: NotificationsRoute,
   PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
+  SubmissionsRoute: SubmissionsRoute,
   UpgradeRoute: UpgradeRoute,
   AgentsTaskIdRoute: AgentsTaskIdRoute,
   AgentsApprovalsRoute: AgentsApprovalsRoute,
   AgentsHistoryRoute: AgentsHistoryRoute,
   AgentsNewRoute: AgentsNewRoute,
+  AppsIdRoute: AppsIdRouteWithChildren,
+  AppsNewRoute: AppsNewRoute,
+  AppsPublishedRoute: AppsPublishedRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   QaNewRoute: QaNewRoute,
@@ -516,22 +713,14 @@ const rootRouteChildren: RootRouteChildren = {
   RosterPersonasRoute: RosterPersonasRoute,
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
+  AppsIndexRoute: AppsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   QaRunsRunIdRoute: QaRunsRunIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
+  ApiPublicFormsAppIdFormNameRoute: ApiPublicFormsAppIdFormNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

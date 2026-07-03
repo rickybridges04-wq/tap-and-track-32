@@ -14,23 +14,329 @@ export type Database = {
   }
   public: {
     Tables: {
-      profiles: {
+      app_form_submissions: {
+        Row: {
+          app_id: string
+          created_at: string
+          form_name: string
+          id: string
+          payload: Json
+          read_at: string | null
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          form_name: string
+          id?: string
+          payload?: Json
+          read_at?: string | null
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          form_name?: string
+          id?: string
+          payload?: Json
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_form_submissions_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_rows: {
         Row: {
           created_at: string
-          email: string
+          data: Json
           id: string
-          updated_at: string
+          table_id: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          email: string
-          id: string
-          updated_at?: string
+          data?: Json
+          id?: string
+          table_id: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          email?: string
+          data?: Json
           id?: string
+          table_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_rows_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "app_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_store_submissions: {
+        Row: {
+          app_id: string
+          assets: Json
+          checklist: Json
+          created_at: string
+          id: string
+          status: string
+          store: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          assets?: Json
+          checklist?: Json
+          created_at?: string
+          id?: string
+          status?: string
+          store: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          assets?: Json
+          checklist?: Json
+          created_at?: string
+          id?: string
+          status?: string
+          store?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_store_submissions_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_tables: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          name: string
+          schema: Json
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          name: string
+          schema?: Json
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          schema?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_tables_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apps: {
+        Row: {
+          base_url: string | null
+          bg_color: string | null
+          category: string | null
+          created_at: string
+          icon_url: string | null
+          id: string
+          long_desc: string | null
+          name: string
+          short_desc: string | null
+          slug: string
+          status: string
+          theme_color: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_url?: string | null
+          bg_color?: string | null
+          category?: string | null
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          long_desc?: string | null
+          name: string
+          short_desc?: string | null
+          slug: string
+          status?: string
+          theme_color?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_url?: string | null
+          bg_color?: string | null
+          category?: string | null
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          long_desc?: string | null
+          name?: string
+          short_desc?: string | null
+          slug?: string
+          status?: string
+          theme_color?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_campaigns: {
+        Row: {
+          app_id: string
+          body: string
+          created_at: string
+          id: string
+          image_url: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          body: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_campaigns_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_subscribers: {
+        Row: {
+          app_id: string
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          unsubscribed_at: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          app_id: string
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          unsubscribed_at?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          app_id?: string
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          unsubscribed_at?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_subscribers_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          theme_pref: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          theme_pref?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          theme_pref?: string
           updated_at?: string
         }
         Relationships: []
