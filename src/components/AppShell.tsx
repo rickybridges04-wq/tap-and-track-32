@@ -109,14 +109,38 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mt-auto space-y-3 px-3 pb-4">
           <RunAgentDialog />
           <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate font-semibold text-foreground">{email ?? "Signed in"}</span>
+              <button onClick={signOut} title="Sign out" className="text-muted-foreground hover:text-foreground">
+                <LogOut className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="mt-1">
+              {isOwner ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+                  <Crown className="h-2.5 w-2.5" /> Owner · unlimited
+                </span>
+              ) : active ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                  <Sparkles className="h-2.5 w-2.5" /> Pro
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-fuchsia-300">
+                  Trial · {runsRemaining} left
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
             <div className="flex items-center gap-1.5">
               <FlaskConical className="h-3 w-3 text-[color:var(--neon-2)]" />
               <span className="font-semibold tracking-wide">BETA TESTING</span>
             </div>
-            <p className="mt-1 leading-snug">Every tab, section, and flow is under active beta. Report anything weird.</p>
+            <p className="mt-1 leading-snug">Every tab, section, and flow is under active beta.</p>
           </div>
         </div>
       </aside>
+
 
       <main className="relative z-10 md:pl-64">
         {/* Sticky beta header for every page/section */}
