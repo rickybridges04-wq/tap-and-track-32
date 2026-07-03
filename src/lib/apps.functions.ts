@@ -314,7 +314,7 @@ export const syncAppFromCrawl = createServerFn({ method: "POST" })
     if (app.name === app.slug && title) patch.name = title;
 
     if (Object.keys(patch).length) {
-      const { error } = await context.supabase.from("apps").update(patch).eq("id", app.id);
+      const { error } = await context.supabase.from("apps").update(patch as any).eq("id", app.id);
       if (error) warnings.push(`apps update: ${error.message}`);
     }
 
