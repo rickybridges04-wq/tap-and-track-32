@@ -6,7 +6,8 @@ import { createRun } from "@/lib/qa/runner";
 import { startRun } from "@/lib/qa/runner";
 import { ArrowLeft, Play } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { useSubscription, useRefreshUsage } from "@/lib/subscription";
+import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard, TrialBadge } from "@/components/PaywallCard";
 
 export const Route = createFileRoute("/qa/new")({
