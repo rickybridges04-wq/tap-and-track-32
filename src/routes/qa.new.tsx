@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { ALL_PERSONA_IDS, PERSONAS, type PersonaId } from "@/lib/qa/personas";
-import { createRun } from "@/lib/qa/runner";
-import { startRun } from "@/lib/qa/runner";
+import { runQa } from "@/lib/qa/runner";
+import { createRun } from "@/lib/qa/qa.functions";
+import { DEPTH_LIMITS } from "@/lib/qa/config";
 import { ArrowLeft, Play } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { useSubscription, useRefreshUsage } from "@/lib/subscription";
 import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard, TrialBadge } from "@/components/PaywallCard";
@@ -14,12 +14,19 @@ export const Route = createFileRoute("/qa/new")({
   component: NewQaRun,
 });
 
+const DEFAULT_PERSONAS: PersonaId[] = [
+  "first_time",
+  "accessibility",
+  "frustrated",
+  "mobile_only",
+];
+
 function NewQaRun() {
   const navigate = useNavigate();
   const sub = useSubscription();
   const [url, setUrl] = useState("");
   const [depth, setDepth] = useState<"quick" | "standard" | "deep">("quick");
-  const [selected, setSelected] = useState<PersonaId[]>(["first_time", "accessibility", "frustrated"]);
+  const [selected, setSelected] = useState<PersonaId[]>(DEFAULT_PERSONAS);
   const [submitting, setSubmitting] = useState(false);
 
   function togglePersona(id: PersonaId) {
@@ -41,10 +48,18 @@ function NewQaRun() {
         return;
       }
     }
-    const run = createRun({ url: normalized, depth, personas: selected });
-    refreshUsage();
-    void startRun(run.id);
-    navigate({ to: "/qa/runs/$runId", params: { runId: run.id } });
+    try {
+      const { id } = await createRun({
+        data: { url: normalized, depth, personas: selected },
+      });
+      refreshUsage();
+      // Fire and forget — runner persists progress to DB as it goes.
+      void runQa({ id, url: normalized, depth, personas: selected });
+      navigate({ to: "/qa/runs/$runId", params: { runId: id } });
+    } catch (err) {
+      setSubmitting(false);
+      alert(err instanceof Error ? err.message : String(err));
+    }
   }
 
   return (
@@ -69,7 +84,6 @@ function NewQaRun() {
       )}
 
       <form onSubmit={onSubmit} className="max-w-2xl space-y-6 rounded-lg border border-border bg-card p-6">
-
         <div>
           <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Target URL
@@ -101,7 +115,7 @@ function NewQaRun() {
               >
                 {d}
                 <div className="text-[10px] text-muted-foreground">
-                  {d === "quick" ? "≤3 pages" : d === "standard" ? "≤8 pages" : "≤20 pages"}
+                  ≤{DEPTH_LIMITS[d]} pages
                 </div>
               </button>
             ))}
@@ -143,7 +157,7 @@ function NewQaRun() {
           <Play className="h-4 w-4" /> {submitting ? "Starting..." : !sub.canRun ? "Upgrade to run" : "Start crawl"}
         </button>
         <p className="text-xs text-muted-foreground">
-          Each page × persona uses one AI call. Quick + 3 personas ≈ 9 calls.
+          Each page × persona uses one AI call. Keep this tab open while the run is in progress.
         </p>
       </form>
     </AppShell>

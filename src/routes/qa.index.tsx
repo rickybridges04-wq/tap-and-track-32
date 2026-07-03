@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { TrashButton } from "@/components/TrashButton";
-import { deleteRun, useQaRuns, useMounted, type QaRun } from "@/lib/qa/qa-store";
+import { listRuns, deleteRun, type QaRunRow } from "@/lib/qa/qa.functions";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { Activity, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -11,8 +12,23 @@ export const Route = createFileRoute("/qa/")({
 });
 
 function QaDashboard() {
-  const mounted = useMounted();
-  const runs = useQaRuns();
+  const qc = useQueryClient();
+  const { data: runs = [], isLoading } = useQuery({
+    queryKey: ["qa-runs"],
+    queryFn: () => listRuns(),
+    refetchInterval: (q) => {
+      const rows = (q.state.data as QaRunRow[] | undefined) ?? [];
+      return rows.some((r) => r.status !== "completed" && r.status !== "failed") ? 2000 : false;
+    },
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteRun({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Run deleted");
+      qc.invalidateQueries({ queryKey: ["qa-runs"] });
+    },
+  });
 
   return (
     <AppShell>
@@ -34,12 +50,14 @@ function QaDashboard() {
         </Link>
       </div>
 
-      {mounted && runs.length === 0 ? (
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : runs.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="space-y-3">
-          {(mounted ? runs : []).map((r) => (
-            <RunCard key={r.id} run={r} />
+          {runs.map((r) => (
+            <RunCard key={r.id} run={r} onDelete={() => del.mutate(r.id)} />
           ))}
         </div>
       )}
@@ -65,8 +83,9 @@ function EmptyState() {
   );
 }
 
-function RunCard({ run }: { run: QaRun }) {
-  const created = new Date(run.createdAt).toLocaleString();
+function RunCard({ run, onDelete }: { run: QaRunRow; onDelete: () => void }) {
+  const created = new Date(run.created_at).toLocaleString();
+  const inFlight = run.status !== "completed" && run.status !== "failed";
   return (
     <div className="relative">
       <Link
@@ -76,31 +95,34 @@ function RunCard({ run }: { run: QaRun }) {
       >
         <div className="flex flex-wrap items-start justify-between gap-3 pr-10">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium">{run.url}</div>
+            <div className="truncate text-sm font-medium">{run.target_url}</div>
             <div className="mt-0.5 text-xs text-muted-foreground">
-              {created} · {run.depth} · {run.personas.length} personas · {run.pages.length} pages ·{" "}
-              {run.findings.length} findings
+              {created} · {run.depth} · {run.personas.length} personas
             </div>
-            {run.status !== "completed" && run.status !== "failed" && (
+            {inFlight && (
               <div className="mt-2">
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full bg-primary transition-all"
-                    style={{ width: `${run.progress.pct}%` }}
+                    style={{ width: `${run.progress_pct}%` }}
                   />
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">{run.progress.stage}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {run.progress_stage ?? run.status}
+                </div>
               </div>
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
-            {run.status === "completed" && run.score !== undefined && run.verdict ? (
+            {run.status === "completed" && run.score !== null && run.verdict ? (
               <>
                 <div className="text-2xl font-semibold">{run.score}</div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(run.verdict)}`}
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(
+                    run.verdict as "ready" | "minor" | "major" | "block",
+                  )}`}
                 >
-                  {verdictLabel(run.verdict)}
+                  {verdictLabel(run.verdict as "ready" | "minor" | "major" | "block")}
                 </span>
               </>
             ) : run.status === "failed" ? (
@@ -119,10 +141,7 @@ function RunCard({ run }: { run: QaRun }) {
         <TrashButton
           label="Delete QA run"
           confirm="Delete this QA run? Findings and pages will be removed."
-          onDelete={() => {
-            deleteRun(run.id);
-            toast.success("Run deleted");
-          }}
+          onDelete={onDelete}
         />
       </div>
     </div>
