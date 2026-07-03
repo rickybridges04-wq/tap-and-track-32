@@ -47,7 +47,14 @@ function AppsIndex() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: a.theme_color ?? "#7c3aed" }}>
                 <Smartphone className="h-5 w-5 text-white" />
               </div>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">{a.status}</span>
+              <div className="flex items-center gap-1">
+                {a.base_url && (
+                  <button onClick={(e) => doSync(e, a.id)} disabled={syncingId === a.id} title="Sync from URL" className="rounded-md p-1 text-fuchsia-400 hover:bg-fuchsia-500/10 disabled:opacity-50">
+                    <RefreshCw className={`h-3.5 w-3.5 ${syncingId === a.id ? "animate-spin" : ""}`} />
+                  </button>
+                )}
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">{a.status}</span>
+              </div>
             </div>
             <div className="mt-3 font-semibold">{a.name}</div>
             {a.short_desc && <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{a.short_desc}</div>}
