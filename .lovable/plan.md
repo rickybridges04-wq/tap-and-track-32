@@ -1,24 +1,42 @@
-## Problem
+## Root cause
 
-The QA run failed at "Inspecting SEO / marketer (12/50)" with a bare `TypeError: Failed to fetch`. This is the browser losing one server-function call mid-run (Vite dev-server reload, transient network blip, or gateway hiccup). Because `startRun` wraps the whole loop in one `try/catch`, a single failed `inspectPage`/`scrapePage` call aborts the entire crawl and marks it `failed` — even though 11 pages had already been inspected successfully.
+`inspectPage` in `src/lib/qa/inspector.functions.ts` uses `Output.object({ schema: InspectionSchema })` with a very tight Zod schema:
+
+- `title` max 120, `detail` max 800, `summary` max 280, `suggestion` max 400
+- `severity` and `category` as strict enums
+- `suggestion` optional (Gemini often returns `null` instead of omitting)
+- `confidence` strictly `[0, 1]`
+
+Gemini 3 Flash regularly overshoots those caps or emits `null` for optional fields. The AI SDK then throws `NoObjectGeneratedError` ("response did not match schema") and the entire call is discarded. Reproduced against `https://example.com` with the first-time-visitor persona — every call fails, so the runner ends with "All inspections failed".
+
+The runner-side retry/soft-warning work is already in place. The real fix is at the schema/parsing boundary.
 
 ## Fix
 
-Harden `src/lib/qa/runner.ts` so one flaky call can't kill the run:
+Rewrite the inspector to be tolerant of imperfect model output, in a single file:
 
-1. **Per-call retry with backoff** — wrap each `scrapePage` and `inspectPage` call in a small helper that retries up to 2× on thrown errors (500ms, then 1500ms). Handles Vite HMR reconnects and transient gateway 5xx.
-2. **Non-fatal per-page/per-persona failures** — after retries exhaust, log the error into `findings` as a low-severity `crawler` note (`"Inspection failed for <persona> on <url>"`) and continue the loop instead of throwing.
-3. **Track soft errors on the run** — accumulate a `warnings: string[]` list and surface count in the progress stage (`"Inspecting X (5/50, 1 skipped)"`) so users see partial degradation.
-4. **Only hard-fail if `mapSite` fails or every inspection fails** — otherwise finish with `status: "completed"` and let scoring reflect what was gathered.
+**`src/lib/qa/inspector.functions.ts`**
+1. Loosen the schema handed to the model:
+   - Remove `.max()` on `title`, `detail`, `summary`, `suggestion`.
+   - Allow `suggestion: z.string().nullable().optional()`.
+   - Widen `confidence` to `z.number()` and clamp in post-processing.
+   - Keep `severity`/`category` as enums but coerce common variants (`"warn"` → `"medium"`, uppercase → lowercase, unknown → `"medium"` / `"functional"`).
+2. Split into a strict wire schema (for parsing) + a normalizer that truncates strings, clamps confidence to `[0, 1]`, drops `null` suggestion, and filters findings whose required fields are missing.
+3. Wrap the `generateText` call so that on `NoObjectGeneratedError` (or any parse error) we:
+   - Fall back to a plain `generateText` call (no `Output`) asking explicitly for JSON.
+   - Extract the first `{...}` JSON block and parse it.
+   - Run it through the normalizer. If still unusable, return `{ ok: false, error: <original message + raw preview> }` so the runner logs a useful warning instead of a bare "response did not match schema".
+4. Cap findings at 6 after normalization (matches current prompt).
 
-## Files
+No changes to `runner.ts` — its retry + soft-warning behavior is correct once the inspector stops throwing on cosmetic schema drift. The existing "N steps skipped" UI in `qa.runs.$runId.tsx` will surface any residual failures.
 
-- `src/lib/qa/runner.ts` — add `withRetry()` helper, wrap scrape/inspect calls, convert catches to soft warnings, adjust final status logic.
-- `src/lib/qa/qa-store.ts` — add optional `warnings?: string[]` to `QaRun` type (backward compatible; existing runs read as undefined).
-- `src/routes/qa.runs.$runId.tsx` — if `warnings.length > 0` on a completed run, show a small "N steps skipped" note under the header. (Read-only display; no behavior change.)
+## Verification
+
+- Re-run the reproduction (`inspectPage` against `https://example.com`, persona `first_time`) and confirm `ok: true` with a non-empty summary and 0-plus findings.
+- Start a quick crawl from `/qa/new` on a real URL and confirm the run reaches `completed` with findings, not `failed`.
 
 ## Out of scope
 
-- Retrying the entire failed run automatically (user can hit Run again).
-- Reducing default page/persona counts — the 50-step deep crawl is by design; resiliency is the real gap.
-- Backend changes to `inspectPage`/`scrapePage` — those already return `{ ok: false, error }` on handler errors; the failure here is at the transport layer before the handler is reached.
+- Switching model provider or model name (Gemini 3 Flash works; the problem is schema strictness, not the model).
+- Changing crawl depth limits, persona set, or scoring.
+- Server-side persistence of runs (still localStorage).
