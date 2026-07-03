@@ -1,42 +1,94 @@
-## Root cause
+# Synapse QA OS — Persistence, tuning, personas
 
-`inspectPage` in `src/lib/qa/inspector.functions.ts` uses `Output.object({ schema: InspectionSchema })` with a very tight Zod schema:
+## Scope
 
-- `title` max 120, `detail` max 800, `summary` max 280, `suggestion` max 400
-- `severity` and `category` as strict enums
-- `suggestion` optional (Gemini often returns `null` instead of omitting)
-- `confidence` strictly `[0, 1]`
+Three changes:
 
-Gemini 3 Flash regularly overshoots those caps or emits `null` for optional fields. The AI SDK then throws `NoObjectGeneratedError` ("response did not match schema") and the entire call is discarded. Reproduced against `https://example.com` with the first-time-visitor persona — every call fails, so the runner ends with "All inspections failed".
+1. **Server-driven crawl with progress polling** — runs persist across reloads mid-flight.
+2. **Depth caps** raised to 5 / 15 / 40.
+3. **Default personas** expanded to include a mobile/responsive persona.
 
-The runner-side retry/soft-warning work is already in place. The real fix is at the schema/parsing boundary.
+Model stays `google/gemini-3-flash-preview` (already working after the schema-tolerance fix).
 
-## Fix
+## 1. Server persistence + polling
 
-Rewrite the inspector to be tolerant of imperfect model output, in a single file:
+### Schema (new migration)
 
-**`src/lib/qa/inspector.functions.ts`**
-1. Loosen the schema handed to the model:
-   - Remove `.max()` on `title`, `detail`, `summary`, `suggestion`.
-   - Allow `suggestion: z.string().nullable().optional()`.
-   - Widen `confidence` to `z.number()` and clamp in post-processing.
-   - Keep `severity`/`category` as enums but coerce common variants (`"warn"` → `"medium"`, uppercase → lowercase, unknown → `"medium"` / `"functional"`).
-2. Split into a strict wire schema (for parsing) + a normalizer that truncates strings, clamps confidence to `[0, 1]`, drops `null` suggestion, and filters findings whose required fields are missing.
-3. Wrap the `generateText` call so that on `NoObjectGeneratedError` (or any parse error) we:
-   - Fall back to a plain `generateText` call (no `Output`) asking explicitly for JSON.
-   - Extract the first `{...}` JSON block and parse it.
-   - Run it through the normalizer. If still unusable, return `{ ok: false, error: <original message + raw preview> }` so the runner logs a useful warning instead of a bare "response did not match schema".
-4. Cap findings at 6 after normalization (matches current prompt).
+Extend `qa_runs` and add two child tables:
 
-No changes to `runner.ts` — its retry + soft-warning behavior is correct once the inspector stops throwing on cosmetic schema drift. The existing "N steps skipped" UI in `qa.runs.$runId.tsx` will surface any residual failures.
+```text
+qa_runs (existing)
+  + progress_current    int default 0
+  + progress_total      int default 0
+  + current_step        text        -- "crawling" | "inspecting" | "scoring" | "done"
+  + error               text
+  + summary             jsonb       -- final aggregate {score, counts, warnings}
 
-## Verification
+qa_pages
+  id uuid pk, run_id fk qa_runs on delete cascade,
+  url text, title text, depth int, status text, created_at
 
-- Re-run the reproduction (`inspectPage` against `https://example.com`, persona `first_time`) and confirm `ok: true` with a non-empty summary and 0-plus findings.
-- Start a quick crawl from `/qa/new` on a real URL and confirm the run reaches `completed` with findings, not `failed`.
+qa_findings
+  id uuid pk, run_id fk qa_runs, page_id fk qa_pages on delete cascade,
+  persona text, severity text, category text,
+  title text, detail text, suggestion text, confidence numeric,
+  created_at
+```
+
+RLS: owner-only (`user_id = auth.uid()` via `qa_runs.user_id`). GRANT to `authenticated` + `service_role`. Enable Realtime on `qa_runs`, `qa_pages`, `qa_findings` (optional — polling works without).
+
+### Server runner
+
+- New `startRun` server fn (`requireSupabaseAuth`): inserts `qa_runs` row (`status='pending'`), kicks off crawl via `queueMicrotask`, returns `{ runId }`. The handler runs the whole crawl+inspect+score pipeline, writing pages/findings/progress as it goes and finalizing `status`, `score`, `summary`, `completed_at`.
+- Note: Worker runtimes may not preserve background work after the response returns. If we see truncated runs in practice, fall back to a synchronous `startRun` that streams progress (still writes to DB) — kept as a follow-up if needed.
+- New `getRun(runId)` server fn: returns `{ run, pages, findings }`.
+- New `listRuns()`, `deleteRun(runId)`.
+
+### Client
+
+- Replace `qa-store.ts` localStorage layer with server-fn calls wrapped in TanStack Query.
+- `qa.runs.$runId.tsx` uses `useQuery` with `refetchInterval: 2000` while `status in ('pending','running')`, stops polling on terminal status.
+- `/qa` list view reads `listRuns()`.
+- Drop the in-memory `runner.ts` orchestration on the client; keep only the AI SDK inspector call chain on the server.
+
+## 2. Depth caps
+
+In whatever config drives crawl depth today (likely `src/lib/qa/runner.ts` or a constants module):
+
+```text
+quick:    3  → 5
+standard: 8  → 15
+deep:     20 → 40
+```
+
+Applied server-side so localStorage overrides can't bypass.
+
+## 3. Personas
+
+Add `mobile` persona to the inspector persona registry with a prompt focused on responsive layout, tap targets, viewport, mobile-only failure modes.
+
+Default selection on the New Crawl form: `first_time`, `accessibility`, `frustrated`, `mobile` (all four checked by default; user can uncheck).
+
+## Files touched
+
+- `supabase/migrations/<new>.sql` — schema + RLS + grants.
+- `src/lib/qa/qa-store.ts` — replace with server-fn/Query wrappers.
+- `src/lib/qa/runner.functions.ts` (new) — `startRun`, `getRun`, `listRuns`, `deleteRun`.
+- `src/lib/qa/runner.ts` — pipeline moves to server; file trimmed or deleted.
+- `src/lib/qa/inspector.functions.ts` — add `mobile` persona.
+- `src/lib/qa/config.ts` (new or existing) — depth caps 5/15/40.
+- `src/routes/qa.tsx`, `src/routes/qa.new.tsx`, `src/routes/qa.runs.$runId.tsx` — Query wiring, polling, default personas.
 
 ## Out of scope
 
-- Switching model provider or model name (Gemini 3 Flash works; the problem is schema strictness, not the model).
-- Changing crawl depth limits, persona set, or scoring.
-- Server-side persistence of runs (still localStorage).
+- Swapping model provider.
+- Changing the scoring formula.
+- Realtime subscriptions (polling first; can add later).
+- Backfilling existing localStorage runs into the DB.
+
+## Verification
+
+1. Start a run against `example.com` (quick), reload the page mid-run — progress continues from where it was.
+2. New run at `standard` depth crawls up to 15 pages (verify in `qa_pages` count).
+3. New Crawl form shows all four personas checked; findings include `persona='mobile'` entries.
+4. `SELECT count(*) FROM qa_runs WHERE user_id = auth.uid()` matches the list view.
