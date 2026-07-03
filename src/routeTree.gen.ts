@@ -26,6 +26,7 @@ import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
 import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as AppsPublishedRouteImport } from './routes/apps.published'
 import { Route as AppsNewRouteImport } from './routes/apps.new'
 import { Route as AppsIdRouteImport } from './routes/apps.$id'
 import { Route as AgentsNewRouteImport } from './routes/agents.new'
@@ -122,6 +123,11 @@ const ProjectsIdRoute = ProjectsIdRouteImport.update({
   path: '/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppsPublishedRoute = AppsPublishedRouteImport.update({
+  id: '/apps/published',
+  path: '/apps/published',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppsNewRoute = AppsNewRouteImport.update({
   id: '/apps/new',
   path: '/apps/new',
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/agents/new': typeof AgentsNewRoute
   '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/agents/new': typeof AgentsNewRoute
   '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/agents/new': typeof AgentsNewRoute
   '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
+  '/apps/published': typeof AppsPublishedRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/$id'
     | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/$id'
     | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/$id'
     | '/apps/new'
+    | '/apps/published'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -367,6 +379,7 @@ export interface RootRouteChildren {
   AgentsNewRoute: typeof AgentsNewRoute
   AppsIdRoute: typeof AppsIdRouteWithChildren
   AppsNewRoute: typeof AppsNewRoute
+  AppsPublishedRoute: typeof AppsPublishedRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   QaNewRoute: typeof QaNewRoute
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apps/published': {
+      id: '/apps/published'
+      path: '/apps/published'
+      fullPath: '/apps/published'
+      preLoaderRoute: typeof AppsPublishedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apps/new': {
       id: '/apps/new'
       path: '/apps/new'
@@ -601,6 +621,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsNewRoute: AgentsNewRoute,
   AppsIdRoute: AppsIdRouteWithChildren,
   AppsNewRoute: AppsNewRoute,
+  AppsPublishedRoute: AppsPublishedRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   QaNewRoute: QaNewRoute,
