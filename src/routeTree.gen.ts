@@ -40,6 +40,7 @@ import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
+import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
 
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
@@ -198,6 +199,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicFormsAppIdFormNameRoute =
+  ApiPublicFormsAppIdFormNameRouteImport.update({
+    id: '/api/public/forms/$appId/$formName',
+    path: '/api/public/forms/$appId/$formName',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -264,6 +272,7 @@ export interface FileRoutesByTo {
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -298,6 +307,7 @@ export interface FileRoutesById {
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
     | '/'
@@ -399,6 +411,7 @@ export interface FileRouteTypes {
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -432,6 +445,7 @@ export interface RootRouteChildren {
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
+  ApiPublicFormsAppIdFormNameRoute: typeof ApiPublicFormsAppIdFormNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -653,6 +667,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/forms/$appId/$formName': {
+      id: '/api/public/forms/$appId/$formName'
+      path: '/api/public/forms/$appId/$formName'
+      fullPath: '/api/public/forms/$appId/$formName'
+      preLoaderRoute: typeof ApiPublicFormsAppIdFormNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -698,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   QaRunsRunIdRoute: QaRunsRunIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
+  ApiPublicFormsAppIdFormNameRoute: ApiPublicFormsAppIdFormNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
