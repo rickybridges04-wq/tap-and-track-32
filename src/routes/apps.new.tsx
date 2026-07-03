@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { createApp } from "@/lib/apps.functions";
+import { createApp, syncAppFromCrawl } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/apps/new")({
@@ -16,11 +16,13 @@ function NewApp() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const create = useServerFn(createApp);
+  const sync = useServerFn(syncAppFromCrawl);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [desc, setDesc] = useState("");
   const [cat, setCat] = useState("Productivity");
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState("Creating...");
   const [err, setErr] = useState("");
 
   if (loading) return null;
@@ -28,10 +30,15 @@ function NewApp() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true); setErr("");
+    setBusy(true); setErr(""); setBusyLabel("Creating...");
     try {
       const app = await create({ data: { name, base_url: url || undefined, short_desc: desc || undefined, category: cat } });
-      nav({ to: "/apps/$id", params: { id: (app as any).id } });
+      const id = (app as any).id;
+      if (url) {
+        setBusyLabel("Syncing from your site…");
+        try { await sync({ data: { id } }); } catch { /* non-fatal */ }
+      }
+      nav({ to: "/apps/$id", params: { id } });
     } catch (e: any) { setErr(e.message); setBusy(false); }
   };
 
@@ -58,8 +65,9 @@ function NewApp() {
         </Field>
         {err && <div className="rounded-md bg-red-500/10 p-2 text-xs text-red-400">{err}</div>}
         <button disabled={busy} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-          {busy ? "Creating..." : "Create app"}
+          {busy ? busyLabel : "Create app & sync"}
         </button>
+        {url && <div className="text-[11px] text-muted-foreground">We'll crawl this URL to auto-fill branding, PWA checklist, and data tables.</div>}
       </form>
     </AppShell>
   );
