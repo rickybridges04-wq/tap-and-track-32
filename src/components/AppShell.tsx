@@ -1,11 +1,15 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown } from "lucide-react";
+import { Link, useRouterState, Navigate } from "@tanstack/react-router";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-store";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/lib/subscription";
 
-const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boolean }> = [
+type NavItem = { to: string; label: string; icon: typeof Activity; badge?: boolean; ownerOnly?: boolean };
+
+const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: Activity },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
@@ -15,6 +19,7 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/history", label: "Beta history", icon: History },
   { to: "/pathways", label: "Pathways", icon: RouteIcon },
+  { to: "/analytics", label: "Analytics", icon: BarChart3, ownerOnly: true },
   { to: "/upgrade", label: "Upgrade", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -31,6 +36,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mounted = useMounted();
   const pending = mounted ? pendingApprovalCount() : 0;
   const section = sectionLabel(path);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { isOwner, active, runsRemaining, email } = useSubscription();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+
+  const visibleNav = nav.filter((n) => !n.ownerOnly || isOwner);
 
   return (
     <div className="relative min-h-screen text-foreground">
@@ -53,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex flex-col gap-1 px-3 py-2">
-          {nav.map((n) => {
+          {visibleNav.map((n) => {
             const active =
               n.to === "/"
                 ? path === "/"
@@ -91,14 +109,38 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mt-auto space-y-3 px-3 pb-4">
           <RunAgentDialog />
           <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate font-semibold text-foreground">{email ?? "Signed in"}</span>
+              <button onClick={signOut} title="Sign out" className="text-muted-foreground hover:text-foreground">
+                <LogOut className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="mt-1">
+              {isOwner ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+                  <Crown className="h-2.5 w-2.5" /> Owner · unlimited
+                </span>
+              ) : active ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                  <Sparkles className="h-2.5 w-2.5" /> Pro
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-fuchsia-300">
+                  Trial · {runsRemaining} left
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border/60 px-3 py-2 text-[11px] text-muted-foreground glass">
             <div className="flex items-center gap-1.5">
               <FlaskConical className="h-3 w-3 text-[color:var(--neon-2)]" />
               <span className="font-semibold tracking-wide">BETA TESTING</span>
             </div>
-            <p className="mt-1 leading-snug">Every tab, section, and flow is under active beta. Report anything weird.</p>
+            <p className="mt-1 leading-snug">Every tab, section, and flow is under active beta.</p>
           </div>
         </div>
       </aside>
+
 
       <main className="relative z-10 md:pl-64">
         {/* Sticky beta header for every page/section */}

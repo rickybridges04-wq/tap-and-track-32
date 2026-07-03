@@ -6,7 +6,8 @@ import { createRun } from "@/lib/qa/runner";
 import { startRun } from "@/lib/qa/runner";
 import { ArrowLeft, Play } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { useSubscription, useRefreshUsage } from "@/lib/subscription";
+import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard, TrialBadge } from "@/components/PaywallCard";
 
 export const Route = createFileRoute("/qa/new")({
@@ -25,14 +26,23 @@ function NewQaRun() {
     setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   }
 
+  const refreshUsage = useRefreshUsage();
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!url.trim() || selected.length === 0 || submitting || !sub.canRun) return;
     setSubmitting(true);
     let normalized = url.trim();
     if (!/^https?:\/\//.test(normalized)) normalized = `https://${normalized}`;
+    if (!sub.active && !sub.isOwner) {
+      const res = await recordRun({ data: { kind: "qa_run" } });
+      if (!res.ok) {
+        setSubmitting(false);
+        return;
+      }
+    }
     const run = createRun({ url: normalized, depth, personas: selected });
-    if (!sub.active) incrementRunsUsed();
+    refreshUsage();
     void startRun(run.id);
     navigate({ to: "/qa/runs/$runId", params: { runId: run.id } });
   }

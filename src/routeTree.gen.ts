@@ -13,6 +13,8 @@ import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
@@ -29,6 +31,7 @@ import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
@@ -48,6 +51,16 @@ const PathwaysRoute = PathwaysRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -131,9 +144,17 @@ const ApiPublicWebhooksAgentEventRoute =
     path: '/api/public/webhooks/agent-event',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
@@ -152,10 +173,13 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
@@ -174,11 +198,14 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
@@ -197,12 +224,15 @@ export interface FileRoutesById {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
+    | '/auth'
     | '/history'
     | '/pathways'
     | '/settings'
@@ -221,10 +251,13 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/qa/runs/$runId'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
+    | '/auth'
     | '/history'
     | '/pathways'
     | '/settings'
@@ -243,10 +276,13 @@ export interface FileRouteTypes {
     | '/projects'
     | '/qa'
     | '/qa/runs/$runId'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
   id:
     | '__root__'
     | '/'
+    | '/analytics'
+    | '/auth'
     | '/history'
     | '/pathways'
     | '/settings'
@@ -265,11 +301,14 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/qa/runs/$runId'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  AuthRoute: typeof AuthRoute
   HistoryRoute: typeof HistoryRoute
   PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
@@ -288,6 +327,7 @@ export interface RootRouteChildren {
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
 }
 
@@ -319,6 +359,20 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -433,11 +487,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  AuthRoute: AuthRoute,
   HistoryRoute: HistoryRoute,
   PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
@@ -456,18 +519,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   QaRunsRunIdRoute: QaRunsRunIdRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

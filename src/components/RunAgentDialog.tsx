@@ -18,7 +18,8 @@ import { AGENTS, routeAgent } from "@/lib/agents";
 import type { AgentType, TaskPriority, TaskSource } from "@/lib/agent-store";
 import { enqueueTask } from "@/lib/agent-triggers";
 import { useStartAgentRun } from "@/lib/agent-runner";
-import { useSubscription, incrementRunsUsed } from "@/lib/subscription";
+import { useSubscription, useRefreshUsage } from "@/lib/subscription";
+import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard } from "@/components/PaywallCard";
 import { Sparkles } from "lucide-react";
 
@@ -46,6 +47,7 @@ export function RunAgentDialog({
   const navigate = useNavigate();
   const startRun = useStartAgentRun();
   const sub = useSubscription();
+  const refreshUsage = useRefreshUsage();
 
   const suggested = agent === "auto" ? routeAgent(`${title} ${description}`) : agent;
 
@@ -54,6 +56,13 @@ export function RunAgentDialog({
     if (!sub.canRun) return;
     setBusy(true);
     try {
+      if (!sub.active && !sub.isOwner) {
+        const res = await recordRun({ data: { kind: "agent_task" } });
+        if (!res.ok) {
+          setBusy(false);
+          return;
+        }
+      }
       const task = enqueueTask({
         title: title.trim() || description.trim().slice(0, 80),
         description: description.trim() || title.trim(),
@@ -61,7 +70,7 @@ export function RunAgentDialog({
         agentType: suggested,
         source,
       });
-      if (!sub.active) incrementRunsUsed();
+      refreshUsage();
       setOpen(false);
       startRun(task).catch(() => {});
       navigate({ to: "/agents/$taskId", params: { taskId: task.id } });

@@ -1,71 +1,54 @@
-// Free-trial gate: 2 lifetime runs (QA + agent tasks combined), then paywall.
-// localStorage-backed until Stripe webhooks promote the flag.
-import { useEffect, useState } from "react";
+// Client hook: subscription/usage state fetched from server (with owner bypass).
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { getUsage, FREE_RUN_LIMIT as SERVER_LIMIT } from "@/lib/subscription.functions";
 
-const USAGE_KEY = "bridges.usage.runsUsed";
-const SUB_KEY = "bridges.subscription.active";
-export const FREE_RUN_LIMIT = 2;
-
-export function getRunsUsed(): number {
-  if (typeof window === "undefined") return 0;
-  return parseInt(window.localStorage.getItem(USAGE_KEY) || "0", 10) || 0;
-}
-
-export function incrementRunsUsed(): number {
-  if (typeof window === "undefined") return 0;
-  const next = getRunsUsed() + 1;
-  window.localStorage.setItem(USAGE_KEY, String(next));
-  window.dispatchEvent(new CustomEvent("bridges:sub-changed"));
-  return next;
-}
-
-export function isSubscribed(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(SUB_KEY) === "true";
-}
-
-export function setSubscribed(v: boolean) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SUB_KEY, v ? "true" : "false");
-  window.dispatchEvent(new CustomEvent("bridges:sub-changed"));
-}
-
-export function resetUsage() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(USAGE_KEY);
-  window.dispatchEvent(new CustomEvent("bridges:sub-changed"));
-}
+export const FREE_RUN_LIMIT = SERVER_LIMIT;
 
 export type SubState = {
   active: boolean;
   runsUsed: number;
   runsRemaining: number;
   canRun: boolean;
+  isOwner: boolean;
+  email: string | null;
+  loading: boolean;
 };
 
 export function useSubscription(): SubState {
-  const [state, setState] = useState<SubState>(() => compute());
-  useEffect(() => {
-    const update = () => setState(compute());
-    update();
-    window.addEventListener("bridges:sub-changed", update);
-    window.addEventListener("storage", update);
-    return () => {
-      window.removeEventListener("bridges:sub-changed", update);
-      window.removeEventListener("storage", update);
+  const { user, loading: authLoading } = useAuth();
+  const q = useQuery({
+    queryKey: ["usage", user?.id],
+    queryFn: () => getUsage(),
+    enabled: !!user,
+    staleTime: 10_000,
+  });
+
+  if (!user) {
+    return {
+      active: false,
+      runsUsed: 0,
+      runsRemaining: FREE_RUN_LIMIT,
+      canRun: false,
+      isOwner: false,
+      email: null,
+      loading: authLoading,
     };
-  }, []);
-  return state;
+  }
+
+  const d = q.data;
+  return {
+    active: !!d?.isSubscribed,
+    runsUsed: d?.runsUsed ?? 0,
+    runsRemaining: d?.runsRemaining ?? FREE_RUN_LIMIT,
+    canRun: d?.canRun ?? false,
+    isOwner: !!d?.isOwner,
+    email: d?.email ?? user.email ?? null,
+    loading: authLoading || q.isLoading,
+  };
 }
 
-function compute(): SubState {
-  const active = isSubscribed();
-  const runsUsed = getRunsUsed();
-  const remaining = Math.max(0, FREE_RUN_LIMIT - runsUsed);
-  return {
-    active,
-    runsUsed,
-    runsRemaining: remaining,
-    canRun: active || runsUsed < FREE_RUN_LIMIT,
-  };
+export function useRefreshUsage() {
+  const qc = useQueryClient();
+  return () => qc.invalidateQueries({ queryKey: ["usage"] });
 }
