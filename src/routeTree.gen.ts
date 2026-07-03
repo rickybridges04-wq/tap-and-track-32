@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -51,6 +52,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const PathwaysRoute = PathwaysRouteImport.update({
   id: '/pathways',
   path: '/pathways',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/upgrade': typeof UpgradeRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/upgrade': typeof UpgradeRoute
@@ -247,6 +255,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
   '/settings': typeof SettingsRoute
   '/upgrade': typeof UpgradeRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
     | '/upgrade'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
     | '/upgrade'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/history'
+    | '/notifications'
     | '/pathways'
     | '/settings'
     | '/upgrade'
@@ -370,6 +382,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
   HistoryRoute: typeof HistoryRoute
+  NotificationsRoute: typeof NotificationsRoute
   PathwaysRoute: typeof PathwaysRoute
   SettingsRoute: typeof SettingsRoute
   UpgradeRoute: typeof UpgradeRoute
@@ -416,6 +429,13 @@ declare module '@tanstack/react-router' {
       path: '/pathways'
       fullPath: '/pathways'
       preLoaderRoute: typeof PathwaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
   HistoryRoute: HistoryRoute,
+  NotificationsRoute: NotificationsRoute,
   PathwaysRoute: PathwaysRoute,
   SettingsRoute: SettingsRoute,
   UpgradeRoute: UpgradeRoute,
