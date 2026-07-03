@@ -1,18 +1,24 @@
 import { Link, useRouterState, Navigate } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2 } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2, Smartphone, Upload, Globe, Bell, Database, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-store";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/lib/subscription";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavItem = { to: string; label: string; icon: typeof Activity; badge?: boolean; ownerOnly?: boolean };
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: Activity },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
+  { to: "/apps", label: "My Apps", icon: Smartphone },
+  { to: "/apps/published", label: "Published Apps", icon: Globe },
+  { to: "/notifications", label: "Push Notifications", icon: Bell },
+  { to: "/data", label: "Data Manager", icon: Database },
+  { to: "/submissions", label: "Submissions", icon: Inbox },
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
+  { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/roster/agents", label: "Agent roster", icon: BookUser },
   { to: "/roster/personas", label: "Persona roster", icon: Users },
