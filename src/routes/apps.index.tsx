@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { listApps } from "@/lib/apps.functions";
-import { Smartphone, Plus, ExternalLink } from "lucide-react";
+import { listApps, syncAppFromCrawl } from "@/lib/apps.functions";
+import { Smartphone, Plus, ExternalLink, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/apps/")({
   head: () => ({ meta: [{ title: "My Apps · Walkthrough Wizard QAOS" }] }),
@@ -16,6 +17,15 @@ function AppsIndex() {
   const nav = useNavigate();
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["apps"], queryFn: () => listApps(), enabled: !!user });
+  const sync = useServerFn(syncAppFromCrawl);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const doSync = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault(); e.stopPropagation();
+    setSyncingId(id);
+    try { await sync({ data: { id } }); await q.refetch(); } catch {} finally { setSyncingId(null); }
+  };
+
 
   if (loading || !user) return null;
   return (
