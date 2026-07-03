@@ -1,5 +1,18 @@
 // Production Readiness Score for Synapse QA OS.
-import type { QaFinding, Severity } from "./qa-store";
+export type Severity = "critical" | "high" | "medium" | "low";
+export type Category = "functional" | "visual" | "accessibility" | "performance";
+export type QaFinding = {
+  id: string;
+  runId: string;
+  personaId: string;
+  pageUrl: string;
+  category: Category;
+  severity: Severity;
+  confidence: number;
+  title: string;
+  detail: string;
+  suggestion?: string;
+};
 
 const WEIGHT: Record<Severity, number> = {
   critical: 15,

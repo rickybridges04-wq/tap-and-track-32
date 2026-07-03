@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
-import { useQaRun, useMounted, type QaFinding } from "@/lib/qa/qa-store";
+import { getRun, type QaFindingRow } from "@/lib/qa/qa.functions";
 import { PERSONAS, type PersonaId } from "@/lib/qa/personas";
 import { computeScore, verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { ArrowLeft, ExternalLink } from "lucide-react";
@@ -12,17 +13,39 @@ export const Route = createFileRoute("/qa/runs/$runId")({
 
 function QaRunDetail() {
   const { runId } = Route.useParams();
-  const mounted = useMounted();
-  const run = useQaRun(runId);
   const [tab, setTab] = useState<"summary" | "findings" | "pages">("summary");
 
-  const score = useMemo(() => {
-    if (!run) return null;
-    return computeScore(run.findings, run.pages.length, Math.max(run.pages.length, 1));
-  }, [run]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["qa-run", runId],
+    queryFn: () => getRun({ data: { id: runId } }),
+    refetchInterval: (q) => {
+      const s = q.state.data?.run?.status;
+      return s && s !== "completed" && s !== "failed" ? 2000 : false;
+    },
+  });
 
-  if (!mounted) return <AppShell><div /></AppShell>;
-  if (!run) {
+  const score = useMemo(() => {
+    if (!data) return null;
+    return computeScore(
+      data.findings.map((f) => ({
+        id: f.id,
+        runId: f.run_id,
+        personaId: f.persona_id as PersonaId,
+        pageUrl: f.page_url,
+        category: f.category,
+        severity: f.severity,
+        confidence: Number(f.confidence),
+        title: f.title,
+        detail: f.detail,
+        suggestion: f.suggestion ?? undefined,
+      })),
+      data.pages.length,
+      Math.max(data.pages.length, 1),
+    );
+  }, [data]);
+
+  if (isLoading) return <AppShell><p className="text-sm text-muted-foreground">Loading…</p></AppShell>;
+  if (!data) {
     return (
       <AppShell>
         <p className="text-sm text-muted-foreground">Run not found.</p>
@@ -30,6 +53,9 @@ function QaRunDetail() {
       </AppShell>
     );
   }
+
+  const { run, pages, findings } = data;
+  const inFlight = run.status !== "completed" && run.status !== "failed";
 
   return (
     <AppShell>
@@ -39,13 +65,13 @@ function QaRunDetail() {
         </Link>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">{run.url}</h1>
+            <h1 className="truncate text-2xl font-semibold tracking-tight">{run.target_url}</h1>
             <div className="mt-1 text-xs text-muted-foreground">
-              {new Date(run.createdAt).toLocaleString()} · {run.depth} crawl · {run.personas.length} personas
+              {new Date(run.created_at).toLocaleString()} · {run.depth} crawl · {run.personas.length} personas
             </div>
           </div>
           {run.status === "completed" && score ? (
-            <div className="text-right" aria-label={`Release readiness score ${score.score} out of 100, ${verdictLabel(score.verdict)}`}>
+            <div className="text-right">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
               <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
               <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
@@ -53,25 +79,18 @@ function QaRunDetail() {
               </span>
             </div>
           ) : (
-            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600" aria-label={`Run status: ${run.status}`}>
+            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">
               {run.status}
             </span>
           )}
         </div>
       </div>
 
-      {run.status !== "completed" && run.status !== "failed" && (
+      {inFlight && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
-          <div className="text-sm font-medium">{run.progress.stage}</div>
-          <div
-            className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
-            role="progressbar"
-            aria-valuenow={run.progress.pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Crawl progress: ${run.progress.stage}`}
-          >
-            <div className="h-full bg-primary transition-all" style={{ width: `${run.progress.pct}%` }} />
+          <div className="text-sm font-medium">{run.progress_stage ?? run.status}</div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={run.progress_pct} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full bg-primary transition-all" style={{ width: `${run.progress_pct}%` }} />
           </div>
         </div>
       )}
@@ -95,34 +114,30 @@ function QaRunDetail() {
         </details>
       )}
 
-      <div role="tablist" aria-label="Run report sections" className="mb-4 flex gap-1 border-b border-border">
+      <div role="tablist" className="mb-4 flex gap-1 border-b border-border">
         {(["summary", "findings", "pages"] as const).map((t) => {
-          const tabLabel =
-            t === "summary" ? "Summary" : t === "findings" ? `Findings (${run.findings.length})` : `Pages crawled (${run.pages.length})`;
-          const isActive = tab === t;
+          const label =
+            t === "summary" ? "Summary" : t === "findings" ? `Findings (${findings.length})` : `Pages crawled (${pages.length})`;
+          const active = tab === t;
           return (
             <button
               key={t}
               type="button"
               role="tab"
-              id={`qa-tab-${t}`}
-              aria-selected={isActive}
-              aria-controls={`qa-panel-${t}`}
-              tabIndex={isActive ? 0 : -1}
+              aria-selected={active}
               onClick={() => setTab(t)}
               className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-                isActive ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tabLabel}
+              {label}
             </button>
           );
         })}
       </div>
 
-
       {tab === "summary" && score && (
-        <div role="tabpanel" id="qa-panel-summary" aria-labelledby="qa-tab-summary" className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-4">
           <Stat label="Functional" v={score.subscores.functional} />
           <Stat label="Visual" v={score.subscores.visual} />
           <Stat label="Accessibility" v={score.subscores.accessibility} />
@@ -140,11 +155,11 @@ function QaRunDetail() {
       )}
 
       {tab === "findings" && (
-        <div role="tabpanel" id="qa-panel-findings" aria-labelledby="qa-tab-findings" className="space-y-2">
-          {run.findings.length === 0 ? (
+        <div className="space-y-2">
+          {findings.length === 0 ? (
             <p className="text-sm text-muted-foreground">No findings yet.</p>
           ) : (
-            run.findings
+            findings
               .slice()
               .sort((a, b) => sevRank(b.severity) - sevRank(a.severity))
               .map((f) => <FindingCard key={f.id} f={f} />)
@@ -153,20 +168,12 @@ function QaRunDetail() {
       )}
 
       {tab === "pages" && (
-        <div role="tabpanel" id="qa-panel-pages" aria-labelledby="qa-tab-pages" className="space-y-2">
-          {run.pages.length === 0 && (
-            <p className="text-sm text-muted-foreground">No pages crawled yet.</p>
-          )}
-          {run.pages.map((p) => (
-            <div key={p.url} className="rounded-lg border border-border bg-card p-3">
+        <div className="space-y-2">
+          {pages.length === 0 && <p className="text-sm text-muted-foreground">No pages crawled yet.</p>}
+          {pages.map((p) => (
+            <div key={p.id} className="rounded-lg border border-border bg-card p-3">
               <div className="flex items-center justify-between gap-2">
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Open ${p.title || p.url} in new tab`}
-                  className="flex items-center gap-1 truncate text-sm font-medium hover:underline"
-                >
+                <a href={p.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 truncate text-sm font-medium hover:underline">
                   {p.title || p.url} <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
                 </a>
                 <span className="text-xs text-muted-foreground">{p.links.length} links</span>
@@ -176,7 +183,6 @@ function QaRunDetail() {
           ))}
         </div>
       )}
-
     </AppShell>
   );
 }
@@ -191,19 +197,15 @@ function Stat({ label, v }: { label: string; v: number }) {
 }
 
 function SevPill({ label, n, cls }: { label: string; n: number; cls: string }) {
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${cls}`}>
-      {label}: {n}
-    </span>
-  );
+  return <span className={`rounded-full px-3 py-1 text-xs font-medium ${cls}`}>{label}: {n}</span>;
 }
 
 function sevRank(s: string) {
   return { critical: 4, high: 3, medium: 2, low: 1 }[s as "critical"] ?? 0;
 }
 
-function FindingCard({ f }: { f: QaFinding }) {
-  const persona = f.personaId !== "crawler" ? PERSONAS[f.personaId as PersonaId] : null;
+function FindingCard({ f }: { f: QaFindingRow }) {
+  const persona = PERSONAS[f.persona_id as PersonaId];
   const sevClass = {
     critical: "bg-rose-500/15 text-rose-700",
     high: "bg-orange-500/15 text-orange-700",
@@ -213,36 +215,24 @@ function FindingCard({ f }: { f: QaFinding }) {
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${sevClass}`}>
-              {f.severity}
-            </span>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium capitalize">
-              {f.category}
-            </span>
-            {persona && (
-              <span className="text-xs text-muted-foreground">
-                {persona.emoji} {persona.name}
-              </span>
-            )}
-            <span className="text-xs text-muted-foreground">
-              · {Math.round((f.confidence || 0) * 100)}% conf
-            </span>
-          </div>
-          <div className="mt-1.5 text-sm font-medium">{f.title}</div>
-          <p className="mt-1 text-sm text-muted-foreground">{f.detail}</p>
-          {f.suggestion && (
-            <p className="mt-2 text-sm">
-              <span className="font-medium">Suggested fix: </span>
-              <span className="text-muted-foreground">{f.suggestion}</span>
-            </p>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${sevClass}`}>{f.severity}</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium capitalize">{f.category}</span>
+        {persona && (
+          <span className="text-xs text-muted-foreground">{persona.emoji} {persona.name}</span>
+        )}
+        <span className="text-xs text-muted-foreground">· {Math.round(Number(f.confidence) * 100)}% conf</span>
       </div>
-      <a href={f.pageUrl} target="_blank" rel="noreferrer" aria-label={`Open page ${f.pageUrl} in new tab`} className="mt-2 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline">
-        {f.pageUrl} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+      <div className="mt-1.5 text-sm font-medium">{f.title}</div>
+      <p className="mt-1 text-sm text-muted-foreground">{f.detail}</p>
+      {f.suggestion && (
+        <p className="mt-2 text-sm">
+          <span className="font-medium">Suggested fix: </span>
+          <span className="text-muted-foreground">{f.suggestion}</span>
+        </p>
+      )}
+      <a href={f.page_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline">
+        {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
       </a>
     </div>
   );

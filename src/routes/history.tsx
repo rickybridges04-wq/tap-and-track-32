@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,7 @@ import {
   useAgentsVersion,
   useMounted,
 } from "@/lib/agent-store";
-import { deleteRun as deleteQaRun, useQaRuns } from "@/lib/qa/qa-store";
+import { listRuns as listQaRuns, deleteRun as deleteQaRunFn, type QaRunRow } from "@/lib/qa/qa.functions";
 import { AGENTS } from "@/lib/agents";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { Activity, FlaskConical, Bot, Sparkles } from "lucide-react";
@@ -43,7 +44,18 @@ function HistoryPage() {
   useStoreVersion();
   useAgentsVersion();
   const mounted = useMounted();
-  const qaRuns = useQaRuns();
+  const qc = useQueryClient();
+  const { data: qaRuns = [] } = useQuery({
+    queryKey: ["qa-runs"],
+    queryFn: () => listQaRuns(),
+  });
+  const delQa = useMutation({
+    mutationFn: (id: string) => deleteQaRunFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("QA run deleted");
+      qc.invalidateQueries({ queryKey: ["qa-runs"] });
+    },
+  });
 
   if (!mounted) {
     return <AppShell><div className="h-40 animate-pulse rounded-md bg-muted/40" /></AppShell>;
@@ -70,19 +82,16 @@ function HistoryPage() {
         },
       };
     }),
-    ...qaRuns.map<Row>((r) => ({
+    ...qaRuns.map<Row>((r: QaRunRow) => ({
       id: `qa-${r.id}`,
       kind: "qa",
-      title: r.url,
-      subtitle: `${r.depth} · ${r.personas.length} personas · ${r.findings.length} findings`,
-      badge: r.verdict ? verdictLabel(r.verdict) : r.status,
-      badgeClass: r.verdict ? verdictColor(r.verdict) : undefined,
-      createdAt: r.createdAt,
+      title: r.target_url,
+      subtitle: `${r.depth} · ${r.personas.length} personas`,
+      badge: r.verdict ? verdictLabel(r.verdict as "ready" | "minor" | "major" | "block") : r.status,
+      badgeClass: r.verdict ? verdictColor(r.verdict as "ready" | "minor" | "major" | "block") : undefined,
+      createdAt: r.created_at,
       href: { to: "/qa/runs/$runId", params: { runId: r.id } },
-      onDelete: () => {
-        deleteQaRun(r.id);
-        toast.success("QA run deleted");
-      },
+      onDelete: () => delQa.mutate(r.id),
     })),
     ...agentRuns.map<Row>((r) => {
       const t = agentTasks.find((x) => x.id === r.taskId);

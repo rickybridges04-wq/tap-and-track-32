@@ -341,39 +341,151 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_findings: {
+        Row: {
+          category: string
+          confidence: number
+          created_at: string
+          detail: string
+          id: string
+          page_url: string
+          persona_id: string
+          run_id: string
+          severity: string
+          suggestion: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          confidence?: number
+          created_at?: string
+          detail: string
+          id?: string
+          page_url: string
+          persona_id: string
+          run_id: string
+          severity: string
+          suggestion?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          detail?: string
+          id?: string
+          page_url?: string
+          persona_id?: string
+          run_id?: string
+          severity?: string
+          suggestion?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_findings_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "qa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_pages: {
+        Row: {
+          created_at: string
+          id: string
+          links: Json
+          markdown_preview: string | null
+          run_id: string
+          status: number | null
+          title: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          links?: Json
+          markdown_preview?: string | null
+          run_id: string
+          status?: number | null
+          title?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          links?: Json
+          markdown_preview?: string | null
+          run_id?: string
+          status?: number | null
+          title?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_pages_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "qa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qa_runs: {
         Row: {
           completed_at: string | null
           created_at: string
           depth: string
+          error: string | null
           id: string
           personas: string[]
+          progress_pct: number
+          progress_stage: string | null
           score: number | null
           status: string
           target_url: string
           user_id: string
+          verdict: string | null
+          warnings: Json
         }
         Insert: {
           completed_at?: string | null
           created_at?: string
           depth: string
+          error?: string | null
           id?: string
           personas?: string[]
+          progress_pct?: number
+          progress_stage?: string | null
           score?: number | null
           status?: string
           target_url: string
           user_id: string
+          verdict?: string | null
+          warnings?: Json
         }
         Update: {
           completed_at?: string | null
           created_at?: string
           depth?: string
+          error?: string | null
           id?: string
           personas?: string[]
+          progress_pct?: number
+          progress_stage?: string | null
           score?: number | null
           status?: string
           target_url?: string
           user_id?: string
+          verdict?: string | null
+          warnings?: Json
         }
         Relationships: []
       }
