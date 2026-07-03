@@ -33,6 +33,7 @@ import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
 import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
+import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 
@@ -156,6 +157,11 @@ const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
   path: '/qa/runs/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => AppsIdRoute,
+} as any)
 const ApiPublicWebhooksAgentEventRoute =
   ApiPublicWebhooksAgentEventRouteImport.update({
     id: '/api/public/webhooks/agent-event',
@@ -181,7 +187,7 @@ export interface FileRoutesByFullPath {
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
-  '/apps/$id': typeof AppsIdRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
@@ -193,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -209,7 +216,7 @@ export interface FileRoutesByTo {
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
-  '/apps/$id': typeof AppsIdRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/apps': typeof AppsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -238,7 +246,7 @@ export interface FileRoutesById {
   '/agents/approvals': typeof AgentsApprovalsRoute
   '/agents/history': typeof AgentsHistoryRoute
   '/agents/new': typeof AgentsNewRoute
-  '/apps/$id': typeof AppsIdRoute
+  '/apps/$id': typeof AppsIdRouteWithChildren
   '/apps/new': typeof AppsNewRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
+  '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/apps/'
     | '/projects/'
     | '/qa/'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/projects'
     | '/qa'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/apps/'
     | '/projects/'
     | '/qa/'
+    | '/apps/$id/submit'
     | '/qa/runs/$runId'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
@@ -353,7 +365,7 @@ export interface RootRouteChildren {
   AgentsApprovalsRoute: typeof AgentsApprovalsRoute
   AgentsHistoryRoute: typeof AgentsHistoryRoute
   AgentsNewRoute: typeof AgentsNewRoute
-  AppsIdRoute: typeof AppsIdRoute
+  AppsIdRoute: typeof AppsIdRouteWithChildren
   AppsNewRoute: typeof AppsNewRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
@@ -540,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QaRunsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apps/$id/submit': {
+      id: '/apps/$id/submit'
+      path: '/submit'
+      fullPath: '/apps/$id/submit'
+      preLoaderRoute: typeof AppsIdSubmitRouteImport
+      parentRoute: typeof AppsIdRoute
+    }
     '/api/public/webhooks/agent-event': {
       id: '/api/public/webhooks/agent-event'
       path: '/api/public/webhooks/agent-event'
@@ -557,6 +576,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppsIdRouteChildren {
+  AppsIdSubmitRoute: typeof AppsIdSubmitRoute
+}
+
+const AppsIdRouteChildren: AppsIdRouteChildren = {
+  AppsIdSubmitRoute: AppsIdSubmitRoute,
+}
+
+const AppsIdRouteWithChildren =
+  AppsIdRoute._addFileChildren(AppsIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -569,7 +599,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsApprovalsRoute: AgentsApprovalsRoute,
   AgentsHistoryRoute: AgentsHistoryRoute,
   AgentsNewRoute: AgentsNewRoute,
-  AppsIdRoute: AppsIdRoute,
+  AppsIdRoute: AppsIdRouteWithChildren,
   AppsNewRoute: AppsNewRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
