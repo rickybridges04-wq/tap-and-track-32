@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { getApp, updateApp, deleteApp } from "@/lib/apps.functions";
+import { getApp, updateApp, deleteApp, syncAppFromCrawl } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { Smartphone, Trash2, Upload, Bell, Database, Inbox } from "lucide-react";
+import { Smartphone, Trash2, Upload, Bell, Database, Inbox, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/apps/$id")({
   head: () => ({ meta: [{ title: "App · Walkthrough Wizard QAOS" }] }),
