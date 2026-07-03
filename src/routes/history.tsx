@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,7 @@ import {
   useAgentsVersion,
   useMounted,
 } from "@/lib/agent-store";
-import { deleteRun as deleteQaRun, useQaRuns } from "@/lib/qa/qa-store";
+import { listRuns as listQaRuns, deleteRun as deleteQaRunFn, type QaRunRow } from "@/lib/qa/qa.functions";
 import { AGENTS } from "@/lib/agents";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { Activity, FlaskConical, Bot, Sparkles } from "lucide-react";
