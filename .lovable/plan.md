@@ -1,33 +1,69 @@
+
 ## Goal
-Monetize Walkthrough Wizard QAOS as a subscription (2 free QA runs, then paywall), give it a real app icon, and make it installable on your phone.
+Turn Walkthrough Wizard QAOS into a real subscription product: 3 free runs for everyone, unlimited free for you (rickybridges04@gmail.com), Stripe-powered paywall for everyone else, in-app analytics, and a few store-readiness features that fit the app's purpose (App Store / Play Store QA).
 
-## 1. Payments — Stripe subscription
-Run `recommend_payment_provider` then enable Stripe via `enable_stripe_payments` (built-in, no account needed to start in test mode). Create one subscription product:
-- **Pro** — single monthly tier, unlimited QA runs + agent tasks.
-Price + exact $ to be set when we create the product (I'll ask before creating).
+---
 
-## 2. Free-trial gate (paywall after 2 runs)
-- Add `src/lib/usage-store.ts` — tracks lifetime count of completed QA runs in localStorage (`bridges.usage.qaRuns`). When Cloud/Stripe is live, this moves to a `usage` table keyed by user.
-- Add `src/lib/subscription.ts` — `useSubscription()` hook. Returns `{ status: "trial" | "active", runsUsed, runsRemaining, canRun }`. `active` once Stripe webhook flips a flag; until then, `canRun = runsUsed < 2`.
-- Gate `src/routes/qa.new.tsx` "Start crawl" button: if `!canRun`, show a `<PaywallCard />` with run counter + "Upgrade" CTA instead of starting the run.
-- Same gate on `src/components/RunAgentDialog.tsx` submit (agent tasks count toward the same 2-run budget so both surfaces are covered).
-- New route `src/routes/upgrade.tsx` — pricing card, "Subscribe" button → Stripe Checkout.
-- Webhook `src/routes/api/public/webhooks.stripe.tsx` — on `checkout.session.completed` / `customer.subscription.updated`, mark the user active. Until Cloud is on, this flag also lives in localStorage as `bridges.subscription.active`.
+## 1. Auth (required — owner bypass needs a real user)
+Owner-only unlimited access can't work on localStorage. We need real accounts.
 
-## 3. App icon
-Generate a premium 1024×1024 icon matching the Deep Cosmic theme (neon gradient wizard/wand glyph on dark) → `public/icon-512.png` + `public/icon-192.png` + `public/apple-touch-icon.png` + `public/favicon.ico`.
+- Enable email + Google sign-in via Lovable Cloud auth.
+- Add `src/routes/auth.tsx` (sign in / sign up) and move existing app routes under `src/routes/_authenticated/` so the whole app requires login.
+- Create `profiles` table (id, email, created_at) auto-populated on signup via trigger.
+- Create `user_roles` table + `has_role()` security-definer function (per workspace user-roles rule). Seed `rickybridges04@gmail.com` as role `owner` on first login via trigger.
 
-## 4. Installable PWA (manifest-only — home-screen install, no offline)
-- `public/manifest.webmanifest` with name "Walkthrough Wizard QAOS", short_name "Wizard QAOS", `display: standalone`, theme/bg colors from cosmic theme, icons above.
-- Add `<link rel="manifest">`, `theme-color`, `apple-touch-icon` to `src/routes/__root.tsx` head.
-- No service worker, no `vite-plugin-pwa` (per skill/pwa rules — you asked for install, not offline).
+## 2. Usage tracking (move off localStorage)
+- Table `usage_events` (id, user_id, kind: 'qa_run' | 'agent_task', created_at). RLS: users read/insert own; owner reads all.
+- Server fn `getUsage()` returns `{ runsUsed, runsRemaining, isOwner, isSubscribed }`.
+- Rewrite `src/lib/subscription.ts` `useSubscription()` to call that server fn instead of localStorage. `canRun = isOwner || isSubscribed || runsUsed < 3`.
+- Increment via server fn `recordRun({ kind })` called from `qa.new.tsx` and `RunAgentDialog.tsx` right before starting a run.
+- Free limit: **3** (was 2).
 
-## 5. Install instructions
-After build, I'll give you the published URL + 1-tap install steps for iOS (Share → Add to Home Screen) and Android (Chrome menu → Install app). I can't push-install to your device remotely — only the browser prompt can.
+## 3. Stripe subscription (real, not local)
+- Run `recommend_payment_provider` → `enable_stripe_payments` (Lovable-managed, no BYOK).
+- Create one product: **Pro — $29/month**, unlimited QA runs + agent tasks. (Rationale: this app runs multiple AI calls per crawl; $19 barely covers heavy users. $29 gives margin and matches "pro dev tool" positioning. Confirm before I create it.)
+- Table `subscriptions` (user_id PK, stripe_customer_id, stripe_subscription_id, status, current_period_end). RLS: user reads own.
+- Rewrite `src/routes/upgrade.tsx` "Subscribe" button to call server fn `createCheckoutSession()` → redirect to Stripe Checkout.
+- Server route `src/routes/api/public/webhooks.stripe.tsx` — verifies Stripe signature, upserts `subscriptions` row on `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
+- Add "Manage billing" button (Stripe customer portal) in `src/routes/settings.tsx`.
+
+## 4. Owner bypass
+- `getUsage()` returns `isOwner: true` when `has_role(auth.uid(), 'owner')`.
+- All gates (`canRun`, paywall card, "Upgrade to run" button label) skip for owner.
+- Owner sees a small "Owner · unlimited" badge instead of the trial counter.
+
+## 5. Analytics dashboard
+New route `src/routes/analytics.tsx` (owner-only; regular users see their own numbers only).
+Cards + charts (recharts, already available):
+- Total signups, active subscribers, MRR (subscribers × $29).
+- Runs per day (last 30d), QA vs agent split.
+- Free → paid conversion rate.
+- Top target URLs tested.
+- Per-user table: email, runs used, subscription status, last active.
+
+Data via server fns reading `profiles`, `usage_events`, `subscriptions`, `qa_runs` (add table if missing — currently runs live in localStorage; migrate qa runs to DB in the same pass so analytics has real data).
+
+## 6. Store-readiness features (fits the product's purpose)
+Small additions that make this actually useful for App Store / Play Store QA:
+- **Store-readiness checklist** on each QA run detail page: privacy policy link present, terms link present, icon meets 1024×1024, no lorem-ipsum copy, no broken links, no console errors, HTTPS only, meta description present. Rendered as pass/fail rows with fix suggestions. (Runs against already-crawled pages — no new AI calls.)
+- **Apple 4.2 / Google Play minimum-functionality guard**: flag runs where >50% of buttons on a page have no click handler or lead to empty routes (matches the workspace "no shell UI" rule).
+- **Downloadable PDF report** per run (jsPDF) for submitting alongside store review or sharing with clients.
+
+## 7. Cleanup
+- Delete localStorage-based `subscription.ts` compute path; keep the hook signature so callers don't change.
+- Update `PaywallCard` copy: "3 free runs" instead of 2.
+- Update `upgrade.tsx` pricing card: $29/mo, remove the local "Reset to trial (dev)" button.
+
+---
+
+## Technical notes
+- All secret Stripe keys live in Cloud secrets, called only from server fns / webhook route.
+- Webhook signature verification uses `STRIPE_WEBHOOK_SECRET` (added via `add_secret` after `enable_stripe_payments`).
+- RLS on every new table; owner role checked via `has_role()`, never via email string in client code.
+- Auth-gated routes go under `_authenticated/` per the integration-managed layout — I won't hand-write the gate.
 
 ## Questions before I build
-1. **Subscription price** — $19/mo? $29/mo? Something else?
-2. **Trial budget** — you said "after the testing of the first two apps." I read that as 2 total QA runs free, then paywall. Correct, or did you mean 2 QA runs *per project*?
-
-## Out of scope
-Annual plan, team seats, coupon codes, in-app upgrade modal animations — easy to add after the base is live.
+1. **Price** — I'm proposing **$29/month**. OK, or do you want $19 / $39 / something else?
+2. **Sign-in methods** — Email + Google, or Google only?
+3. **Analytics scope** — Owner-only dashboard, or should regular users also see their own usage page?
+4. **Store-readiness extras** — Want all three (checklist + shell-UI guard + PDF export), or trim?
