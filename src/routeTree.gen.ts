@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PathwaysRouteImport } from './routes/pathways'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
 import { Route as DataRouteImport } from './routes/data'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -70,6 +71,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticsRoute = DiagnosticsRouteImport.update({
+  id: '/diagnostics',
+  path: '/diagnostics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataRoute = DataRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/data': typeof DataRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/history': typeof HistoryRoute
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/data': typeof DataRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/history': typeof HistoryRoute
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/data': typeof DataRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/history': typeof HistoryRoute
   '/notifications': typeof NotificationsRoute
   '/pathways': typeof PathwaysRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/data'
+    | '/diagnostics'
     | '/history'
     | '/notifications'
     | '/pathways'
@@ -350,6 +360,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/data'
+    | '/diagnostics'
     | '/history'
     | '/notifications'
     | '/pathways'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/data'
+    | '/diagnostics'
     | '/history'
     | '/notifications'
     | '/pathways'
@@ -419,6 +431,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
   DataRoute: typeof DataRoute
+  DiagnosticsRoute: typeof DiagnosticsRoute
   HistoryRoute: typeof HistoryRoute
   NotificationsRoute: typeof NotificationsRoute
   PathwaysRoute: typeof PathwaysRoute
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostics': {
+      id: '/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/diagnostics'
+      preLoaderRoute: typeof DiagnosticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data': {
@@ -683,6 +703,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
   DataRoute: DataRoute,
+  DiagnosticsRoute: DiagnosticsRoute,
   HistoryRoute: HistoryRoute,
   NotificationsRoute: NotificationsRoute,
   PathwaysRoute: PathwaysRoute,
@@ -715,13 +736,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

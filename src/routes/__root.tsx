@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AgentTriggersMount } from "@/lib/agent-triggers";
 import { AuthProvider } from "@/hooks/useAuth";
+import { installDiagGlobals } from "@/lib/diag";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => { installDiagGlobals(); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
