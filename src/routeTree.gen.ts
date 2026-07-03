@@ -18,6 +18,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as AppsIndexRouteImport } from './routes/apps.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
 import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
@@ -76,6 +77,11 @@ const QaIndexRoute = QaIndexRouteImport.update({
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppsIndexRoute = AppsIndexRouteImport.update({
+  id: '/apps/',
+  path: '/apps/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
+  '/apps': typeof AppsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/roster/personas': typeof RosterPersonasRoute
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/apps/': typeof AppsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
+    | '/apps/'
     | '/projects/'
     | '/qa/'
     | '/qa/runs/$runId'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents'
+    | '/apps'
     | '/projects'
     | '/qa'
     | '/qa/runs/$runId'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/roster/personas'
     | '/runs/$id'
     | '/agents/'
+    | '/apps/'
     | '/projects/'
     | '/qa/'
     | '/qa/runs/$runId'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   RosterPersonasRoute: typeof RosterPersonasRoute
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
+  AppsIndexRoute: typeof AppsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects/'
       preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apps/': {
+      id: '/apps/'
+      path: '/apps'
+      fullPath: '/apps/'
+      preLoaderRoute: typeof AppsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/': {
@@ -516,6 +536,7 @@ const rootRouteChildren: RootRouteChildren = {
   RosterPersonasRoute: RosterPersonasRoute,
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
+  AppsIndexRoute: AppsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   QaRunsRunIdRoute: QaRunsRunIdRoute,
