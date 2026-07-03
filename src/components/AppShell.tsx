@@ -1,11 +1,15 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown } from "lucide-react";
+import { Link, useRouterState, Navigate } from "@tanstack/react-router";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-store";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/lib/subscription";
 
-const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boolean }> = [
+type NavItem = { to: string; label: string; icon: typeof Activity; badge?: boolean; ownerOnly?: boolean };
+
+const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: Activity },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
@@ -15,6 +19,7 @@ const nav: Array<{ to: string; label: string; icon: typeof Activity; badge?: boo
   { to: "/agents/approvals", label: "Approvals", icon: ShieldCheck, badge: true },
   { to: "/history", label: "Beta history", icon: History },
   { to: "/pathways", label: "Pathways", icon: RouteIcon },
+  { to: "/analytics", label: "Analytics", icon: BarChart3, ownerOnly: true },
   { to: "/upgrade", label: "Upgrade", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
