@@ -36,6 +36,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mounted = useMounted();
   const pending = mounted ? pendingApprovalCount() : 0;
   const section = sectionLabel(path);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { isOwner, active, runsRemaining, email } = useSubscription();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+
+  const visibleNav = nav.filter((n) => !n.ownerOnly || isOwner);
 
   return (
     <div className="relative min-h-screen text-foreground">
@@ -58,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex flex-col gap-1 px-3 py-2">
-          {nav.map((n) => {
+          {visibleNav.map((n) => {
             const active =
               n.to === "/"
                 ? path === "/"
