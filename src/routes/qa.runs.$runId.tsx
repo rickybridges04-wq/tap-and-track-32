@@ -4,8 +4,10 @@ import { AppShell } from "@/components/AppShell";
 import { getRun, type QaFindingRow } from "@/lib/qa/qa.functions";
 import { PERSONAS, type PersonaId } from "@/lib/qa/personas";
 import { computeScore, verdictColor, verdictLabel } from "@/lib/qa/scoring";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Wrench, Copy, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/qa/runs/$runId")({
   component: QaRunDetail,
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/qa/runs/$runId")({
 function QaRunDetail() {
   const { runId } = Route.useParams();
   const [tab, setTab] = useState<"summary" | "findings" | "pages">("summary");
+  const [showFixes, setShowFixes] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["qa-run", runId],
@@ -71,12 +74,22 @@ function QaRunDetail() {
             </div>
           </div>
           {run.status === "completed" && score ? (
-            <div className="text-right">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
-              <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
-              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
-                {verdictLabel(score.verdict)}
-              </span>
+            <div className="flex items-start gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowFixes(true)}
+                disabled={findings.filter((f) => f.suggestion).length === 0}
+              >
+                <Wrench className="mr-1 h-4 w-4" /> Pull all fixes
+              </Button>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
+                <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
+                <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
+                  {verdictLabel(score.verdict)}
+                </span>
+              </div>
             </div>
           ) : (
             <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">
@@ -85,6 +98,13 @@ function QaRunDetail() {
           )}
         </div>
       </div>
+
+      {showFixes && run.status === "completed" && (
+        <FixesBubble
+          findings={findings}
+          onClose={() => setShowFixes(false)}
+        />
+      )}
 
       {inFlight && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
@@ -234,6 +254,75 @@ function FindingCard({ f }: { f: QaFindingRow }) {
       <a href={f.page_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline">
         {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
       </a>
+    </div>
+  );
+}
+
+function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose: () => void }) {
+  const withFix = findings.filter((f) => f.suggestion);
+  const sorted = withFix.slice().sort((a, b) => sevRank(b.severity) - sevRank(a.severity));
+
+  const asText = useMemo(
+    () =>
+      sorted
+        .map(
+          (f, i) =>
+            `${i + 1}. [${f.severity.toUpperCase()}] ${f.title}\n   Page: ${f.page_url}\n   Fix: ${f.suggestion}`,
+        )
+        .join("\n\n"),
+    [sorted],
+  );
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(asText);
+      toast.success(`Copied ${sorted.length} fix${sorted.length === 1 ? "" : "es"}`);
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+
+  return (
+    <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold">Suggested fixes ({sorted.length})</h2>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" onClick={copy}>
+            <Copy className="mr-1 h-4 w-4" /> Copy all
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      {sorted.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No suggested fixes in this run.</p>
+      ) : (
+        <ol className="space-y-2">
+          {sorted.map((f, i) => (
+            <li key={f.id} className="rounded-lg border border-border bg-background/60 p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 text-xs text-muted-foreground">{i + 1}.</span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{f.title}</div>
+                  <div className="mt-0.5 text-muted-foreground">{f.suggestion}</div>
+                  <a
+                    href={f.page_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline"
+                  >
+                    {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
