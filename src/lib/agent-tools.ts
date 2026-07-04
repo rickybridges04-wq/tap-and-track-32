@@ -1,4 +1,4 @@
-// Tool implementations. Today these touch localStorage. Swap to Cloud later.
+// Tool implementations. Safe reads use localStorage; risky/real-world tools call server fns.
 import type { ToolName } from "@/lib/agents";
 import { listProjects, listRuns, simulateRun } from "@/lib/store";
 import {
@@ -8,6 +8,13 @@ import {
   saveError,
   type ErrorRecord,
 } from "@/lib/agent-store";
+import {
+  runTester,
+  sendEmail as sendEmailFn,
+  chargeMoney as chargeMoneyFn,
+  updateRow as updateRowFn,
+  deleteRow as deleteRowFn,
+} from "@/lib/agent-tools.functions";
 
 export type ToolExecResult = {
   ok: boolean;
