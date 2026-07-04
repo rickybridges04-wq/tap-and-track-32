@@ -1,4 +1,4 @@
-// Tool implementations. Today these touch localStorage. Swap to Cloud later.
+// Tool implementations. Safe reads use localStorage; risky/real-world tools call server fns.
 import type { ToolName } from "@/lib/agents";
 import { listProjects, listRuns, simulateRun } from "@/lib/store";
 import {
@@ -8,6 +8,13 @@ import {
   saveError,
   type ErrorRecord,
 } from "@/lib/agent-store";
+import {
+  runTester,
+  sendEmail as sendEmailFn,
+  chargeMoney as chargeMoneyFn,
+  updateRow as updateRowFn,
+  deleteRow as deleteRowFn,
+} from "@/lib/agent-tools.functions";
 
 export type ToolExecResult = {
   ok: boolean;
@@ -54,15 +61,19 @@ export async function executeTool(
       return { ok: true, data: data.slice(0, limit), message: `Read ${Math.min(data.length, limit)} row(s) from ${t}.` };
     }
     case "runBridgesTester": {
+      const explicitUrl = typeof args.url === "string" ? args.url : "";
       const id = String(args.projectId || "");
       const projects = listProjects();
       const target = projects.find((p) => p.id === id) ?? projects[0];
-      if (!target) return { ok: false, message: "No projects available to test." };
-      const run = simulateRun(target.id, "manual");
+      const url = explicitUrl || target?.baseUrl;
+      if (!url) return { ok: false, message: "No target URL — pass args.url or add a project with a baseUrl." };
+      // Record a local run row so history stays coherent.
+      const stub = target ? simulateRun(target.id, "manual") : null;
+      const res = await runTester({ data: { url, maxClicks: 3 } });
       return {
-        ok: true,
-        data: { runId: run.id, stats: run.stats },
-        message: `Bridges Tester run complete: ${run.stats.pass} pass / ${run.stats.warn} warn / ${run.stats.fail} fail.`,
+        ok: res.ok,
+        data: { ...(res.data ?? {}), runId: stub?.id },
+        message: res.message,
       };
     }
     case "proposePlan": {
@@ -77,17 +88,42 @@ export async function executeTool(
       saveError(updated);
       return { ok: true, data: updated, message: `Marked ${id} as resolved.` };
     }
-    // Risky tools never execute here — they should be intercepted upstream.
-    case "updateRow":
-    case "deleteRow":
-    case "sendEmail":
-    case "chargeMoney":
+    case "sendEmail": {
+      return sendEmailFn({
+        data: {
+          to: String(args.to ?? ""),
+          subject: String(args.subject ?? ""),
+          html: String(args.html ?? args.body ?? ""),
+          from: args.from ? String(args.from) : "Bridges Ops <onboarding@resend.dev>",
+        },
+      });
+    }
+    case "chargeMoney": {
+      return chargeMoneyFn({
+        data: {
+          amount: Number(args.amount ?? 0),
+          currency: String(args.currency ?? "usd"),
+          customerId: String(args.customerId ?? ""),
+          description: args.description ? String(args.description) : undefined,
+        },
+      });
+    }
+    case "updateRow": {
+      return updateRowFn({
+        data: {
+          table: args.table,
+          id: String(args.id ?? ""),
+          patch: (args.patch ?? {}) as Record<string, unknown>,
+        },
+      });
+    }
+    case "deleteRow": {
+      return deleteRowFn({ data: { table: args.table, id: String(args.id ?? "") } });
+    }
     case "deploy":
+      return { ok: false, message: "deploy tool is not wired to a deploy provider." };
     case "updateProdSetting":
-      return {
-        ok: false,
-        message: `Risky tool '${tool}' must be approved before execution.`,
-      };
+      return { ok: false, message: "updateProdSetting tool is not wired to a provider." };
   }
 }
 

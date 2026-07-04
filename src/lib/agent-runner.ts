@@ -219,13 +219,10 @@ export async function decideApproval(approvalId: string, decision: "approved" | 
     return;
   }
 
-  // Approved — execute the risky tool now (still simulated; no external call fires).
-  step.status = "approved";
-  step.result = {
-    ok: true,
-    message: `Approved by user. (Simulated execution — no external service called.)`,
-    payload: step.args,
-  };
+  // Approved — execute the risky tool for real.
+  const res = await executeTool(step.tool as ToolName, JSON.stringify(step.args ?? {}));
+  step.status = res.ok ? "approved" : "failed";
+  step.result = res;
   step.finishedAt = new Date().toISOString();
   saveAgentRun(run);
   await advanceRun(run.id);
