@@ -7,6 +7,11 @@ import { z } from "zod";
 export type ToolResult = { ok: boolean; data?: any; message: string };
 
 // ── Bridges Tester ──────────────────────────────────────────────────────────
+// The deploy target is Cloudflare Workers, which cannot run Playwright /
+// headless Chromium. This tester issues a real HTTP GET against the URL and
+// reports status, latency, byte size, and same-origin link count so a
+// broken deploy is still caught — labeled clearly as an HTTP probe, not a
+// browser walkthrough.
 const TesterInput = z.object({
   url: z.string().url(),
   maxClicks: z.number().int().min(0).max(10).default(3),
@@ -15,64 +20,46 @@ const TesterInput = z.object({
 export const runTester = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => TesterInput.parse(input))
   .handler(async ({ data }): Promise<ToolResult> => {
-    const { withPage } = await import("@/lib/browserbase.server");
+    const started = Date.now();
     try {
-      const result = await withPage(async (page) => {
-        const consoleErrors: string[] = [];
-        const failedRequests: string[] = [];
-        page.on("console", (m) => {
-          if (m.type() === "error") consoleErrors.push(m.text().slice(0, 300));
-        });
-        page.on("requestfailed", (r) =>
-          failedRequests.push(`${r.method()} ${r.url()} — ${r.failure()?.errorText ?? ""}`.slice(0, 300)),
-        );
-
-        const pagesVisited: string[] = [];
-        await page.goto(data.url, { waitUntil: "domcontentloaded", timeout: 45000 });
-        pagesVisited.push(page.url());
-
-        for (let i = 0; i < data.maxClicks; i++) {
-          const targets = await page
-            .$$eval("a[href], button:not([disabled])", (els) =>
-              (els as HTMLElement[])
-                .filter((el) => el.offsetParent !== null)
-                .slice(0, 12)
-                .map((el, idx) => ({ idx, text: el.innerText?.slice(0, 40) ?? "" })),
-            )
-            .catch(() => [] as { idx: number; text: string }[]);
-          const pick = targets[i];
-          if (!pick) break;
-          try {
-            const handles = await page.$$("a[href], button:not([disabled])");
-            await handles[pick.idx]?.click({ timeout: 4000 });
-            await page.waitForLoadState("domcontentloaded", { timeout: 8000 }).catch(() => {});
-            pagesVisited.push(page.url());
-          } catch {
-            /* ignore individual click errors */
+      const res = await fetch(data.url, { redirect: "follow" });
+      const html = await res.text();
+      const latencyMs = Date.now() - started;
+      const base = new URL(res.url);
+      const hrefs = Array.from(html.matchAll(/href\s*=\s*"([^"]+)"/gi)).map((m) => m[1]);
+      const sameOriginLinks = new Set<string>();
+      for (const h of hrefs) {
+        try {
+          const u = new URL(h, base);
+          if (u.origin === base.origin) {
+            u.hash = "";
+            sameOriginLinks.add(u.toString());
           }
+        } catch {
+          /* ignore malformed */
         }
-
-        const shot = await page.screenshot({ type: "jpeg", quality: 60 });
-        return {
-          pagesVisited: Array.from(new Set(pagesVisited)),
-          consoleErrors: consoleErrors.slice(0, 20),
-          failedRequests: failedRequests.slice(0, 20),
-          screenshotDataUrl: `data:image/jpeg;base64,${shot.toString("base64")}`,
-        };
-      });
-
-      const pass = result.consoleErrors.length === 0 && result.failedRequests.length === 0;
+      }
+      const result = {
+        finalUrl: res.url,
+        status: res.status,
+        latencyMs,
+        bytes: html.length,
+        sameOriginLinkCount: sameOriginLinks.size,
+        sampleLinks: Array.from(sameOriginLinks).slice(0, 10),
+      };
+      const pass = res.ok;
       return {
         ok: true,
         data: result,
-        message: `Tester visited ${result.pagesVisited.length} page(s). ${
-          pass ? "No errors." : `${result.consoleErrors.length} console error(s), ${result.failedRequests.length} failed request(s).`
-        }`,
+        message: `HTTP probe ${res.status} in ${latencyMs}ms, ${html.length} bytes, ${sameOriginLinks.size} same-origin links.${
+          pass ? "" : " (non-2xx response)"
+        } Note: server-runtime does not support a real browser walkthrough.`,
       };
     } catch (err) {
       return { ok: false, message: err instanceof Error ? err.message : String(err) };
     }
   });
+
 
 // ── Risky: sendEmail (Resend via gateway) ───────────────────────────────────
 const SendEmailInput = z.object({
