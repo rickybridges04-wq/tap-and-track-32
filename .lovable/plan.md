@@ -1,94 +1,61 @@
-# Synapse QA OS — Persistence, tuning, personas
+# Make runs real (Browserbase + real agent execution)
 
-## Scope
+Cloud is on. `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` are saved. Scope covers three swaps — all server-side, no UI redesign.
 
-Three changes:
+## 1. Browserbase driver (shared)
 
-1. **Server-driven crawl with progress polling** — runs persist across reloads mid-flight.
-2. **Depth caps** raised to 5 / 15 / 40.
-3. **Default personas** expanded to include a mobile/responsive persona.
+New `src/lib/browserbase.server.ts`:
+- `createSession()` → POST `https://api.browserbase.com/v1/sessions` with project id, returns `{ id, connectUrl }`.
+- `withPage(fn)` → connects Playwright over CDP to `connectUrl`, opens a page, runs `fn(page)`, closes session. Uses `playwright-core` (bundler-safe, no browser download).
+- `install playwright-core` via `bun add`.
 
-Model stays `google/gemini-3-flash-preview` (already working after the schema-tolerance fix).
+Errors return `{ ok:false, error }` — never throw across the RPC boundary.
 
-## 1. Server persistence + polling
+## 2. QA crawler → Browserbase
 
-### Schema (new migration)
+Replace `src/lib/qa/crawler.functions.ts` Firecrawl calls:
+- `mapSite`: load `url`, collect same-origin `<a href>` up to `limit`, BFS one level. No sitemap fetch.
+- `scrapePage`: load `url`, capture `document.title`, response status, links, `document.body.innerText.slice(0, 4000)` as `markdownPreview`, optional `page.screenshot({ type: "jpeg", quality: 60 })` base64.
 
-Extend `qa_runs` and add two child tables:
+Existing `runner.ts` calls stay unchanged (same return shape). `FIRECRAWL_API_KEY` no longer required — remove the check.
 
-```text
-qa_runs (existing)
-  + progress_current    int default 0
-  + progress_total      int default 0
-  + current_step        text        -- "crawling" | "inspecting" | "scoring" | "done"
-  + error               text
-  + summary             jsonb       -- final aggregate {score, counts, warnings}
+## 3. Bridges Tester runs real
 
-qa_pages
-  id uuid pk, run_id fk qa_runs on delete cascade,
-  url text, title text, depth int, status text, created_at
+`src/lib/agent-tools.ts` `runBridgesTester` currently simulates. Replace with:
+- Browserbase session against target URL.
+- Playwright walkthrough: load home, click first 3 visible primary buttons/links, capture console errors + failed network requests + final screenshot.
+- Return `{ ok, pagesVisited, consoleErrors, failedRequests, screenshotUrl }` (screenshot uploaded to Supabase storage bucket `tester-runs`, public URL returned).
+- New migration: create `tester-runs` public storage bucket.
 
-qa_findings
-  id uuid pk, run_id fk qa_runs, page_id fk qa_pages on delete cascade,
-  persona text, severity text, category text,
-  title text, detail text, suggestion text, confidence numeric,
-  created_at
-```
+## 4. Risky agent tools execute for real (behind approval)
 
-RLS: owner-only (`user_id = auth.uid()` via `qa_runs.user_id`). GRANT to `authenticated` + `service_role`. Enable Realtime on `qa_runs`, `qa_pages`, `qa_findings` (optional — polling works without).
+Currently `decideApproval` marks approved risky steps as "Simulated execution". Wire real execution in `src/lib/agent-tools.ts` for these tools, gated by the existing approval flow:
+- `sendEmail` → Resend API using `RESEND_API_KEY` (if missing, return `{ok:false, error:"RESEND_API_KEY not configured"}`).
+- `chargeMoney` → Stripe PaymentIntent via existing `createStripeClient("live")`.
+- `deploy` → returns `{ok:false, error:"deploy tool not wired to a deploy provider"}` (explicit no-op, not silent success).
+- `updateProdSetting` → same explicit no-op.
+- `updateRow` / `deleteRow` → run against Supabase using `supabaseAdmin` inside handler, table+id from args, allowlist of tables (`apps`, `qa_runs`, `notification_campaigns`) to prevent arbitrary writes.
+- `markResolved` → real update on `errors`/`qa_findings` row.
 
-### Server runner
+`agent-runner.ts` `decideApproval` now calls `executeTool` for approved risky steps instead of stubbing.
 
-- New `startRun` server fn (`requireSupabaseAuth`): inserts `qa_runs` row (`status='pending'`), kicks off crawl via `queueMicrotask`, returns `{ runId }`. The handler runs the whole crawl+inspect+score pipeline, writing pages/findings/progress as it goes and finalizing `status`, `score`, `summary`, `completed_at`.
-- Note: Worker runtimes may not preserve background work after the response returns. If we see truncated runs in practice, fall back to a synchronous `startRun` that streams progress (still writes to DB) — kept as a follow-up if needed.
-- New `getRun(runId)` server fn: returns `{ run, pages, findings }`.
-- New `listRuns()`, `deleteRun(runId)`.
+## 5. Settings copy
 
-### Client
-
-- Replace `qa-store.ts` localStorage layer with server-fn calls wrapped in TanStack Query.
-- `qa.runs.$runId.tsx` uses `useQuery` with `refetchInterval: 2000` while `status in ('pending','running')`, stops polling on terminal status.
-- `/qa` list view reads `listRuns()`.
-- Drop the in-memory `runner.ts` orchestration on the client; keep only the AI SDK inspector call chain on the server.
-
-## 2. Depth caps
-
-In whatever config drives crawl depth today (likely `src/lib/qa/runner.ts` or a constants module):
-
-```text
-quick:    3  → 5
-standard: 8  → 15
-deep:     20 → 40
-```
-
-Applied server-side so localStorage overrides can't bypass.
-
-## 3. Personas
-
-Add `mobile` persona to the inspector persona registry with a prompt focused on responsive layout, tap targets, viewport, mobile-only failure modes.
-
-Default selection on the New Crawl form: `first_time`, `accessibility`, `frustrated`, `mobile` (all four checked by default; user can uncheck).
-
-## Files touched
-
-- `supabase/migrations/<new>.sql` — schema + RLS + grants.
-- `src/lib/qa/qa-store.ts` — replace with server-fn/Query wrappers.
-- `src/lib/qa/runner.functions.ts` (new) — `startRun`, `getRun`, `listRuns`, `deleteRun`.
-- `src/lib/qa/runner.ts` — pipeline moves to server; file trimmed or deleted.
-- `src/lib/qa/inspector.functions.ts` — add `mobile` persona.
-- `src/lib/qa/config.ts` (new or existing) — depth caps 5/15/40.
-- `src/routes/qa.tsx`, `src/routes/qa.new.tsx`, `src/routes/qa.runs.$runId.tsx` — Query wiring, polling, default personas.
+Update `src/routes/settings.tsx`: remove "simulated" language for Bridges Tester + risky tools. Keep the localStorage notice for agent tasks/runs (out of scope this pass).
 
 ## Out of scope
+- Moving agent tasks/runs/approvals from localStorage to Postgres.
+- Auth on `/api/public/*` webhook signing (already stubbed).
+- New UI for viewing Browserbase live sessions.
 
-- Swapping model provider.
-- Changing the scoring formula.
-- Realtime subscriptions (polling first; can add later).
-- Backfilling existing localStorage runs into the DB.
+## Technical
+
+- All Browserbase / Playwright / Resend / Stripe / supabaseAdmin work happens inside `.handler()` bodies. No module-scope secret reads.
+- `playwright-core` connects via CDP only — no chromium download, safe for the Worker runtime (network client, not a browser host).
+- Storage bucket migration: `insert into storage.buckets (id,name,public) values ('tester-runs','tester-runs',true)` + policy for authenticated write, public read.
+- File touches: `src/lib/browserbase.server.ts` (new), `src/lib/qa/crawler.functions.ts`, `src/lib/agent-tools.ts`, `src/lib/agent-runner.ts`, `src/routes/settings.tsx`, one migration.
 
 ## Verification
-
-1. Start a run against `example.com` (quick), reload the page mid-run — progress continues from where it was.
-2. New run at `standard` depth crawls up to 15 pages (verify in `qa_pages` count).
-3. New Crawl form shows all four personas checked; findings include `persona='mobile'` entries.
-4. `SELECT count(*) FROM qa_runs WHERE user_id = auth.uid()` matches the list view.
+- QA: start a new crawl on a real URL, confirm rows land in `qa_pages` / `qa_findings`.
+- Tester: trigger a Bridges Tester agent task, approve, confirm a screenshot URL is returned and viewable.
+- Risky: trigger a `sendEmail` task, approve, confirm Resend returns a message id.
