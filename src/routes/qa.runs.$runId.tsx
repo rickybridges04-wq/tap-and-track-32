@@ -4,8 +4,10 @@ import { AppShell } from "@/components/AppShell";
 import { getRun, type QaFindingRow } from "@/lib/qa/qa.functions";
 import { PERSONAS, type PersonaId } from "@/lib/qa/personas";
 import { computeScore, verdictColor, verdictLabel } from "@/lib/qa/scoring";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Wrench, Copy, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/qa/runs/$runId")({
   component: QaRunDetail,
