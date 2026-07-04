@@ -150,9 +150,9 @@ export const updateRow = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ToolResult> => {
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { error, data: row } = await supabaseAdmin
-        .from(data.table as AllowedTable)
-        .update(data.patch as Record<string, unknown>)
+      const { error, data: row } = await (supabaseAdmin
+        .from(data.table as AllowedTable) as any)
+        .update(data.patch)
         .eq("id", data.id)
         .select()
         .maybeSingle();
