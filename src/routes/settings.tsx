@@ -221,9 +221,9 @@ function Settings() {
       </Card>
 
       <p className="mt-8 text-xs text-muted-foreground">
-        Today: agents reason via Lovable AI; risky actions queue approvals but don't fire real external calls
-        (no email/charge/deploy). Bridges Tester runs are simulated. All of this swaps to real execution
-        when Cloud + Browserbase + optional Resend are configured.
+        Bridges Tester runs a real headless Chromium via Browserbase. Approved risky agent tools
+        (sendEmail, chargeMoney, updateRow, deleteRow) execute for real against Resend / Stripe /
+        the database. Agent tasks + approval queue still persist in localStorage.
       </p>
     </AppShell>
   );
