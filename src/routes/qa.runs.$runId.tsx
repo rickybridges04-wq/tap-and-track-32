@@ -257,3 +257,72 @@ function FindingCard({ f }: { f: QaFindingRow }) {
     </div>
   );
 }
+
+function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose: () => void }) {
+  const withFix = findings.filter((f) => f.suggestion);
+  const sorted = withFix.slice().sort((a, b) => sevRank(b.severity) - sevRank(a.severity));
+
+  const asText = useMemo(
+    () =>
+      sorted
+        .map(
+          (f, i) =>
+            `${i + 1}. [${f.severity.toUpperCase()}] ${f.title}\n   Page: ${f.page_url}\n   Fix: ${f.suggestion}`,
+        )
+        .join("\n\n"),
+    [sorted],
+  );
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(asText);
+      toast.success(`Copied ${sorted.length} fix${sorted.length === 1 ? "" : "es"}`);
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+
+  return (
+    <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold">Suggested fixes ({sorted.length})</h2>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" onClick={copy}>
+            <Copy className="mr-1 h-4 w-4" /> Copy all
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      {sorted.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No suggested fixes in this run.</p>
+      ) : (
+        <ol className="space-y-2">
+          {sorted.map((f, i) => (
+            <li key={f.id} className="rounded-lg border border-border bg-background/60 p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 text-xs text-muted-foreground">{i + 1}.</span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{f.title}</div>
+                  <div className="mt-0.5 text-muted-foreground">{f.suggestion}</div>
+                  <a
+                    href={f.page_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline"
+                  >
+                    {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
