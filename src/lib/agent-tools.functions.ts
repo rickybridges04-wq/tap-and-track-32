@@ -120,7 +120,7 @@ export const chargeMoney = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ChargeInput.parse(input))
   .handler(async ({ data }): Promise<ToolResult> => {
     try {
-      const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
+      const { createStripeClient } = await import("@/lib/stripe.server");
       const stripe = createStripeClient("live");
       const intent = await stripe.paymentIntents.create({
         amount: data.amount,
