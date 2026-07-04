@@ -16,6 +16,7 @@ export const Route = createFileRoute("/qa/runs/$runId")({
 function QaRunDetail() {
   const { runId } = Route.useParams();
   const [tab, setTab] = useState<"summary" | "findings" | "pages">("summary");
+  const [showFixes, setShowFixes] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["qa-run", runId],
