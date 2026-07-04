@@ -74,12 +74,22 @@ function QaRunDetail() {
             </div>
           </div>
           {run.status === "completed" && score ? (
-            <div className="text-right">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
-              <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
-              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
-                {verdictLabel(score.verdict)}
-              </span>
+            <div className="flex items-start gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowFixes(true)}
+                disabled={findings.filter((f) => f.suggestion).length === 0}
+              >
+                <Wrench className="mr-1 h-4 w-4" /> Pull all fixes
+              </Button>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Readiness</div>
+                <div className="text-4xl font-semibold">{score.score}<span className="text-base text-muted-foreground">/100</span></div>
+                <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
+                  {verdictLabel(score.verdict)}
+                </span>
+              </div>
             </div>
           ) : (
             <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">
@@ -88,6 +98,13 @@ function QaRunDetail() {
           )}
         </div>
       </div>
+
+      {showFixes && run.status === "completed" && (
+        <FixesBubble
+          findings={findings}
+          onClose={() => setShowFixes(false)}
+        />
+      )}
 
       {inFlight && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
