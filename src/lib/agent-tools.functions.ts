@@ -3,7 +3,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export type ToolResult = { ok: boolean; data?: unknown; message: string };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ToolResult = { ok: boolean; data?: any; message: string };
 
 // ── Bridges Tester ──────────────────────────────────────────────────────────
 const TesterInput = z.object({
