@@ -275,6 +275,11 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
     [sorted],
   );
 
+  const analyze = useServerFn(analyzeFixRootCauses);
+  const [analysis, setAnalysis] = useState<Awaited<ReturnType<typeof analyze>> | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+
   async function copy() {
     try {
       await navigator.clipboard.writeText(asText);
@@ -284,14 +289,67 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
     }
   }
 
+  async function runAnalysis() {
+    if (sorted.length === 0) return;
+    setAnalyzing(true);
+    try {
+      const result = await analyze({
+        data: {
+          findings: sorted.map((f) => ({
+            id: f.id,
+            severity: f.severity,
+            title: f.title,
+            suggestion: f.suggestion ?? "",
+            page_url: f.page_url,
+          })),
+        },
+      });
+      setAnalysis(result);
+      toast.success(`Grouped into ${result.clusters.length} root cause${result.clusters.length === 1 ? "" : "s"}`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Analysis failed");
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
+  async function copyPlan() {
+    if (!analysis) return;
+    const md =
+      `# Root-cause fix plan\n\n${analysis.summary}\n\n` +
+      analysis.clusters
+        .map(
+          (c, i) =>
+            `## ${i + 1}. [${c.severity.toUpperCase()}] ${c.title}\n\n**Root cause:** ${c.rootCause}\n\n**Unified fix:** ${c.unifiedFix}\n\n**Covers ${c.findingIds.length} finding${c.findingIds.length === 1 ? "" : "s"} across ${c.affectedPages.length} page${c.affectedPages.length === 1 ? "" : "s"}:**\n${c.affectedPages.map((p) => `- ${p}`).join("\n")}`,
+        )
+        .join("\n\n");
+    try {
+      await navigator.clipboard.writeText(md);
+      toast.success("Copied root-cause plan");
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+
   return (
     <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Wrench className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold">Suggested fixes ({sorted.length})</h2>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          {sorted.length > 0 && !analysis && (
+            <Button size="sm" variant="default" onClick={runAnalysis} disabled={analyzing}>
+              {analyzing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1 h-4 w-4" />}
+              {analyzing ? "Analyzing…" : "Analyze root causes"}
+            </Button>
+          )}
+          {analysis && (
+            <Button size="sm" variant="outline" onClick={copyPlan}>
+              <Copy className="mr-1 h-4 w-4" /> Copy root-cause plan
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={copy}>
             <Copy className="mr-1 h-4 w-4" /> Copy all
           </Button>
@@ -300,31 +358,118 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
           </Button>
         </div>
       </div>
+
+      {analysis && (
+        <div className="mb-4 rounded-xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-500/10 via-purple-500/5 to-cyan-500/10 p-3">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-fuchsia-300">
+            <Sparkles className="h-3 w-3" /> Root causes ({analysis.clusters.length})
+          </div>
+          <p className="mb-3 text-sm text-foreground/80">{analysis.summary}</p>
+          <ol className="space-y-2">
+            {analysis.clusters.map((c, i) => {
+              const findingsById = new Map(sorted.map((f) => [f.id, f]));
+              const covered = c.findingIds.map((id) => findingsById.get(id)).filter(Boolean) as QaFindingRow[];
+              const isOpen = !!expanded[i];
+              return (
+                <li key={i} className="rounded-lg border border-border bg-background/70 p-3 text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{i + 1}.</span>
+                        <span className={"rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " + sevPill(c.severity)}>
+                          {c.severity}
+                        </span>
+                        <span className="font-semibold">{c.title}</span>
+                      </div>
+                      <p className="mt-1 text-muted-foreground">{c.rootCause}</p>
+                      <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">Unified fix</div>
+                        <p className="mt-0.5">{c.unifiedFix}</p>
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Covers {c.findingIds.length} finding{c.findingIds.length === 1 ? "" : "s"} across {c.affectedPages.length} page{c.affectedPages.length === 1 ? "" : "s"}.
+                      </div>
+                      <button
+                        onClick={() => setExpanded({ ...expanded, [i]: !isOpen })}
+                        className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                        {isOpen ? "Hide" : "Show"} underlying findings
+                      </button>
+                      {isOpen && (
+                        <ul className="mt-2 space-y-1 border-l-2 border-border pl-3">
+                          {covered.map((f) => (
+                            <li key={f.id} className="text-xs text-muted-foreground">
+                              • {f.title} <span className="opacity-60">({f.page_url})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        const text = `Fix: ${c.unifiedFix}\n\nAffected pages:\n${c.affectedPages.map((p) => `- ${p}`).join("\n")}`;
+                        try {
+                          await navigator.clipboard.writeText(text);
+                          toast.success("Copied fix");
+                        } catch {
+                          toast.error("Copy failed");
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
       {sorted.length === 0 ? (
         <p className="text-sm text-muted-foreground">No suggested fixes in this run.</p>
       ) : (
-        <ol className="space-y-2">
-          {sorted.map((f, i) => (
-            <li key={f.id} className="rounded-lg border border-border bg-background/60 p-3 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="mt-0.5 text-xs text-muted-foreground">{i + 1}.</span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{f.title}</div>
-                  <div className="mt-0.5 text-muted-foreground">{f.suggestion}</div>
-                  <a
-                    href={f.page_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline"
-                  >
-                    {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                  </a>
+        <>
+          {analysis && (
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Raw findings
+            </div>
+          )}
+          <ol className="space-y-2">
+            {sorted.map((f, i) => (
+              <li key={f.id} className="rounded-lg border border-border bg-background/60 p-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 text-xs text-muted-foreground">{i + 1}.</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">{f.title}</div>
+                    <div className="mt-0.5 text-muted-foreground">{f.suggestion}</div>
+                    <a
+                      href={f.page_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline"
+                    >
+                      {f.page_url} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </a>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ol>
+              </li>
+            ))}
+          </ol>
+        </>
       )}
     </div>
   );
+}
+
+function sevPill(sev: string): string {
+  switch (sev) {
+    case "critical": return "bg-destructive/20 text-destructive";
+    case "high": return "bg-orange-500/20 text-orange-500";
+    case "medium": return "bg-amber-500/20 text-amber-600";
+    default: return "bg-muted text-muted-foreground";
+  }
 }
