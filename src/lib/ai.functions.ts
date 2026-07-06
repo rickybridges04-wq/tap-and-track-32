@@ -113,3 +113,70 @@ ${data.task.context ? `\nContext:\n${data.task.context}` : ""}`;
     }
   });
 
+
+/* ------------- Root-cause clustering of QA fixes ------------- */
+
+const FindingInputSchema = z.object({
+  id: z.string(),
+  severity: z.string(),
+  title: z.string(),
+  suggestion: z.string(),
+  page_url: z.string(),
+});
+
+const RootCauseInput = z.object({
+  findings: z.array(FindingInputSchema).min(1).max(300),
+});
+
+const ClusterSchema = z.object({
+  title: z.string().describe("Short root cause name (max 8 words)."),
+  rootCause: z.string().describe("1-2 sentences explaining the underlying issue."),
+  severity: z.enum(["critical", "high", "medium", "low"]),
+  unifiedFix: z.string().describe("One concrete implementation step that resolves every finding in this cluster."),
+  findingIds: z.array(z.string()).min(1),
+  affectedPages: z.array(z.string()),
+});
+
+const RootCauseOutput = z.object({
+  summary: z.string().describe("1-2 sentence overview of the clustered fix plan."),
+  clusters: z.array(ClusterSchema).min(1).max(10),
+});
+
+export const analyzeFixRootCauses = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => RootCauseInput.parse(input))
+  .handler(async ({ data }) => {
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+    const gateway = createLovableAiGatewayProvider(key);
+    const model = gateway("openai/gpt-5.5");
+
+    const system = `You are a senior engineer triaging QA findings for a web app.
+Group the given findings into the fewest possible root-cause clusters (aim for 3-8, never more than 10).
+Every finding id MUST appear in exactly one cluster.
+For each cluster:
+- Identify the ONE underlying cause producing the symptoms.
+- Write a single unifiedFix a developer can implement once to resolve all findings in the cluster.
+- Set severity to the highest severity among the covered findings.
+- List affectedPages as distinct page URLs from the covered findings.
+Order clusters by severity (critical > high > medium > low), then by number of findings covered.`;
+
+    const prompt = `Findings:\n${data.findings
+      .map(
+        (f) =>
+          `- id=${f.id} | ${f.severity.toUpperCase()} | ${f.title}\n  page: ${f.page_url}\n  suggestion: ${f.suggestion}`,
+      )
+      .join("\n")}`;
+
+    try {
+      const { output } = await generateText({
+        model,
+        system,
+        prompt,
+        output: Output.object({ schema: RootCauseOutput }),
+      });
+      return output;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`Root-cause analysis failed: ${message}`);
+    }
+  });
