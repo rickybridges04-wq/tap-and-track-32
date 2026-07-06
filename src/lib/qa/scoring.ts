@@ -28,7 +28,16 @@ export type ScoreResult = {
   counts: Record<Severity, number>;
 };
 
-export function computeScore(findings: QaFinding[], pagesCrawled: number, linksDiscovered: number): ScoreResult {
+// Tuned so ~1 medium-confidence finding per 4 (page × persona) inspections
+// costs ~9 points, keeping standard 4-persona runs near their historical scores.
+const NORMALIZATION_CONSTANT = 12;
+
+export function computeScore(
+  findings: QaFinding[],
+  pagesCrawled: number,
+  linksDiscovered: number,
+  personaCount: number = 1,
+): ScoreResult {
   const counts: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 };
   let funcPenalty = 0;
   let visualPenalty = 0;
@@ -42,12 +51,15 @@ export function computeScore(findings: QaFinding[], pagesCrawled: number, linksD
     else if (f.category === "accessibility") a11yPenalty += w;
   }
 
+  const inspectionUnits = Math.max(1, pagesCrawled * Math.max(1, personaCount));
+  const norm = (p: number) => (p / inspectionUnits) * NORMALIZATION_CONSTANT;
+
   const coverage = linksDiscovered > 0 ? Math.min(1, pagesCrawled / Math.max(1, linksDiscovered)) : 1;
   const coverageScore = Math.round(coverage * 100);
 
-  const functional = Math.max(0, Math.round(100 - funcPenalty));
-  const visual = Math.max(0, Math.round(100 - visualPenalty));
-  const accessibility = Math.max(0, Math.round(100 - a11yPenalty));
+  const functional = Math.max(0, Math.round(100 - norm(funcPenalty)));
+  const visual = Math.max(0, Math.round(100 - norm(visualPenalty)));
+  const accessibility = Math.max(0, Math.round(100 - norm(a11yPenalty)));
 
   // Coverage acts as a multiplier — half-crawled site cannot score 100.
   const raw = (functional * 0.4 + visual * 0.25 + accessibility * 0.25 + coverageScore * 0.1);
