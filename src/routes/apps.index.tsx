@@ -22,11 +22,20 @@ function AppsIndex() {
   const sync = useServerFn(syncAppFromCrawl);
   const [syncingId, setSyncingId] = useState<string | null>(null);
 
+  const del = useServerFn(deleteApp);
+
   const doSync = async (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
     setSyncingId(id);
     try { await sync({ data: { id } }); await q.refetch(); } catch {} finally { setSyncingId(null); }
   };
+
+  const doDelete = async (id: string) => {
+    try { await del({ data: { id } }); toast.success("App deleted"); await q.refetch(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+  };
+
+
 
 
   if (loading || !user) return null;
