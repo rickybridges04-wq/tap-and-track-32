@@ -47,14 +47,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isOwner, active, runsRemaining, email } = useSubscription();
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.info("Sign in to continue", { id: "auth-required" });
+    }
+  }, [authLoading, user]);
+
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) {
+    const redirect = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+    return <Navigate to="/auth" search={{ redirect }} replace />;
+  }
 
   const visibleNav = nav.filter((n) => !n.ownerOnly || isOwner);
 
