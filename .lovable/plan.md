@@ -1,37 +1,46 @@
-## Overall diagnosis
+## Goal
 
-All 17 findings collapse into two root causes on `/projects`:
+After "Pull all fixes" opens the bubble, add an "Analyze root causes" action that groups the raw fixes into a small set of root-cause clusters using the LLM, so implementing them is a handful of edits instead of dozens of one-offs.
 
-1. **No public entry point** — unauthenticated visits to `/projects` silently redirect to `/auth`, so the reviewer only ever saw the auth form and judged it as the product's landing page. That explains findings 1, 2, 3, 10, 17 (and the "conflicting branding" — the URL says `/projects` but the page renders "Welcome back").
-2. **The auth form itself is under-polished** — no `<label htmlFor>`, weak focus rings, small tap targets, weak CTA hierarchy, low-contrast helper text, no inline validation, unlabeled Google button. That covers findings 4–9, 11–16.
+## What changes
 
-Fixing both root causes clears all 17 findings.
+### 1. New server function: `analyzeFixRootCauses`
+File: `src/lib/ai.functions.ts` (append)
 
-## Fix plan
+- Input: `{ findings: Array<{ id, severity, title, suggestion, page_url }> }`
+- Uses the same Lovable AI gateway path already in the file (`google/gemini-3-flash-preview`) with `generateText` + `Output.object` and a Zod schema:
+  ```
+  {
+    clusters: [{
+      title: string,             // short root cause name
+      rootCause: string,         // 1-2 sentences: the underlying issue
+      severity: "critical"|"high"|"medium"|"low",
+      unifiedFix: string,        // one concrete implementation step that resolves all findings in the cluster
+      findingIds: string[],      // ids from input this cluster covers
+      affectedPages: string[]    // distinct page_urls
+    }],
+    summary: string              // 1-2 sentence overview
+  }
+  ```
+- System prompt tells it: dedupe symptoms, prefer 3–8 clusters, every input finding must belong to exactly one cluster, order clusters by severity + findings count.
 
-### 1. Public landing + honest redirect (fixes 1, 2, 3, 10, 17)
-- `src/routes/index.tsx`: make the home route render a real public landing page — hero, "How it works" (Crawl → Inspect → Score → Fix), what a "run" is, 3-free-runs callout, and a primary "Get started" CTA to `/auth`. If the user is already signed in, keep the current authed dashboard.
-- Protected routes (`/projects`, `/qa`, `/agents`, `/apps`, etc.): when unauthenticated, redirect to `/auth?redirect=<path>` and show a toast "Sign in to continue" instead of a silent bounce. `/auth` already redirects home post-login; extend it to honor `redirect`.
-- `/auth` head: keep title "Sign in · Walkthrough Wizard QAOS" so title/URL/header align (no more "Welcome back" on `/projects`).
+### 2. UI: `FixesBubble` in `src/routes/qa.runs.$runId.tsx`
 
-### 2. Auth form accessibility + polish (fixes 4–9, 11–16)
-Edit `src/routes/auth.tsx`:
-- Replace hand-written labels with `<Label htmlFor>` bound to input `id`s (email, password).
-- Add `aria-label="Continue with Google"` on the Google button and a visible focus ring; ensure it's a real `<button>` (already is) with `focus-visible:ring-2 ring-ring`.
-- Add `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2` to inputs.
-- Promote heading to a single `<h1>` for the page; brand mark gets `aria-label="Walkthrough Wizard QAOS home"`.
-- Inline validation: show error text under email/password on submit when empty/invalid; disable submit only while busy.
-- Turn "Need an account? Sign up" into a full-width secondary button (min-h-11) instead of a tiny text link — meets 44px tap target and strengthens CTA hierarchy.
-- Add vertical spacing (`space-y-4`, divider margin) between primary submit and mode-toggle.
-- Bump helper copy ("3 free QA / agent runs…") from `text-muted-foreground` to `text-foreground/80` for ≥4.5:1 contrast, and move the promotional "3 free runs" line to a small badge under the H1 (kept, but de-emphasized) — the reviewer's concern was location, not existence.
-- Wrap form in a `min-h-dvh` scrollable container so mobile keyboards don't obscure it.
+Add a second "Root causes" section inside the existing bubble (no new modal — same bubble the user already opened):
 
-### 3. No business logic changes
-Auth flow, Supabase calls, subscription logic, and routing context stay as-is. Purely presentation + one new public landing route body + one redirect-with-toast helper.
+- New header button `Analyze root causes` (Sparkles icon) next to `Copy all`.
+- On click → call `useServerFn(analyzeFixRootCauses)({ findings: sorted })`, show inline spinner.
+- Result renders above the raw fix list:
+  - Summary sentence
+  - Ordered list of clusters. Each cluster card shows: title, severity pill, root cause, unified fix, "Covers N findings across M pages", collapsible list of the underlying finding titles (linked to their entries below), and a `Copy fix` button that copies the unified fix + affected pages.
+- New `Copy root-cause plan` button appears once analysis is done — copies the full clustered plan as markdown.
+- Errors → toast; keep raw fixes visible either way.
+- Cache the result in component state so re-toggling the bubble doesn't re-run it (per run session).
+
+### 3. No other changes
+- No DB writes, no new tables, no route changes.
+- Free-run gating already covers QA runs; analysis piggybacks on an existing paid feature surface, so no new paywall hook.
 
 ## Files touched
-- `src/routes/index.tsx` — new public landing (authed users see current dashboard)
-- `src/routes/auth.tsx` — labels, focus rings, h1, validation, CTA hierarchy, spacing, contrast, honor `?redirect=`
-- Protected route guards (`/projects`, `/qa`, `/agents`, `/apps`, `/analytics`, etc.) — swap silent redirect for `navigate({to:'/auth', search:{redirect}})` + toast. Likely a small shared `useRequireAuth()` hook in `src/hooks/useAuth.tsx`.
-
-No DB, no server functions, no new deps.
+- `src/lib/ai.functions.ts` — append `analyzeFixRootCauses` server function
+- `src/routes/qa.runs.$runId.tsx` — extend `FixesBubble` with the analyze button, state, and cluster rendering
