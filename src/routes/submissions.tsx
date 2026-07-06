@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { listFormSubmissions, markSubmissionRead } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listFormSubmissions, markSubmissionRead, deleteFormSubmission } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Inbox, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/submissions")({
   head: () => ({ meta: [{ title: "Submissions · Walkthrough Wizard QAOS" }] }),
