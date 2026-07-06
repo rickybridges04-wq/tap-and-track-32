@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { listApps, listAppTables, createAppTable, listAppRows, insertAppRow } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, listAppTables, createAppTable, listAppRows, insertAppRow, deleteAppTable, deleteAppRow } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Database, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/data")({
   head: () => ({ meta: [{ title: "Data Manager · Walkthrough Wizard QAOS" }] }),
