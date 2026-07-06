@@ -65,6 +65,11 @@ function AppsIndex() {
                   </button>
                 )}
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">{a.status}</span>
+                <TrashButton
+                  label={`Delete ${a.name}`}
+                  confirm={`Delete "${a.name}" and all its data? This cannot be undone.`}
+                  onDelete={() => doDelete(a.id)}
+                />
               </div>
             </div>
             <div className="mt-3 font-semibold">{a.name}</div>
