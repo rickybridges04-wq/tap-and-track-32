@@ -44,10 +44,19 @@ function Published() {
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {published.map((a: any) => (
-            <Link key={a.id} to="/apps/$id" params={{ id: a.id }} className="rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
-              <div className="font-semibold">{a.name}</div>
-              <div className="text-xs text-muted-foreground">{a.base_url}</div>
-            </Link>
+            <div key={a.id} className="relative rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
+              <Link to="/apps/$id" params={{ id: a.id }} className="block pr-8">
+                <div className="font-semibold">{a.name}</div>
+                <div className="text-xs text-muted-foreground">{a.base_url}</div>
+              </Link>
+              <div className="absolute right-2 top-2">
+                <TrashButton
+                  label={`Delete ${a.name}`}
+                  confirm={`Delete "${a.name}"? This cannot be undone.`}
+                  onDelete={() => doDelete(a.id, a.name)}
+                />
+              </div>
+            </div>
           ))}
         </div>
       )}
