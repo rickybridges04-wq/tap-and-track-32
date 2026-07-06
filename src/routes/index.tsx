@@ -6,17 +6,151 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { listProjects, listRuns, useStoreVersion } from "@/lib/store";
 import { useMounted } from "@/lib/agent-store";
-import { Plus, CheckCircle2, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Plus, CheckCircle2, XCircle, AlertTriangle, ExternalLink,
+  Zap, Sparkles, Bot, ShieldCheck, Search, Loader2, ArrowRight,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard · Bridges Tester" },
-      { name: "description", content: "AI-powered usability testing for your web apps." },
+      { title: "Walkthrough Wizard QAOS — Autonomous QA for web apps" },
+      { name: "description", content: "Crawl, inspect, score, and fix any web app. Walkthrough Wizard runs autonomous QA + AI agent operations so you ship with confidence." },
+      { property: "og:title", content: "Walkthrough Wizard QAOS — Autonomous QA for web apps" },
+      { property: "og:description", content: "Crawl, inspect, score, and fix. Autonomous QA + AI agent operations for web apps." },
+      { property: "og:url", content: "https://tap-and-track-32.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://tap-and-track-32.lovable.app/" }],
   }),
-  component: Dashboard,
+  component: Home,
 });
+
+function Home() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  return user ? <Dashboard /> : <Landing />;
+}
+
+/* ---------------- Public landing ---------------- */
+
+function Landing() {
+  return (
+    <div className="relative min-h-dvh overflow-hidden bg-background text-foreground">
+      <div aria-hidden className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-fuchsia-500 opacity-20 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute right-[-6rem] top-1/3 h-96 w-96 rounded-full bg-cyan-500 opacity-20 blur-3xl" />
+
+      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
+        <Link to="/" aria-label="Walkthrough Wizard QAOS home" className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-white shadow-lg shadow-fuchsia-500/30">
+            <Zap className="h-4 w-4" />
+          </span>
+          <span className="text-sm font-bold tracking-tight">Walkthrough Wizard QAOS</span>
+          <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">Beta</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/auth"
+            className="hidden rounded-md px-3 py-2 text-sm font-medium text-foreground/90 hover:text-foreground sm:inline-flex"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
+          >
+            Get started <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </header>
+
+      <section className="relative z-10 mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-500/40 bg-fuchsia-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-fuchsia-300">
+            <Sparkles className="h-3 w-3" /> Beta · 3 free runs
+          </span>
+          <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            Autonomous QA for any{" "}
+            <span className="bg-gradient-to-r from-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
+              web app
+            </span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg text-foreground/80">
+            Point Walkthrough Wizard at your app's URL. It crawls every page,
+            walks the flows as real personas, scores your release readiness,
+            and writes a fix list you can hand straight to your dev agent.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-5 py-3 text-base font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
+            >
+              Start free <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-3 text-base font-medium text-foreground hover:bg-accent"
+            >
+              How it works
+            </a>
+          </div>
+          <p className="mt-3 text-sm text-foreground/70">
+            No credit card. 3 full QA / agent runs on the house.
+          </p>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="relative z-10 mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">How it works</h2>
+        <p className="mt-2 max-w-2xl text-foreground/70">
+          A "run" is one full pass: your app is crawled, walked, scored, and
+          returned with a prioritized fix list. Each free-tier account gets 3.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Step icon={Search} n={1} title="Crawl" body="We map every reachable page from your base URL." />
+          <Step icon={Bot} n={2} title="Walk" body="AI personas complete real user flows end-to-end." />
+          <Step icon={ShieldCheck} n={3} title="Score" body="Get a release-readiness score across UX, a11y, and copy." />
+          <Step icon={Sparkles} n={4} title="Fix" body="Export a ranked fix list you can paste into any dev agent." />
+        </div>
+
+        <div className="mt-12 rounded-2xl border border-border bg-card/60 p-6 backdrop-blur sm:p-8">
+          <h3 className="text-lg font-semibold">Ready to see your app's score?</h3>
+          <p className="mt-1 text-sm text-foreground/70">Create an account and run your first walkthrough in under 2 minutes.</p>
+          <Link
+            to="/auth"
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
+          >
+            Get started free <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      <footer className="relative z-10 border-t border-border/60 py-6 text-center text-xs text-foreground/60">
+        © {new Date().getFullYear()} Bridges AI Enterprises · Walkthrough Wizard QAOS
+      </footer>
+    </div>
+  );
+}
+
+function Step({ icon: Icon, n, title, body }: { icon: typeof Zap; n: number; title: string; body: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-card/60 p-5 backdrop-blur">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-fuchsia-300">
+        <Icon className="h-4 w-4" /> Step {n}
+      </div>
+      <div className="mt-2 text-base font-semibold">{title}</div>
+      <p className="mt-1 text-sm text-foreground/70">{body}</p>
+    </div>
+  );
+}
+
+/* ---------------- Authed dashboard (unchanged behavior) ---------------- */
 
 function Dashboard() {
   useStoreVersion();
