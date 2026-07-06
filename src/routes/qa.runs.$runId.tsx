@@ -46,6 +46,7 @@ function QaRunDetail() {
       })),
       data.pages.length,
       Math.max(data.pages.length, 1),
+      run.personas.length,
     );
   }, [data]);
 
