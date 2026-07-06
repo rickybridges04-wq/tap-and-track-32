@@ -112,7 +112,8 @@ function Stat({ label, value, icon }: any) {
     </div>
   );
 }
-function CampList({ camps }: { camps: any[] }) {
+function CampList({ camps, onDeleted }: { camps: any[]; onDeleted: () => void }) {
+  const del = useServerFn(deleteCampaign);
   if (camps.length === 0) return <p className="mt-6 text-sm text-muted-foreground">No campaigns.</p>;
   return (
     <div className="mt-6 space-y-2">
@@ -123,7 +124,14 @@ function CampList({ camps }: { camps: any[] }) {
               <div className="font-semibold">{c.title}</div>
               <div className="text-xs text-muted-foreground">{c.apps?.name} · {c.status}</div>
             </div>
-            <div className="text-xs text-muted-foreground">{c.scheduled_for ? new Date(c.scheduled_for).toLocaleString() : new Date(c.created_at).toLocaleDateString()}</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-muted-foreground">{c.scheduled_for ? new Date(c.scheduled_for).toLocaleString() : new Date(c.created_at).toLocaleDateString()}</div>
+              <TrashButton
+                label="Delete campaign"
+                confirm={`Delete campaign "${c.title}"?`}
+                onDelete={async () => { try { await del({ data: { id: c.id } }); toast.success("Deleted"); onDeleted(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+              />
+            </div>
           </div>
           <p className="mt-2 text-sm">{c.body}</p>
         </div>
