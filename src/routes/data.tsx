@@ -77,16 +77,28 @@ function DataManager() {
             <div className="p-4 text-center text-xs text-muted-foreground"><Database className="mx-auto h-6 w-6" /><p className="mt-2">No tables yet.</p></div>
           )}
           {tables.map((t) => (
-            <button key={t.id} onClick={() => setSel(t.id)} className={`w-full rounded-md px-3 py-2 text-left text-sm ${sel === t.id ? "bg-fuchsia-500/20 text-fuchsia-300" : "hover:bg-muted"}`}>
-              <div className="font-semibold">{t.name}</div>
-              <div className="text-[11px] text-muted-foreground">{t.apps?.name}</div>
-            </button>
+            <div key={t.id} className={`flex items-center gap-1 rounded-md ${sel === t.id ? "bg-fuchsia-500/20" : "hover:bg-muted"}`}>
+              <button onClick={() => setSel(t.id)} className={`flex-1 rounded-md px-3 py-2 text-left text-sm ${sel === t.id ? "text-fuchsia-300" : ""}`}>
+                <div className="font-semibold">{t.name}</div>
+                <div className="text-[11px] text-muted-foreground">{t.apps?.name}</div>
+              </button>
+              <TrashButton
+                label={`Delete table ${t.name}`}
+                confirm={`Delete table "${t.name}" and all its rows?`}
+                onDelete={async () => { try { await delT({ data: { id: t.id } }); toast.success("Table deleted"); if (sel === t.id) setSel(null); tablesQ.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+              />
+            </div>
           ))}
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">
           {!table && <p className="text-sm text-muted-foreground">Select a table.</p>}
-          {table && <TableView table={table} rows={rowsQ.data ?? []} onInsert={async (data: Record<string, unknown>) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }} />}
+          {table && <TableView
+            table={table}
+            rows={rowsQ.data ?? []}
+            onInsert={async (data: Record<string, unknown>) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }}
+            onDeleteRow={async (id: string) => { try { await delR({ data: { id } }); toast.success("Row deleted"); rowsQ.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+          />}
         </div>
       </div>
       <style>{`.input{width:100%;border-radius:.375rem;border:1px solid hsl(var(--input));background:hsl(var(--background));padding:.5rem .75rem;font-size:.875rem}`}</style>
