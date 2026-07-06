@@ -38,6 +38,28 @@ async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
   throw new Error(`${label}: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
+// Bounded-concurrency map. Preserves input order in results.
+async function pMap<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= items.length) return;
+      results[i] = await worker(items[i], i);
+    }
+  });
+  await Promise.all(runners);
+  return results;
+}
+
+const SCRAPE_CONCURRENCY = 5;
+const INSPECT_CONCURRENCY = 6;
+
 export async function runQa(input: {
   id: string;
   url: string;
