@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { getRun, type QaFindingRow } from "@/lib/qa/qa.functions";
 import { PERSONAS, type PersonaId } from "@/lib/qa/personas";
 import { computeScore, verdictColor, verdictLabel } from "@/lib/qa/scoring";
-import { ArrowLeft, ExternalLink, Wrench, Copy, X } from "lucide-react";
+import { analyzeFixRootCauses } from "@/lib/ai.functions";
+import { ArrowLeft, ExternalLink, Wrench, Copy, X, Sparkles, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
