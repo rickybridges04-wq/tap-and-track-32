@@ -56,6 +56,11 @@ function Submissions() {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground">{new Date(s.created_at).toLocaleString()}</span>
                   {!s.read_at && <button onClick={async () => { await mark({ data: { id: s.id } }); q.refetch(); }} className="rounded bg-fuchsia-500 px-2 py-0.5 text-white">Mark read</button>}
+                  <TrashButton
+                    label="Delete submission"
+                    confirm="Delete this submission?"
+                    onDelete={async () => { try { await del({ data: { id: s.id } }); toast.success("Deleted"); q.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+                  />
                 </div>
               </div>
               <pre className="mt-2 overflow-x-auto rounded-md bg-muted/50 p-2 text-xs">{JSON.stringify(s.payload, null, 2)}</pre>
