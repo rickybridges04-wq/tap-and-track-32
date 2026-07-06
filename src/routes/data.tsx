@@ -22,6 +22,8 @@ function DataManager() {
   const tablesQ = useQuery({ queryKey: ["app_tables"], queryFn: () => listAppTables(), enabled: !!user });
   const createT = useServerFn(createAppTable);
   const insertR = useServerFn(insertAppRow);
+  const delT = useServerFn(deleteAppTable);
+  const delR = useServerFn(deleteAppRow);
   const [sel, setSel] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
