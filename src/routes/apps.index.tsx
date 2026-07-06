@@ -2,10 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { listApps, syncAppFromCrawl } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, syncAppFromCrawl, deleteApp } from "@/lib/apps.functions";
 import { Smartphone, Plus, ExternalLink, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/apps/")({
   head: () => ({ meta: [{ title: "My Apps · Walkthrough Wizard QAOS" }] }),
