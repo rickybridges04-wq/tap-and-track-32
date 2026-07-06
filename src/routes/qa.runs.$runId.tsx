@@ -46,6 +46,7 @@ function QaRunDetail() {
       })),
       data.pages.length,
       Math.max(data.pages.length, 1),
+      data.run.personas.length,
     );
   }, [data]);
 
@@ -91,6 +92,9 @@ function QaRunDetail() {
                 <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
                   {verdictLabel(score.verdict)}
                 </span>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  Normalized across {pages.length} page{pages.length === 1 ? "" : "s"} × {run.personas.length} persona{run.personas.length === 1 ? "" : "s"}
+                </div>
               </div>
             </div>
           ) : (
