@@ -20,8 +20,14 @@ function Published() {
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["apps"], queryFn: () => listApps(), enabled: !!user });
   if (loading || !user) return null;
+  const del = useServerFn(deleteApp);
+  if (loading || !user) return null;
 
   const published = (q.data ?? []).filter((a: any) => a.status === "published");
+  const doDelete = async (id: string, name: string) => {
+    try { await del({ data: { id } }); toast.success(`${name} deleted`); await q.refetch(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+  };
 
   return (
     <AppShell>
