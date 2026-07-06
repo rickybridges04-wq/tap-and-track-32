@@ -211,6 +211,7 @@ export async function runQa(input: {
       })),
       pages.length,
       Math.max(pages.length, 1),
+      personas.length,
     );
 
     await patch({
