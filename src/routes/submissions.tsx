@@ -20,6 +20,7 @@ function Submissions() {
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["form_subs"], queryFn: () => listFormSubmissions(), enabled: !!user });
   const mark = useServerFn(markSubmissionRead);
+  const del = useServerFn(deleteFormSubmission);
   if (loading || !user) return null;
   const subs = (q.data ?? []) as any[];
   const origin = typeof window !== "undefined" ? window.location.origin : "";
