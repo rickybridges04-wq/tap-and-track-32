@@ -89,11 +89,8 @@ export async function runQa(input: {
     });
 
     const pages: PageLite[] = [];
-    for (let i = 0; i < urls.length; i++) {
-      const u = urls[i];
-      const pct = 15 + Math.round(((i + 1) / urls.length) * 35);
-      const skipped = warnings.length ? `, ${warnings.length} skipped` : "";
-      await patch({ progress_pct: pct, progress_stage: `Scraping ${i + 1}/${urls.length}${skipped}` });
+    let scrapeDone = 0;
+    await pMap(urls, SCRAPE_CONCURRENCY, async (u) => {
       try {
         const scraped = await withRetry(
           () => scrapePage({ data: { url: u, withScreenshot: false } }),
@@ -118,13 +115,19 @@ export async function runQa(input: {
           }).catch(() => {});
         } else {
           warnings.push(`scrape ${u}: ${scraped.error}`);
-          await patch({ warnings: [...warnings] });
         }
       } catch (err) {
         warnings.push(err instanceof Error ? err.message : String(err));
-        await patch({ warnings: [...warnings] });
       }
-    }
+      scrapeDone++;
+      const pct = 15 + Math.round((scrapeDone / urls.length) * 35);
+      const skipped = warnings.length ? `, ${warnings.length} skipped` : "";
+      await patch({
+        progress_pct: pct,
+        progress_stage: `Scraping ${scrapeDone}/${urls.length}${skipped}`,
+        warnings: [...warnings],
+      });
+    });
 
     if (pages.length === 0) throw new Error("No pages could be scraped");
 
@@ -135,60 +138,61 @@ export async function runQa(input: {
     });
 
     const collected: FindingLite[] = [];
-    const total = pages.length * personas.length;
+    type Job = { page: PageLite; personaId: PersonaId };
+    const jobs: Job[] = [];
+    for (const page of pages) for (const personaId of personas) jobs.push({ page, personaId });
+
     let done = 0;
     let succeeded = 0;
 
-    for (const page of pages) {
-      for (const personaId of personas) {
-        try {
-          const res = await withRetry(
-            () =>
-              inspectPage({
-                data: {
-                  personaId,
-                  page: {
-                    url: page.url,
-                    title: page.title,
-                    links: page.links,
-                    markdownPreview: page.markdownPreview ?? "",
-                  },
+    await pMap(jobs, INSPECT_CONCURRENCY, async ({ page, personaId }) => {
+      try {
+        const res = await withRetry(
+          () =>
+            inspectPage({
+              data: {
+                personaId,
+                page: {
+                  url: page.url,
+                  title: page.title,
+                  links: page.links,
+                  markdownPreview: page.markdownPreview ?? "",
                 },
-              }),
-            `inspect ${personaId} ${page.url}`,
-          );
-          if (res.ok) {
-            succeeded++;
-            const batch: FindingLite[] = res.findings.map((f) => ({
-              persona_id: personaId,
-              page_url: page.url,
-              category: f.category,
-              severity: f.severity,
-              confidence: f.confidence,
-              title: f.title,
-              detail: f.detail,
-              suggestion: f.suggestion,
-            }));
-            if (batch.length) {
-              collected.push(...batch);
-              await addFindings({ data: { run_id: runId, findings: batch } }).catch(() => {});
-            }
-          } else {
-            warnings.push(`inspect ${personaId} ${page.url}: ${res.error}`);
+              },
+            }),
+          `inspect ${personaId} ${page.url}`,
+        );
+        if (res.ok) {
+          succeeded++;
+          const batch: FindingLite[] = res.findings.map((f) => ({
+            persona_id: personaId,
+            page_url: page.url,
+            category: f.category,
+            severity: f.severity,
+            confidence: f.confidence,
+            title: f.title,
+            detail: f.detail,
+            suggestion: f.suggestion,
+          }));
+          if (batch.length) {
+            collected.push(...batch);
+            await addFindings({ data: { run_id: runId, findings: batch } }).catch(() => {});
           }
-        } catch (err) {
-          warnings.push(err instanceof Error ? err.message : String(err));
+        } else {
+          warnings.push(`inspect ${personaId} ${page.url}: ${res.error}`);
         }
-        done++;
-        const pct = 55 + Math.round((done / Math.max(1, total)) * 40);
-        const skipped = warnings.length ? `, ${warnings.length} skipped` : "";
-        await patch({
-          progress_pct: pct,
-          progress_stage: `Inspecting ${PERSONAS[personaId].name} (${done}/${total}${skipped})`,
-          warnings: [...warnings],
-        });
+      } catch (err) {
+        warnings.push(err instanceof Error ? err.message : String(err));
       }
-    }
+      done++;
+      const pct = 55 + Math.round((done / Math.max(1, jobs.length)) * 40);
+      const skipped = warnings.length ? `, ${warnings.length} skipped` : "";
+      await patch({
+        progress_pct: pct,
+        progress_stage: `Inspecting ${PERSONAS[personaId].name} (${done}/${jobs.length}${skipped})`,
+        warnings: [...warnings],
+      });
+    });
 
     if (succeeded === 0) throw new Error("All inspections failed");
 
