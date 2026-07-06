@@ -106,7 +106,7 @@ function DataManager() {
   );
 }
 
-function TableView({ table, rows, onInsert }: any) {
+function TableView({ table, rows, onInsert, onDeleteRow }: any) {
   const cols = (table.schema as any[]) ?? [];
   const [form, setForm] = useState<Record<string, string>>({});
   const submit = async (e: React.FormEvent) => { e.preventDefault(); await onInsert(form); setForm({}); };
@@ -122,16 +122,17 @@ function TableView({ table, rows, onInsert }: any) {
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left text-xs uppercase text-muted-foreground">
-            <tr>{cols.map((c: any) => <th key={c.name} className="px-2 py-1">{c.name}</th>)}<th className="px-2 py-1">Created</th></tr>
+            <tr>{cols.map((c: any) => <th key={c.name} className="px-2 py-1">{c.name}</th>)}<th className="px-2 py-1">Created</th><th className="px-2 py-1"></th></tr>
           </thead>
           <tbody>
             {rows.map((r: any) => (
               <tr key={r.id} className="border-t border-border/60">
                 {cols.map((c: any) => <td key={c.name} className="px-2 py-1">{r.data[c.name] ?? ""}</td>)}
                 <td className="px-2 py-1 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
+                <td className="px-2 py-1 text-right"><TrashButton label="Delete row" confirm="Delete this row?" onDelete={() => onDeleteRow(r.id)} /></td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={cols.length + 1} className="px-2 py-4 text-center text-xs text-muted-foreground">No rows.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={cols.length + 2} className="px-2 py-4 text-center text-xs text-muted-foreground">No rows.</td></tr>}
           </tbody>
         </table>
       </div>
