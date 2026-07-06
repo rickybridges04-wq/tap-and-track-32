@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { listApps } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, deleteApp } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { Globe } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/apps/published")({
   head: () => ({ meta: [{ title: "Published apps · Walkthrough Wizard QAOS" }] }),
