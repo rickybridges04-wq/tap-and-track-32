@@ -360,3 +360,41 @@ export const syncAppFromCrawl = createServerFn({ method: "POST" })
       warnings,
     };
   });
+
+// -------- Deletes for trash-button UI --------
+export const deleteFormSubmission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("app_form_submissions").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteCampaign = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("notification_campaigns").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteAppTable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    await context.supabase.from("app_rows").delete().eq("table_id", data.id);
+    const { error } = await context.supabase.from("app_tables").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteAppRow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("app_rows").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });

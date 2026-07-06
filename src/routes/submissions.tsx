@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { listFormSubmissions, markSubmissionRead } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listFormSubmissions, markSubmissionRead, deleteFormSubmission } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Inbox, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/submissions")({
   head: () => ({ meta: [{ title: "Submissions · Walkthrough Wizard QAOS" }] }),
@@ -18,6 +20,7 @@ function Submissions() {
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["form_subs"], queryFn: () => listFormSubmissions(), enabled: !!user });
   const mark = useServerFn(markSubmissionRead);
+  const del = useServerFn(deleteFormSubmission);
   if (loading || !user) return null;
   const subs = (q.data ?? []) as any[];
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -53,6 +56,11 @@ function Submissions() {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground">{new Date(s.created_at).toLocaleString()}</span>
                   {!s.read_at && <button onClick={async () => { await mark({ data: { id: s.id } }); q.refetch(); }} className="rounded bg-fuchsia-500 px-2 py-0.5 text-white">Mark read</button>}
+                  <TrashButton
+                    label="Delete submission"
+                    confirm="Delete this submission?"
+                    onDelete={async () => { try { await del({ data: { id: s.id } }); toast.success("Deleted"); q.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+                  />
                 </div>
               </div>
               <pre className="mt-2 overflow-x-auto rounded-md bg-muted/50 p-2 text-xs">{JSON.stringify(s.payload, null, 2)}</pre>

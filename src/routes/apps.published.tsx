@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { listApps } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, deleteApp } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { Globe } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/apps/published")({
   head: () => ({ meta: [{ title: "Published apps · Walkthrough Wizard QAOS" }] }),
@@ -17,8 +20,14 @@ function Published() {
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["apps"], queryFn: () => listApps(), enabled: !!user });
   if (loading || !user) return null;
+  const del = useServerFn(deleteApp);
+  if (loading || !user) return null;
 
   const published = (q.data ?? []).filter((a: any) => a.status === "published");
+  const doDelete = async (id: string, name: string) => {
+    try { await del({ data: { id } }); toast.success(`${name} deleted`); await q.refetch(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+  };
 
   return (
     <AppShell>
@@ -35,10 +44,19 @@ function Published() {
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {published.map((a: any) => (
-            <Link key={a.id} to="/apps/$id" params={{ id: a.id }} className="rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
-              <div className="font-semibold">{a.name}</div>
-              <div className="text-xs text-muted-foreground">{a.base_url}</div>
-            </Link>
+            <div key={a.id} className="relative rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
+              <Link to="/apps/$id" params={{ id: a.id }} className="block pr-8">
+                <div className="font-semibold">{a.name}</div>
+                <div className="text-xs text-muted-foreground">{a.base_url}</div>
+              </Link>
+              <div className="absolute right-2 top-2">
+                <TrashButton
+                  label={`Delete ${a.name}`}
+                  confirm={`Delete "${a.name}"? This cannot be undone.`}
+                  onDelete={() => doDelete(a.id, a.name)}
+                />
+              </div>
+            </div>
           ))}
         </div>
       )}

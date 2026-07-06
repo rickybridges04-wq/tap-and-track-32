@@ -2,10 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { listApps, syncAppFromCrawl } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, syncAppFromCrawl, deleteApp } from "@/lib/apps.functions";
 import { Smartphone, Plus, ExternalLink, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/apps/")({
   head: () => ({ meta: [{ title: "My Apps · Walkthrough Wizard QAOS" }] }),
@@ -20,11 +22,20 @@ function AppsIndex() {
   const sync = useServerFn(syncAppFromCrawl);
   const [syncingId, setSyncingId] = useState<string | null>(null);
 
+  const del = useServerFn(deleteApp);
+
   const doSync = async (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
     setSyncingId(id);
     try { await sync({ data: { id } }); await q.refetch(); } catch {} finally { setSyncingId(null); }
   };
+
+  const doDelete = async (id: string) => {
+    try { await del({ data: { id } }); toast.success("App deleted"); await q.refetch(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+  };
+
+
 
 
   if (loading || !user) return null;
@@ -54,6 +65,11 @@ function AppsIndex() {
                   </button>
                 )}
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">{a.status}</span>
+                <TrashButton
+                  label={`Delete ${a.name}`}
+                  confirm={`Delete "${a.name}" and all its data? This cannot be undone.`}
+                  onDelete={() => doDelete(a.id)}
+                />
               </div>
             </div>
             <div className="mt-3 font-semibold">{a.name}</div>

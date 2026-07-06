@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { listApps, listAppTables, createAppTable, listAppRows, insertAppRow } from "@/lib/apps.functions";
+import { TrashButton } from "@/components/TrashButton";
+import { listApps, listAppTables, createAppTable, listAppRows, insertAppRow, deleteAppTable, deleteAppRow } from "@/lib/apps.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Database, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/data")({
   head: () => ({ meta: [{ title: "Data Manager · Walkthrough Wizard QAOS" }] }),
@@ -20,6 +22,8 @@ function DataManager() {
   const tablesQ = useQuery({ queryKey: ["app_tables"], queryFn: () => listAppTables(), enabled: !!user });
   const createT = useServerFn(createAppTable);
   const insertR = useServerFn(insertAppRow);
+  const delT = useServerFn(deleteAppTable);
+  const delR = useServerFn(deleteAppRow);
   const [sel, setSel] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
@@ -73,16 +77,28 @@ function DataManager() {
             <div className="p-4 text-center text-xs text-muted-foreground"><Database className="mx-auto h-6 w-6" /><p className="mt-2">No tables yet.</p></div>
           )}
           {tables.map((t) => (
-            <button key={t.id} onClick={() => setSel(t.id)} className={`w-full rounded-md px-3 py-2 text-left text-sm ${sel === t.id ? "bg-fuchsia-500/20 text-fuchsia-300" : "hover:bg-muted"}`}>
-              <div className="font-semibold">{t.name}</div>
-              <div className="text-[11px] text-muted-foreground">{t.apps?.name}</div>
-            </button>
+            <div key={t.id} className={`flex items-center gap-1 rounded-md ${sel === t.id ? "bg-fuchsia-500/20" : "hover:bg-muted"}`}>
+              <button onClick={() => setSel(t.id)} className={`flex-1 rounded-md px-3 py-2 text-left text-sm ${sel === t.id ? "text-fuchsia-300" : ""}`}>
+                <div className="font-semibold">{t.name}</div>
+                <div className="text-[11px] text-muted-foreground">{t.apps?.name}</div>
+              </button>
+              <TrashButton
+                label={`Delete table ${t.name}`}
+                confirm={`Delete table "${t.name}" and all its rows?`}
+                onDelete={async () => { try { await delT({ data: { id: t.id } }); toast.success("Table deleted"); if (sel === t.id) setSel(null); tablesQ.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+              />
+            </div>
           ))}
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">
           {!table && <p className="text-sm text-muted-foreground">Select a table.</p>}
-          {table && <TableView table={table} rows={rowsQ.data ?? []} onInsert={async (data: Record<string, unknown>) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }} />}
+          {table && <TableView
+            table={table}
+            rows={rowsQ.data ?? []}
+            onInsert={async (data: Record<string, unknown>) => { await insertR({ data: { table_id: table.id, data } }); rowsQ.refetch(); }}
+            onDeleteRow={async (id: string) => { try { await delR({ data: { id } }); toast.success("Row deleted"); rowsQ.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); } }}
+          />}
         </div>
       </div>
       <style>{`.input{width:100%;border-radius:.375rem;border:1px solid hsl(var(--input));background:hsl(var(--background));padding:.5rem .75rem;font-size:.875rem}`}</style>
@@ -90,7 +106,7 @@ function DataManager() {
   );
 }
 
-function TableView({ table, rows, onInsert }: any) {
+function TableView({ table, rows, onInsert, onDeleteRow }: any) {
   const cols = (table.schema as any[]) ?? [];
   const [form, setForm] = useState<Record<string, string>>({});
   const submit = async (e: React.FormEvent) => { e.preventDefault(); await onInsert(form); setForm({}); };
@@ -106,16 +122,17 @@ function TableView({ table, rows, onInsert }: any) {
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left text-xs uppercase text-muted-foreground">
-            <tr>{cols.map((c: any) => <th key={c.name} className="px-2 py-1">{c.name}</th>)}<th className="px-2 py-1">Created</th></tr>
+            <tr>{cols.map((c: any) => <th key={c.name} className="px-2 py-1">{c.name}</th>)}<th className="px-2 py-1">Created</th><th className="px-2 py-1"></th></tr>
           </thead>
           <tbody>
             {rows.map((r: any) => (
               <tr key={r.id} className="border-t border-border/60">
                 {cols.map((c: any) => <td key={c.name} className="px-2 py-1">{r.data[c.name] ?? ""}</td>)}
                 <td className="px-2 py-1 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
+                <td className="px-2 py-1 text-right"><TrashButton label="Delete row" confirm="Delete this row?" onDelete={() => onDeleteRow(r.id)} /></td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={cols.length + 1} className="px-2 py-4 text-center text-xs text-muted-foreground">No rows.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={cols.length + 2} className="px-2 py-4 text-center text-xs text-muted-foreground">No rows.</td></tr>}
           </tbody>
         </table>
       </div>
