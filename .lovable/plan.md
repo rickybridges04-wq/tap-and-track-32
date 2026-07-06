@@ -1,46 +1,59 @@
-## Goal
+## Problem
 
-After "Pull all fixes" opens the bubble, add an "Analyze root causes" action that groups the raw fixes into a small set of root-cause clusters using the LLM, so implementing them is a handful of edits instead of dozens of one-offs.
+Today's three runs on the same target scored very differently because they used different depth + persona counts, not because the app changed:
 
-## What changes
+- deep + 25 personas → ~275 findings, 9 criticals → low score
+- standard/quick + 4 personas → ~45 findings, 2 criticals → higher score
 
-### 1. New server function: `analyzeFixRootCauses`
-File: `src/lib/ai.functions.ts` (append)
+`computeScore` in `src/lib/qa/scoring.ts` sums a per-finding weight into `funcPenalty / visualPenalty / a11yPenalty` with no denominator, so more coverage mechanically drives the score down. Two runs with identical per-page/per-persona quality get very different scores.
 
-- Input: `{ findings: Array<{ id, severity, title, suggestion, page_url }> }`
-- Uses the same Lovable AI gateway path already in the file (`google/gemini-3-flash-preview`) with `generateText` + `Output.object` and a Zod schema:
-  ```
-  {
-    clusters: [{
-      title: string,             // short root cause name
-      rootCause: string,         // 1-2 sentences: the underlying issue
-      severity: "critical"|"high"|"medium"|"low",
-      unifiedFix: string,        // one concrete implementation step that resolves all findings in the cluster
-      findingIds: string[],      // ids from input this cluster covers
-      affectedPages: string[]    // distinct page_urls
-    }],
-    summary: string              // 1-2 sentence overview
-  }
-  ```
-- System prompt tells it: dedupe symptoms, prefer 3–8 clusters, every input finding must belong to exactly one cluster, order clusters by severity + findings count.
+## Fix: normalize penalties by workload
 
-### 2. UI: `FixesBubble` in `src/routes/qa.runs.$runId.tsx`
+Change `computeScore` (only file touched for logic) so each category penalty is divided by an "inspection units" denominator instead of being a raw sum.
 
-Add a second "Root causes" section inside the existing bubble (no new modal — same bubble the user already opened):
+**Inspection units** = `max(1, pagesCrawled × personaCount)` — passed in as a new arg. This is the number of (page × persona) inspections that could have produced findings.
 
-- New header button `Analyze root causes` (Sparkles icon) next to `Copy all`.
-- On click → call `useServerFn(analyzeFixRootCauses)({ findings: sorted })`, show inline spinner.
-- Result renders above the raw fix list:
-  - Summary sentence
-  - Ordered list of clusters. Each cluster card shows: title, severity pill, root cause, unified fix, "Covers N findings across M pages", collapsible list of the underlying finding titles (linked to their entries below), and a `Copy fix` button that copies the unified fix + affected pages.
-- New `Copy root-cause plan` button appears once analysis is done — copies the full clustered plan as markdown.
-- Errors → toast; keep raw fixes visible either way.
-- Cache the result in component state so re-toggling the bubble doesn't re-run it (per run session).
+Rescaled per category:
+```
+rawPenalty  = Σ WEIGHT[severity] × confidence         // as today
+density     = rawPenalty / inspectionUnits             // penalty per inspection
+normalized  = density × NORMALIZATION_CONSTANT (e.g. 12)
+score_cat   = clamp(0, 100 - normalized)
+```
 
-### 3. No other changes
-- No DB writes, no new tables, no route changes.
-- Free-run gating already covers QA runs; analysis piggybacks on an existing paid feature surface, so no new paywall hook.
+`NORMALIZATION_CONSTANT` picked so a "typical" run (~1 medium finding per 4 inspections) lands near current standard-run scores — calibrated against the 18:17 standard run so historical scores stay in the same ballpark.
+
+Criticals keep an **absolute floor**: any `critical` finding still forces `verdict = "block"` regardless of density (unchanged), so normalization can't hide a hard blocker.
+
+## Call-site changes
+
+- `src/routes/qa.runs.$runId.tsx` — pass `run.personas.length` as the new arg to `computeScore` (already available in the component). No UI change.
+- `src/routes/qa.index.tsx` — same, wherever the list computes a score (verify during implementation; add arg if used).
+- Any other caller of `computeScore` gets the new arg.
+
+Signature change:
+```ts
+computeScore(findings, pagesCrawled, linksDiscovered, personaCount)
+```
+
+## Small UI addition (run detail)
+
+Under the readiness number, add a one-line footnote:
+`Normalized across N pages × M personas` — so users understand the score is coverage-adjusted and two runs at different depths are directly comparable.
+
+## Out of scope
+
+- No DB migration, no schema change, no re-scoring of historical runs on read (they'll just recompute with the new formula next time they're viewed — that's fine, scoring lives client-side).
+- No change to finding generation, crawler, or personas.
+- No change to the root-cause analyzer added last turn.
 
 ## Files touched
-- `src/lib/ai.functions.ts` — append `analyzeFixRootCauses` server function
-- `src/routes/qa.runs.$runId.tsx` — extend `FixesBubble` with the analyze button, state, and cluster rendering
+
+- `src/lib/qa/scoring.ts` — new signature + normalized formula + calibration constant
+- `src/routes/qa.runs.$runId.tsx` — pass `personaCount`, add footnote line
+- `src/routes/qa.index.tsx` — pass `personaCount` if it calls `computeScore`
+
+## Verification
+
+- `bunx tsgo --noEmit` clean
+- Re-open the three runs above and confirm the standard, quick, and deep runs land within a much tighter band, while the deep run's `verdict` still shows `block` because of its 9 criticals.
