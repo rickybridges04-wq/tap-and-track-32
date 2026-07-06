@@ -95,8 +95,8 @@ function Notifications() {
             </form>
           )}
 
-          {tab === "scheduled" && <CampList camps={camps.filter((c) => c.status === "scheduled")} />}
-          {tab === "history" && <CampList camps={camps.filter((c) => c.status !== "scheduled")} />}
+          {tab === "scheduled" && <CampList camps={camps.filter((c) => c.status === "scheduled")} onDeleted={() => campsQ.refetch()} />}
+          {tab === "history" && <CampList camps={camps.filter((c) => c.status !== "scheduled")} onDeleted={() => campsQ.refetch()} />}
         </>
       )}
       <style>{`.input{width:100%;border-radius:.375rem;border:1px solid hsl(var(--input));background:hsl(var(--background));padding:.5rem .75rem;font-size:.875rem}`}</style>
