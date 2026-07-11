@@ -53,12 +53,27 @@ function QaDashboard() {
             Autonomous AI crawls your app, simulates personas, scores production readiness.
           </p>
         </div>
-        <Link
-          to="/qa/new"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> New crawl
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={runs.length === 0 || clearAll.isPending}
+            onClick={() => {
+              if (window.confirm("Clear all QA runs? This cannot be undone.")) {
+                clearAll.mutate();
+              }
+            }}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Clear all
+          </Button>
+          <Link
+            to="/qa/new"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> New crawl
+          </Link>
+        </div>
+
       </div>
 
       {isLoading ? (
