@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { TrashButton } from "@/components/TrashButton";
-import { listRuns, deleteRun, type QaRunRow } from "@/lib/qa/qa.functions";
+import { listRuns, deleteRun, deleteAllRuns, type QaRunRow } from "@/lib/qa/qa.functions";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { Activity, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
