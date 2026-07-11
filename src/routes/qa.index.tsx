@@ -32,6 +32,15 @@ function QaDashboard() {
     },
   });
 
+  const clearAll = useMutation({
+    mutationFn: () => deleteAllRuns(),
+    onSuccess: () => {
+      toast.success("All runs cleared");
+      qc.invalidateQueries({ queryKey: ["qa-runs"] });
+    },
+  });
+
+
   return (
     <AppShell>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
