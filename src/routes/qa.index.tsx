@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { TrashButton } from "@/components/TrashButton";
-import { listRuns, deleteRun, type QaRunRow } from "@/lib/qa/qa.functions";
+import { Button } from "@/components/ui/button";
+import { listRuns, deleteRun, deleteAllRuns, type QaRunRow } from "@/lib/qa/qa.functions";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
-import { Activity, Plus, Sparkles } from "lucide-react";
+import { Activity, Plus, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/qa/")({
   component: QaDashboard,
@@ -30,6 +32,15 @@ function QaDashboard() {
     },
   });
 
+  const clearAll = useMutation({
+    mutationFn: () => deleteAllRuns(),
+    onSuccess: () => {
+      toast.success("All runs cleared");
+      qc.invalidateQueries({ queryKey: ["qa-runs"] });
+    },
+  });
+
+
   return (
     <AppShell>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -42,12 +53,27 @@ function QaDashboard() {
             Autonomous AI crawls your app, simulates personas, scores production readiness.
           </p>
         </div>
-        <Link
-          to="/qa/new"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> New crawl
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={runs.length === 0 || clearAll.isPending}
+            onClick={() => {
+              if (window.confirm("Clear all QA runs? This cannot be undone.")) {
+                clearAll.mutate();
+              }
+            }}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Clear all
+          </Button>
+          <Link
+            to="/qa/new"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> New crawl
+          </Link>
+        </div>
+
       </div>
 
       {isLoading ? (

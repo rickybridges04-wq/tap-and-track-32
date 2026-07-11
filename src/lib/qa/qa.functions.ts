@@ -214,3 +214,13 @@ export const deleteRun = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const deleteAllRuns = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("qa_runs").delete().eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
