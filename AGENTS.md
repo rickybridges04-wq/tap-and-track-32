@@ -66,6 +66,13 @@ When the founder invokes this exact phrase, override the lean-loading default be
 
 **Guardrail:** this mode changes what gets *read and reported*, not what gets *executed*. Core Rules still apply — Tier 3/4 findings are flagged for founder approval, not auto-fixed. Truth Standard still applies — every finding needs evidence, not a fabricated pass/fail.
 
+**Output & logging (auto-commit, no approval needed for the report itself):**
+1. Write the full report to `docs/audits/YYYY-MM-DD-full-build-audit.md` (one new file per run — never overwritten).
+2. Append one line to `docs/AUDIT_LOG.md`:
+   `YYYY-MM-DD | Score: XX/100 | N Tier-3/4 flags | → docs/audits/YYYY-MM-DD-full-build-audit.md`
+3. Commit both directly to `main` as the final step of the run — do not ask for confirmation before committing the report/log (this is documentation, not a change to the app itself).
+4. Tier 3/4 findings inside the report still require founder sign-off before any fix is executed — auto-committing the report does not authorize acting on it.
+
 ## When starting a task
 1. Check the reference lists above for anything relevant to the current task.
 2. Open only the specific docs/ file(s) needed — don't load the entire framework into context for a small task.
