@@ -44,6 +44,28 @@ This file is always read by the Lovable agent at the start of every session, reg
 - Decision-Rights Tiers apply (see UEC-002 / BAEOS Vol 02) — Tier 4 items require founder approval before execution.
 - North Star tie-break order for conflicting priorities: Profit → Growth → Impact → Freedom.
 
+## Full Build Audit Mode (Trigger: "AGENTS.md — go to work")
+
+When the founder invokes this exact phrase, override the lean-loading default below and instead load full context for a comprehensive quality + parity sweep.
+
+**Load order:**
+1. docs/MASTER_INDEX.md
+2. All UEC docs (Parts 1-3, Philosophy, Principles, AI Constitution, Governance)
+3. docs/BAEOS_Volume_10_Enterprise_Prompt_Library_v1.0.md (Master Category Prompts)
+4. Any BAEOS volume relevant to the current app's stack (e.g., Vol 04 Backend Platform, Vol 05 Synapse OS, Vol 07 Vault)
+5. docs/NEW_APP_STANDARD.md and docs/TRIAL_POLICY.md if the app is new or pre-launch
+
+**Run against the current build, in this order:**
+1. Coding — Senior Engineer Review (bugs, vulnerabilities, edge cases, performance)
+2. Design — Art Director Pass (UX critique, hierarchy, accessibility)
+3. Reasoning — Rigor Stack (root cause any known issues, second-order effects)
+4. Productivity — System Optimizer (friction points, workflow collapse)
+5. AI Power User — Meta Layer (self-critique the findings before reporting; confidence score per finding)
+
+**Output:** one consolidated report — bugs/vulnerabilities, UX/design gaps, performance issues, an overall quality score, and a prioritized fix list.
+
+**Guardrail:** this mode changes what gets *read and reported*, not what gets *executed*. Core Rules still apply — Tier 3/4 findings are flagged for founder approval, not auto-fixed. Truth Standard still applies — every finding needs evidence, not a fabricated pass/fail.
+
 ## When starting a task
 1. Check the reference lists above for anything relevant to the current task.
 2. Open only the specific docs/ file(s) needed — don't load the entire framework into context for a small task.
