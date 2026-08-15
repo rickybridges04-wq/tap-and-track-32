@@ -18,6 +18,8 @@ export type QaRunRow = {
   verdict: string | null;
   error: string | null;
   warnings: string[];
+  pages_discovered: number | null;
+  pages_scraped: number | null;
   created_at: string;
   completed_at: string | null;
 };
@@ -30,6 +32,9 @@ export type QaPageRow = {
   status: number | null;
   links: string[];
   markdown_preview: string | null;
+  screenshot_url: string | null;
+  latency_ms: number | null;
+  truncated: boolean;
 };
 
 export type QaFindingRow = {
@@ -43,6 +48,7 @@ export type QaFindingRow = {
   title: string;
   detail: string;
   suggestion: string | null;
+  basis: "observed" | "inferred";
 };
 
 // -------- create --------
@@ -84,6 +90,8 @@ const PatchInput = z.object({
   verdict: z.string().nullable().optional(),
   error: z.string().nullable().optional(),
   warnings: z.array(z.string()).optional(),
+  pages_discovered: z.number().int().nullable().optional(),
+  pages_scraped: z.number().int().nullable().optional(),
   completed_at: z.string().nullable().optional(),
 });
 
@@ -95,7 +103,7 @@ export const patchRun = createServerFn({ method: "POST" })
     const { id, ...rest } = data;
     const { error } = await supabase
       .from("qa_runs")
-      .update(rest)
+      .update({ ...rest, updated_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
@@ -110,6 +118,9 @@ const AddPageInput = z.object({
   status: z.number().int().optional().nullable(),
   links: z.array(z.string()).default([]),
   markdown_preview: z.string().optional().nullable(),
+  screenshot_url: z.string().optional().nullable(),
+  latency_ms: z.number().int().optional().nullable(),
+  truncated: z.boolean().optional(),
 });
 
 export const addPage = createServerFn({ method: "POST" })
@@ -125,6 +136,9 @@ export const addPage = createServerFn({ method: "POST" })
       status: data.status ?? null,
       links: data.links,
       markdown_preview: data.markdown_preview ?? null,
+      screenshot_url: data.screenshot_url ?? null,
+      latency_ms: data.latency_ms ?? null,
+      truncated: data.truncated ?? false,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -143,6 +157,7 @@ const AddFindingsInput = z.object({
       title: z.string(),
       detail: z.string(),
       suggestion: z.string().optional().nullable(),
+      basis: z.enum(["observed", "inferred"]).default("inferred"),
     }),
   ),
 });
@@ -164,6 +179,7 @@ export const addFindings = createServerFn({ method: "POST" })
       title: f.title,
       detail: f.detail,
       suggestion: f.suggestion ?? null,
+      basis: f.basis,
     }));
     const { error } = await supabase.from("qa_findings").insert(rows);
     if (error) throw new Error(error.message);
@@ -175,6 +191,23 @@ export const listRuns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<QaRunRow[]> => {
     const { supabase, userId } = context;
+    // Runs are driven from the browser tab. If one stops reporting progress for
+    // 10 minutes it was interrupted — mark it failed instead of leaving it
+    // stuck "running" forever.
+    const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    await supabase
+      .from("qa_runs")
+      .update({
+        status: "failed",
+        error: "Run interrupted — the tab was closed or lost connection before it finished.",
+        progress_stage: "Interrupted",
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .not("status", "in", "(completed,failed)")
+      .lt("updated_at", cutoff);
+
     const { data, error } = await supabase
       .from("qa_runs")
       .select("*")
