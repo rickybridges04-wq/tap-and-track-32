@@ -14,6 +14,7 @@ const LooseFinding = z.object({
   title: z.string().optional(),
   detail: z.string().optional(),
   suggestion: z.string().nullable().optional(),
+  basis: z.string().nullable().optional(),
 });
 
 const LooseInspection = z.object({
@@ -24,7 +25,10 @@ const LooseInspection = z.object({
 const CATEGORIES = ["functional", "visual", "accessibility", "performance"] as const;
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 
+export type Basis = "observed" | "inferred";
+
 type NormalizedFinding = {
+  basis: Basis;
   category: (typeof CATEGORIES)[number];
   severity: (typeof SEVERITIES)[number];
   confidence: number;
@@ -51,6 +55,10 @@ function coerceSeverity(v: unknown): (typeof SEVERITIES)[number] {
   return "medium";
 }
 
+function coerceBasis(v: unknown): Basis {
+  return /^obs/i.test(String(v ?? "").trim()) ? "observed" : "inferred";
+}
+
 function clamp(n: unknown, min: number, max: number, fallback: number): number {
   const x = typeof n === "number" && Number.isFinite(n) ? n : fallback;
   return Math.max(min, Math.min(max, x));
@@ -61,7 +69,10 @@ function truncate(s: unknown, max: number): string {
   return str.length > max ? str.slice(0, max - 1).trimEnd() + "…" : str;
 }
 
-function normalize(raw: unknown): { summary: string; findings: NormalizedFinding[] } {
+function normalize(
+  raw: unknown,
+  ctx: { hasScreenshot: boolean },
+): { summary: string; findings: NormalizedFinding[] } {
   const parsed = LooseInspection.safeParse(raw);
   const obj = parsed.success ? parsed.data : {};
   const summary = truncate(obj.summary ?? "", 400);
@@ -71,8 +82,15 @@ function normalize(raw: unknown): { summary: string; findings: NormalizedFinding
     const detail = truncate(f?.detail, 900);
     if (!title && !detail) continue;
     const suggestion = f?.suggestion == null ? undefined : truncate(f.suggestion, 500);
+    const category = coerceCategory(f?.category);
+    // Truth rule: a finding is only "observed" when the model actually saw a
+    // rendered screenshot. Text-only reads and timing guesses stay "inferred";
+    // real performance evidence is generated from measured latency instead.
+    let basis = coerceBasis(f?.basis);
+    if (!ctx.hasScreenshot || category === "performance") basis = "inferred";
     findings.push({
-      category: coerceCategory(f?.category),
+      basis,
+      category,
       severity: coerceSeverity(f?.severity),
       confidence: clamp(f?.confidence, 0, 1, 0.6),
       title: title || detail.slice(0, 80),
@@ -107,6 +125,9 @@ const InspectInput = z.object({
     title: z.string().optional(),
     links: z.array(z.string()).default([]),
     markdownPreview: z.string().default(""),
+    screenshotUrl: z.string().optional().nullable(),
+    latencyMs: z.number().optional().nullable(),
+    truncated: z.boolean().optional(),
   }),
 });
 
@@ -135,6 +156,9 @@ Each finding must include:
 - title: short (<= 140 chars)
 - detail: 1-3 sentences (<= 800 chars)
 - suggestion: optional short fix (omit if none)
+- basis: "observed" if you can point to the attached rendered screenshot, "inferred" if you are reasoning from the page text alone
+
+Evidence rule (strict): if no screenshot is attached, every finding's basis is "inferred" and you must NOT claim anything about colours, contrast, spacing, layout or load speed as fact.
 
 Severity guide:
 - critical: blocks core flow (broken auth, payment, navigation, 500s)
@@ -142,24 +166,41 @@ Severity guide:
 - medium: noticeable but not blocking
 - low: nit / polish`;
 
-    const prompt = `URL: ${data.page.url}
-Title: ${data.page.title ?? "(unknown)"}
-Outbound links (sample): ${data.page.links.slice(0, 20).join(", ") || "(none discovered)"}
+    const shot = data.page.screenshotUrl ?? undefined;
+    const hasScreenshot = !!shot;
 
-Page content (markdown, truncated):
+    const promptText = `URL: ${data.page.url}
+Title: ${data.page.title ?? "(unknown)"}
+HTTP load time: ${data.page.latencyMs != null ? `${data.page.latencyMs}ms (measured)` : "(not measured)"}
+Rendered screenshot: ${hasScreenshot ? "attached below — visual findings may be marked observed" : "NOT available — all visual findings must be marked inferred"}
+Outbound links (sample): ${data.page.links.slice(0, 20).join(", ") || "(none discovered)"}
+${data.page.truncated ? "NOTE: page text below was truncated; do not claim anything about content beyond it.\n" : ""}
+Page content (markdown${data.page.truncated ? ", truncated" : ""}):
 ---
 ${data.page.markdownPreview || "(empty)"}
 ---`;
+
+    const messages = hasScreenshot
+      ? ([
+          {
+            role: "user" as const,
+            content: [
+              { type: "text" as const, text: promptText },
+              { type: "image" as const, image: shot as string },
+            ],
+          },
+        ] as const)
+      : undefined;
 
     // Attempt 1: structured output with loose schema.
     try {
       const { output } = await generateText({
         model,
         system,
-        prompt,
+        ...(messages ? { messages: messages as never } : { prompt: promptText }),
         output: Output.object({ schema: LooseInspection }),
       });
-      const norm = normalize(output);
+      const norm = normalize(output, { hasScreenshot });
       return { ok: true as const, ...norm };
     } catch (err) {
       const isSchemaFail =
@@ -172,7 +213,7 @@ ${data.page.markdownPreview || "(empty)"}
       if (rawText) {
         const salvaged = extractJson(rawText);
         if (salvaged) {
-          const norm = normalize(salvaged);
+          const norm = normalize(salvaged, { hasScreenshot });
           return { ok: true as const, ...norm };
         }
       }
@@ -193,7 +234,7 @@ ${data.page.markdownPreview || "(empty)"}
         system:
           system +
           `\n\nReturn ONLY a single JSON object, no prose, no code fences. Shape: {"summary": string, "findings": Finding[]}.`,
-        prompt,
+        ...(messages ? { messages: messages as never } : { prompt: promptText }),
       });
       const salvaged = extractJson(text);
       if (!salvaged) {
@@ -204,7 +245,7 @@ ${data.page.markdownPreview || "(empty)"}
           findings: [] as NormalizedFinding[],
         };
       }
-      const norm = normalize(salvaged);
+      const norm = normalize(salvaged, { hasScreenshot });
       return { ok: true as const, ...norm };
     } catch (err) {
       return {

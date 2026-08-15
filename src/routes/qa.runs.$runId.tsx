@@ -43,9 +43,10 @@ function QaRunDetail() {
         title: f.title,
         detail: f.detail,
         suggestion: f.suggestion ?? undefined,
+        basis: f.basis ?? "inferred",
       })),
       data.pages.length,
-      Math.max(data.pages.length, 1),
+      Math.max(data.run.pages_discovered ?? data.pages.length, 1),
       data.run.personas.length,
     );
   }, [data]);
@@ -92,8 +93,14 @@ function QaRunDetail() {
                 <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${verdictColor(score.verdict)}`}>
                   {verdictLabel(score.verdict)}
                 </span>
-                <div className="mt-1 text-[10px] text-muted-foreground">
+                <div className="mt-1 max-w-[15rem] text-[10px] leading-snug text-muted-foreground">
                   Normalized across {pages.length} page{pages.length === 1 ? "" : "s"} × {run.personas.length} persona{run.personas.length === 1 ? "" : "s"}
+                  {run.pages_discovered != null && (
+                    <> · {pages.length}/{run.pages_discovered} discovered pages checked</>
+                  )}
+                  {score.excludedInferred > 0 && (
+                    <> · {score.excludedInferred} unverified finding{score.excludedInferred === 1 ? "" : "s"} excluded</>
+                  )}
                 </div>
               </div>
             </div>
@@ -124,6 +131,14 @@ function QaRunDetail() {
       {run.status === "failed" && (
         <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700" role="alert">
           {run.error || "Run failed"}
+        </div>
+      )}
+
+      {run.status === "completed" && score?.lowCoverage && (
+        <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800" role="status">
+          <span className="font-medium">Partial coverage.</span> Only {pages.length} of{" "}
+          {run.pages_discovered ?? pages.length} discovered pages were checked, so this score cannot
+          certify a release. The verdict is capped until coverage is above 60%.
         </div>
       )}
 
@@ -205,6 +220,27 @@ function QaRunDetail() {
                 <span className="text-xs text-muted-foreground">{p.links.length} links</span>
               </div>
               <div className="mt-0.5 truncate text-xs text-muted-foreground">{p.url}</div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                {p.status != null && <span>HTTP {p.status}</span>}
+                {p.latency_ms != null && <span>· {p.latency_ms}ms</span>}
+                {p.screenshot_url ? (
+                  <a
+                    href={p.screenshot_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-700 hover:underline"
+                  >
+                    screenshot captured
+                  </a>
+                ) : (
+                  <span className="rounded-full bg-muted px-2 py-0.5 font-medium">no screenshot</span>
+                )}
+                {p.truncated && (
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-amber-700">
+                    text truncated — partially inspected
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -248,6 +284,21 @@ function FindingCard({ f }: { f: QaFindingRow }) {
           <span className="text-xs text-muted-foreground">{persona.emoji} {persona.name}</span>
         )}
         <span className="text-xs text-muted-foreground">· {Math.round(Number(f.confidence) * 100)}% conf</span>
+        {(f.basis ?? "inferred") === "observed" ? (
+          <span
+            className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+            title="Backed by a rendered screenshot, HTTP status or a measured timing"
+          >
+            observed
+          </span>
+        ) : (
+          <span
+            className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+            title="Inferred from page text only — needs a manual check before you act on it"
+          >
+            inferred · needs manual check
+          </span>
+        )}
       </div>
       <div className="mt-1.5 text-sm font-medium">{f.title}</div>
       <p className="mt-1 text-sm text-muted-foreground">{f.detail}</p>
