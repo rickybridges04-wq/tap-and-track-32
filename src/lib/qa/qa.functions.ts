@@ -103,7 +103,7 @@ export const patchRun = createServerFn({ method: "POST" })
     const { id, ...rest } = data;
     const { error } = await supabase
       .from("qa_runs")
-      .update({ ...rest, updated_at: new Date().toISOString() })
+      .update({ ...rest, updated_at: new Date().toISOString() } as never)
       .eq("id", id)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
@@ -139,7 +139,7 @@ export const addPage = createServerFn({ method: "POST" })
       screenshot_url: data.screenshot_url ?? null,
       latency_ms: data.latency_ms ?? null,
       truncated: data.truncated ?? false,
-    });
+    } as never);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -181,7 +181,7 @@ export const addFindings = createServerFn({ method: "POST" })
       suggestion: f.suggestion ?? null,
       basis: f.basis,
     }));
-    const { error } = await supabase.from("qa_findings").insert(rows);
+    const { error } = await supabase.from("qa_findings").insert(rows as never);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -203,7 +203,7 @@ export const listRuns = createServerFn({ method: "GET" })
         progress_stage: "Interrupted",
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
+      } as never)
       .eq("user_id", userId)
       .not("status", "in", "(completed,failed)")
       .lt("updated_at", cutoff);
