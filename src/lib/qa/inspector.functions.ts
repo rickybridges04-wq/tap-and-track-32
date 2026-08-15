@@ -156,6 +156,9 @@ Each finding must include:
 - title: short (<= 140 chars)
 - detail: 1-3 sentences (<= 800 chars)
 - suggestion: optional short fix (omit if none)
+- basis: "observed" if you can point to the attached rendered screenshot, "inferred" if you are reasoning from the page text alone
+
+Evidence rule (strict): if no screenshot is attached, every finding's basis is "inferred" and you must NOT claim anything about colours, contrast, spacing, layout or load speed as fact.
 
 Severity guide:
 - critical: blocks core flow (broken auth, payment, navigation, 500s)
@@ -163,24 +166,41 @@ Severity guide:
 - medium: noticeable but not blocking
 - low: nit / polish`;
 
-    const prompt = `URL: ${data.page.url}
-Title: ${data.page.title ?? "(unknown)"}
-Outbound links (sample): ${data.page.links.slice(0, 20).join(", ") || "(none discovered)"}
+    const shot = data.page.screenshotUrl ?? undefined;
+    const hasScreenshot = !!shot;
 
-Page content (markdown, truncated):
+    const promptText = `URL: ${data.page.url}
+Title: ${data.page.title ?? "(unknown)"}
+HTTP load time: ${data.page.latencyMs != null ? `${data.page.latencyMs}ms (measured)` : "(not measured)"}
+Rendered screenshot: ${hasScreenshot ? "attached below — visual findings may be marked observed" : "NOT available — all visual findings must be marked inferred"}
+Outbound links (sample): ${data.page.links.slice(0, 20).join(", ") || "(none discovered)"}
+${data.page.truncated ? "NOTE: page text below was truncated; do not claim anything about content beyond it.\n" : ""}
+Page content (markdown${data.page.truncated ? ", truncated" : ""}):
 ---
 ${data.page.markdownPreview || "(empty)"}
 ---`;
+
+    const messages = hasScreenshot
+      ? ([
+          {
+            role: "user" as const,
+            content: [
+              { type: "text" as const, text: promptText },
+              { type: "image" as const, image: shot as string },
+            ],
+          },
+        ] as const)
+      : undefined;
 
     // Attempt 1: structured output with loose schema.
     try {
       const { output } = await generateText({
         model,
         system,
-        prompt,
+        ...(messages ? { messages: messages as never } : { prompt: promptText }),
         output: Output.object({ schema: LooseInspection }),
       });
-      const norm = normalize(output);
+      const norm = normalize(output, { hasScreenshot });
       return { ok: true as const, ...norm };
     } catch (err) {
       const isSchemaFail =
@@ -193,7 +213,7 @@ ${data.page.markdownPreview || "(empty)"}
       if (rawText) {
         const salvaged = extractJson(rawText);
         if (salvaged) {
-          const norm = normalize(salvaged);
+          const norm = normalize(salvaged, { hasScreenshot });
           return { ok: true as const, ...norm };
         }
       }
@@ -214,7 +234,7 @@ ${data.page.markdownPreview || "(empty)"}
         system:
           system +
           `\n\nReturn ONLY a single JSON object, no prose, no code fences. Shape: {"summary": string, "findings": Finding[]}.`,
-        prompt,
+        ...(messages ? { messages: messages as never } : { prompt: promptText }),
       });
       const salvaged = extractJson(text);
       if (!salvaged) {
@@ -225,7 +245,7 @@ ${data.page.markdownPreview || "(empty)"}
           findings: [] as NormalizedFinding[],
         };
       }
-      const norm = normalize(salvaged);
+      const norm = normalize(salvaged, { hasScreenshot });
       return { ok: true as const, ...norm };
     } catch (err) {
       return {
