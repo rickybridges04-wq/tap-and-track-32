@@ -43,12 +43,15 @@ export const mapSite = createServerFn({ method: "POST" })
 
 const ScrapeInput = z.object({
   url: z.string().url(),
-  withScreenshot: z.boolean().default(false),
+  withScreenshot: z.boolean().default(true),
 });
+
+const MARKDOWN_LIMIT = 4000;
 
 export const scrapePage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ScrapeInput.parse(input))
   .handler(async ({ data }) => {
+    const startedAt = Date.now();
     try {
       const formats: string[] = ["markdown", "links"];
       if (data.withScreenshot) formats.push("screenshot");
@@ -60,6 +63,7 @@ export const scrapePage = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({ url: data.url, formats }),
       });
+      const latencyMs = Date.now() - startedAt;
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         return { ok: false as const, error: `Firecrawl scrape ${res.status}: ${text.slice(0, 200)}` };
@@ -73,6 +77,10 @@ export const scrapePage = createServerFn({ method: "POST" })
         };
       };
       const d = json.data ?? {};
+      const markdown = d.markdown ?? "";
+      // Only keep hosted screenshot URLs — base64 payloads are too large to persist.
+      const shot = typeof d.screenshot === "string" ? d.screenshot : undefined;
+      const screenshotUrl = shot && /^https?:\/\//i.test(shot) ? shot : undefined;
       return {
         ok: true as const,
         page: {
@@ -80,11 +88,14 @@ export const scrapePage = createServerFn({ method: "POST" })
           title: d.metadata?.title,
           status: d.metadata?.statusCode,
           links: (d.links ?? []).slice(0, 50),
-          markdownPreview: (d.markdown ?? "").slice(0, 4000),
-          screenshot: d.screenshot,
+          markdownPreview: markdown.slice(0, MARKDOWN_LIMIT),
+          truncated: markdown.length > MARKDOWN_LIMIT,
+          latencyMs,
+          screenshotUrl,
         },
       };
     } catch (err) {
       return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
     }
   });
+
