@@ -1,6 +1,7 @@
 // Production Readiness Score for Synapse QA OS.
 export type Severity = "critical" | "high" | "medium" | "low";
 export type Category = "functional" | "visual" | "accessibility" | "performance";
+export type Basis = "observed" | "inferred";
 export type QaFinding = {
   id: string;
   runId: string;
@@ -12,6 +13,7 @@ export type QaFinding = {
   title: string;
   detail: string;
   suggestion?: string;
+  basis?: Basis;
 };
 
 const WEIGHT: Record<Severity, number> = {
@@ -26,6 +28,8 @@ export type ScoreResult = {
   verdict: "ready" | "minor" | "major" | "block";
   subscores: { functional: number; visual: number; accessibility: number; coverage: number };
   counts: Record<Severity, number>;
+  lowCoverage: boolean;
+  excludedInferred: number;
 };
 
 // Tuned so ~1 medium-confidence finding per 4 (page × persona) inspections
@@ -43,7 +47,17 @@ export function computeScore(
   let visualPenalty = 0;
   let a11yPenalty = 0;
 
-  for (const f of findings) {
+  // Inferred visual/performance findings are model guesses from page text — they
+  // are surfaced to the user but never allowed to move the headline score.
+  const scored = findings.filter(
+    (f) =>
+      !(
+        (f.basis ?? "inferred") === "inferred" &&
+        (f.category === "visual" || f.category === "performance")
+      ),
+  );
+
+  for (const f of scored) {
     counts[f.severity]++;
     const w = WEIGHT[f.severity] * (f.confidence || 0.7);
     if (f.category === "functional") funcPenalty += w;
@@ -70,9 +84,15 @@ export function computeScore(
   else if (counts.high > 2 || score < 70) verdict = "major";
   else if (score < 85) verdict = "minor";
 
+  // Thin coverage cannot certify a release: cap the best possible verdict.
+  const lowCoverage = coverage < 0.6;
+  if (lowCoverage && verdict === "ready") verdict = "minor";
+
   return {
     score,
     verdict,
+    lowCoverage,
+    excludedInferred: findings.length - scored.length,
     subscores: { functional, visual, accessibility, coverage: coverageScore },
     counts,
   };
