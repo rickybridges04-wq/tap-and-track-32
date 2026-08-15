@@ -14,6 +14,7 @@ const LooseFinding = z.object({
   title: z.string().optional(),
   detail: z.string().optional(),
   suggestion: z.string().nullable().optional(),
+  basis: z.string().nullable().optional(),
 });
 
 const LooseInspection = z.object({
@@ -24,7 +25,10 @@ const LooseInspection = z.object({
 const CATEGORIES = ["functional", "visual", "accessibility", "performance"] as const;
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 
+export type Basis = "observed" | "inferred";
+
 type NormalizedFinding = {
+  basis: Basis;
   category: (typeof CATEGORIES)[number];
   severity: (typeof SEVERITIES)[number];
   confidence: number;
@@ -51,6 +55,10 @@ function coerceSeverity(v: unknown): (typeof SEVERITIES)[number] {
   return "medium";
 }
 
+function coerceBasis(v: unknown): Basis {
+  return /^obs/i.test(String(v ?? "").trim()) ? "observed" : "inferred";
+}
+
 function clamp(n: unknown, min: number, max: number, fallback: number): number {
   const x = typeof n === "number" && Number.isFinite(n) ? n : fallback;
   return Math.max(min, Math.min(max, x));
@@ -61,7 +69,10 @@ function truncate(s: unknown, max: number): string {
   return str.length > max ? str.slice(0, max - 1).trimEnd() + "…" : str;
 }
 
-function normalize(raw: unknown): { summary: string; findings: NormalizedFinding[] } {
+function normalize(
+  raw: unknown,
+  ctx: { hasScreenshot: boolean },
+): { summary: string; findings: NormalizedFinding[] } {
   const parsed = LooseInspection.safeParse(raw);
   const obj = parsed.success ? parsed.data : {};
   const summary = truncate(obj.summary ?? "", 400);
@@ -71,8 +82,15 @@ function normalize(raw: unknown): { summary: string; findings: NormalizedFinding
     const detail = truncate(f?.detail, 900);
     if (!title && !detail) continue;
     const suggestion = f?.suggestion == null ? undefined : truncate(f.suggestion, 500);
+    const category = coerceCategory(f?.category);
+    // Truth rule: a finding is only "observed" when the model actually saw a
+    // rendered screenshot. Text-only reads and timing guesses stay "inferred";
+    // real performance evidence is generated from measured latency instead.
+    let basis = coerceBasis(f?.basis);
+    if (!ctx.hasScreenshot || category === "performance") basis = "inferred";
     findings.push({
-      category: coerceCategory(f?.category),
+      basis,
+      category,
       severity: coerceSeverity(f?.severity),
       confidence: clamp(f?.confidence, 0, 1, 0.6),
       title: title || detail.slice(0, 80),
@@ -107,6 +125,9 @@ const InspectInput = z.object({
     title: z.string().optional(),
     links: z.array(z.string()).default([]),
     markdownPreview: z.string().default(""),
+    screenshotUrl: z.string().optional().nullable(),
+    latencyMs: z.number().optional().nullable(),
+    truncated: z.boolean().optional(),
   }),
 });
 
