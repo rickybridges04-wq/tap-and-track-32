@@ -7,6 +7,7 @@ import { addFindings, addPage, patchRun } from "@/lib/qa/qa.functions";
 import { DEPTH_LIMITS, type Depth } from "@/lib/qa/config";
 
 type FindingLite = {
+  basis: "observed" | "inferred";
   persona_id: string;
   page_url: string;
   category: "functional" | "visual" | "accessibility" | "performance";
@@ -22,7 +23,39 @@ type PageLite = {
   title?: string;
   links: string[];
   markdownPreview?: string;
+  screenshotUrl?: string;
+  latencyMs?: number;
+  truncated?: boolean;
 };
+
+// Real, measured performance evidence — not a model guess.
+const SLOW_MS = 2500;
+const VERY_SLOW_MS = 6000;
+
+function perfFindings(page: PageLite): FindingLite[] {
+  const ms = page.latencyMs;
+  if (ms == null || ms < SLOW_MS) return [];
+  return [
+    {
+      basis: "observed",
+      persona_id: "measurement",
+      page_url: page.url,
+      category: "performance",
+      severity: ms >= VERY_SLOW_MS ? "high" : "medium",
+      confidence: 1,
+      title: `Page responded in ${(ms / 1000).toFixed(1)}s`,
+      detail: `Measured server response time for ${page.url} was ${ms}ms, above the ${SLOW_MS}ms threshold. This is a real timing measurement, not an inference.`,
+      suggestion: "Check server response time, payload size and any blocking upstream calls for this route.",
+    },
+  ];
+}
+
+const AUTH_WALL_RE = /\b(sign in|sign up|log in|login|create account|password)\b/i;
+
+function looksLikeAuthWall(page: PageLite): boolean {
+  const md = page.markdownPreview ?? "";
+  return md.length < 900 && AUTH_WALL_RE.test(md);
+}
 
 async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
   const delays = [500, 1500];
@@ -86,6 +119,7 @@ export async function runQa(input: {
       status: "scraping",
       progress_pct: 15,
       progress_stage: `Found ${urls.length} pages`,
+      pages_discovered: urls.length,
     });
 
     const pages: PageLite[] = [];
@@ -93,7 +127,7 @@ export async function runQa(input: {
     await pMap(urls, SCRAPE_CONCURRENCY, async (u) => {
       try {
         const scraped = await withRetry(
-          () => scrapePage({ data: { url: u, withScreenshot: false } }),
+          () => scrapePage({ data: { url: u, withScreenshot: true } }),
           `scrape ${u}`,
         );
         if (scraped.ok) {
@@ -102,6 +136,9 @@ export async function runQa(input: {
             title: scraped.page.title,
             links: scraped.page.links,
             markdownPreview: scraped.page.markdownPreview,
+            screenshotUrl: scraped.page.screenshotUrl,
+            latencyMs: scraped.page.latencyMs,
+            truncated: scraped.page.truncated,
           });
           await addPage({
             data: {
@@ -111,6 +148,9 @@ export async function runQa(input: {
               status: scraped.page.status ?? null,
               links: scraped.page.links,
               markdown_preview: scraped.page.markdownPreview ?? null,
+              screenshot_url: scraped.page.screenshotUrl ?? null,
+              latency_ms: scraped.page.latencyMs ?? null,
+              truncated: scraped.page.truncated ?? false,
             },
           }).catch(() => {});
         } else {
@@ -157,6 +197,9 @@ export async function runQa(input: {
                   title: page.title,
                   links: page.links,
                   markdownPreview: page.markdownPreview ?? "",
+                  screenshotUrl: page.screenshotUrl ?? null,
+                  latencyMs: page.latencyMs ?? null,
+                  truncated: page.truncated ?? false,
                 },
               },
             }),
@@ -165,6 +208,7 @@ export async function runQa(input: {
         if (res.ok) {
           succeeded++;
           const batch: FindingLite[] = res.findings.map((f) => ({
+            basis: f.basis ?? "inferred",
             persona_id: personaId,
             page_url: page.url,
             category: f.category,
@@ -196,6 +240,20 @@ export async function runQa(input: {
 
     if (succeeded === 0) throw new Error("All inspections failed");
 
+    // Measured performance evidence, one per slow page.
+    const measured = pages.flatMap(perfFindings);
+    if (measured.length) {
+      collected.push(...measured);
+      await addFindings({ data: { run_id: runId, findings: measured } }).catch(() => {});
+    }
+
+    const authWalled = pages.length > 0 && pages.every(looksLikeAuthWall);
+    if (authWalled) {
+      warnings.push(
+        "Every page reached looks like a sign-in wall — the crawler never saw the app behind auth, so this score covers the public shell only.",
+      );
+    }
+
     const score = computeScore(
       collected.map((f) => ({
         id: "",
@@ -208,9 +266,10 @@ export async function runQa(input: {
         title: f.title,
         detail: f.detail,
         suggestion: f.suggestion,
+        basis: f.basis,
       })),
       pages.length,
-      Math.max(pages.length, 1),
+      Math.max(urls.length, 1),
       personas.length,
     );
 
@@ -219,7 +278,9 @@ export async function runQa(input: {
       progress_pct: 100,
       progress_stage: "Complete",
       score: score.score,
-      verdict: score.verdict,
+      verdict: authWalled && score.verdict === "ready" ? "minor" : score.verdict,
+      pages_scraped: pages.length,
+      pages_discovered: urls.length,
       warnings: [...warnings],
       completed_at: new Date().toISOString(),
     });
