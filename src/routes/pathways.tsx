@@ -138,6 +138,7 @@ function PathwaysPage() {
         <CheckCard id="storage" title="Browser storage" desc="localStorage read/write" r={results.storage} />
         <CheckCard id="env" title="Server secrets" desc="LOVABLE_API_KEY, FIRECRAWL_API_KEY, Supabase" r={results.env} />
         <CheckCard id="ai" title="Lovable AI Gateway" desc="ping google/gemini-3-flash-preview" r={results.ai} />
+        <CheckCard id="bae" title="BAE AI Gateway (pass-through)" desc="POST /v1-complete via ai-proxy" r={results.bae} />
         <CheckCard id="firecrawl" title="Firecrawl" desc="map a sample URL" r={results.firecrawl} />
       </div>
 
