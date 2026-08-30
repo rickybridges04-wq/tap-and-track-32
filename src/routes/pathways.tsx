@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Loader2, Activity } from "lucide-react";
 import { checkAiGateway, checkEnv, checkFirecrawl } from "@/lib/qa/pathways.functions";
+import { gatewayPing } from "@/lib/ai-proxy.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pathways")({
@@ -35,6 +36,7 @@ function PathwaysPage() {
   const ai = useServerFn(checkAiGateway);
   const fc = useServerFn(checkFirecrawl);
   const env = useServerFn(checkEnv);
+  const bae = useServerFn(gatewayPing);
 
   const [results, setResults] = useState<Record<string, CheckResult>>({});
   const [running, setRunning] = useState(false);
@@ -97,6 +99,19 @@ function PathwaysPage() {
       set("firecrawl", { state: "fail", detail: e instanceof Error ? e.message : String(e) });
     }
 
+    // BAE AI Gateway pass-through
+    set("bae", { state: "running" });
+    try {
+      const r = await bae();
+      set("bae", {
+        state: r.ok ? "pass" : "fail",
+        detail: r.ok ? `gateway replied via ${r.model ?? "gateway"}: ${r.output ?? ""}` : (r.error ?? `HTTP ${r.status}`),
+        ms: r.ms,
+      });
+    } catch (e) {
+      set("bae", { state: "fail", detail: e instanceof Error ? e.message : String(e) });
+    }
+
     setRunning(false);
     toast.success("Pathway checks complete");
   }
@@ -123,6 +138,7 @@ function PathwaysPage() {
         <CheckCard id="storage" title="Browser storage" desc="localStorage read/write" r={results.storage} />
         <CheckCard id="env" title="Server secrets" desc="LOVABLE_API_KEY, FIRECRAWL_API_KEY, Supabase" r={results.env} />
         <CheckCard id="ai" title="Lovable AI Gateway" desc="ping google/gemini-3-flash-preview" r={results.ai} />
+        <CheckCard id="bae" title="BAE AI Gateway (pass-through)" desc="POST /v1-complete via ai-proxy" r={results.bae} />
         <CheckCard id="firecrawl" title="Firecrawl" desc="map a sample URL" r={results.firecrawl} />
       </div>
 

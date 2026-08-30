@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AgentTriggersMount } from "@/lib/agent-triggers";
 import { AuthProvider } from "@/hooks/useAuth";
 import { installDiagGlobals } from "@/lib/diag";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 function NotFoundComponent() {
   return (
@@ -96,8 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
-      { rel: "icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
     meta: [
       { charSet: "utf-8" },
@@ -148,6 +148,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <AgentTriggersMount />
+        <OfflineBanner />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
