@@ -99,6 +99,19 @@ function PathwaysPage() {
       set("firecrawl", { state: "fail", detail: e instanceof Error ? e.message : String(e) });
     }
 
+    // BAE AI Gateway pass-through
+    set("bae", { state: "running" });
+    try {
+      const r = await bae();
+      set("bae", {
+        state: r.ok ? "pass" : "fail",
+        detail: r.ok ? `gateway replied via ${r.model ?? "gateway"}: ${r.output ?? ""}` : (r.error ?? `HTTP ${r.status}`),
+        ms: r.ms,
+      });
+    } catch (e) {
+      set("bae", { state: "fail", detail: e instanceof Error ? e.message : String(e) });
+    }
+
     setRunning(false);
     toast.success("Pathway checks complete");
   }
