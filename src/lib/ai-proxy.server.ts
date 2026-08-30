@@ -4,9 +4,17 @@
 
 const GATEWAY_BASE = "https://pdlyoaekgszvbvmxgrdc.supabase.co/functions/v1";
 
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
 export type GatewayResult = {
   status: number;
-  body: unknown;
+  body: JsonValue;
 };
 
 function apiKey(): string {
@@ -27,9 +35,9 @@ async function post(path: string, payload: unknown): Promise<GatewayResult> {
   });
 
   const text = await res.text();
-  let body: unknown;
+  let body: JsonValue;
   try {
-    body = text ? JSON.parse(text) : null;
+    body = text ? (JSON.parse(text) as JsonValue) : null;
   } catch {
     body = { error: text };
   }
