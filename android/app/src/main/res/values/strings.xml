@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Walkthrough Wizard QAOS</string>
+    <string name="title_activity_main">Walkthrough Wizard QAOS</string>
+    <string name="package_name">com.bridgesai.walkthroughwizard</string>
+    <string name="custom_url_scheme">com.bridgesai.walkthroughwizard</string>
+</resources>
