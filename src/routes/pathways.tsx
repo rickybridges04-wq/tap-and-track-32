@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Loader2, Activity } from "lucide-react";
 import { checkAiGateway, checkEnv, checkFirecrawl } from "@/lib/qa/pathways.functions";
+import { gatewayPing } from "@/lib/ai-proxy.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pathways")({
