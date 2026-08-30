@@ -36,6 +36,7 @@ function PathwaysPage() {
   const ai = useServerFn(checkAiGateway);
   const fc = useServerFn(checkFirecrawl);
   const env = useServerFn(checkEnv);
+  const bae = useServerFn(gatewayPing);
 
   const [results, setResults] = useState<Record<string, CheckResult>>({});
   const [running, setRunning] = useState(false);
