@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AgentTriggersMount } from "@/lib/agent-triggers";
 import { AuthProvider } from "@/hooks/useAuth";
 import { installDiagGlobals } from "@/lib/diag";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 function NotFoundComponent() {
   return (
