@@ -20,6 +20,7 @@ const nav: NavItem[] = [
   { to: "/data", label: "Data Manager", icon: Database },
   { to: "/submissions", label: "Submissions", icon: Inbox },
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
+  { to: "/qa/projects", label: "Test projects", icon: FlaskConical },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/roster/agents", label: "Agent roster", icon: BookUser },

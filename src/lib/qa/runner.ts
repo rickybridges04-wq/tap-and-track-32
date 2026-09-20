@@ -43,8 +43,8 @@ function perfFindings(page: PageLite): FindingLite[] {
       category: "performance",
       severity: ms >= VERY_SLOW_MS ? "high" : "medium",
       confidence: 1,
-      title: `Page responded in ${(ms / 1000).toFixed(1)}s`,
-      detail: `Measured server response time for ${page.url} was ${ms}ms, above the ${SLOW_MS}ms threshold. This is a real timing measurement, not an inference.`,
+      title: `Page fetch took ${(ms / 1000).toFixed(1)}s`,
+      detail: `Page fetch time through the crawler (includes rendering and screenshot) for ${page.url} was ${ms}ms, above the ${SLOW_MS}ms threshold. This is a real timing measurement of the crawler request, not the target server alone.`,
       suggestion: "Check server response time, payload size and any blocking upstream calls for this route.",
     },
   ];
@@ -102,8 +102,16 @@ export async function runQa(input: {
   const { id: runId, url, depth, personas } = input;
   const warnings: string[] = [];
 
+  // Persistence failures are recorded, never swallowed.
+  const note = (label: string, err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    warnings.push(`${label}: ${msg}`);
+  };
+
   const patch = (p: Record<string, unknown>) =>
-    patchRun({ data: { id: runId, ...p } }).catch(() => {});
+    patchRun({ data: { id: runId, ...p } }).catch((err) => {
+      note("save run progress failed", err);
+    });
 
   try {
     await patch({ status: "mapping", progress_pct: 5, progress_stage: "Discovering URLs" });
@@ -152,7 +160,7 @@ export async function runQa(input: {
               latency_ms: scraped.page.latencyMs ?? null,
               truncated: scraped.page.truncated ?? false,
             },
-          }).catch(() => {});
+          }).catch((err) => note(`save page ${u} failed`, err));
         } else {
           warnings.push(`scrape ${u}: ${scraped.error}`);
         }
@@ -220,7 +228,9 @@ export async function runQa(input: {
           }));
           if (batch.length) {
             collected.push(...batch);
-            await addFindings({ data: { run_id: runId, findings: batch } }).catch(() => {});
+            await addFindings({ data: { run_id: runId, findings: batch } }).catch((err) =>
+              note(`save findings for ${page.url} failed`, err),
+            );
           }
         } else {
           warnings.push(`inspect ${personaId} ${page.url}: ${res.error}`);
@@ -244,7 +254,9 @@ export async function runQa(input: {
     const measured = pages.flatMap(perfFindings);
     if (measured.length) {
       collected.push(...measured);
-      await addFindings({ data: { run_id: runId, findings: measured } }).catch(() => {});
+      await addFindings({ data: { run_id: runId, findings: measured } }).catch((err) =>
+        note("save measured performance findings failed", err),
+      );
     }
 
     const authWalled = pages.length > 0 && pages.every(looksLikeAuthWall);

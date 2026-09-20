@@ -36,9 +36,15 @@ import { Route as AgentsNewRouteImport } from './routes/agents.new'
 import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
 import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
+import { Route as QaProjectsIndexRouteImport } from './routes/qa.projects.index'
 import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
+import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$projectId'
+import { Route as QaAutomatedRunIdRouteImport } from './routes/qa.automated.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
+import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
+import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
+import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
@@ -178,6 +184,11 @@ const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
   path: '/agents/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QaProjectsIndexRoute = QaProjectsIndexRouteImport.update({
+  id: '/qa/projects/',
+  path: '/qa/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppsIdIndexRoute = AppsIdIndexRouteImport.update({
   id: '/apps/$id/',
   path: '/apps/$id/',
@@ -188,9 +199,35 @@ const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
   path: '/qa/runs/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QaProjectsProjectIdRoute = QaProjectsProjectIdRouteImport.update({
+  id: '/qa/projects/$projectId',
+  path: '/qa/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaAutomatedRunIdRoute = QaAutomatedRunIdRouteImport.update({
+  id: '/qa/automated/$runId',
+  path: '/qa/automated/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
   id: '/apps/$id/submit',
   path: '/apps/$id/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWorkerReportRoute = ApiPublicWorkerReportRouteImport.update({
+  id: '/api/public/worker/report',
+  path: '/api/public/worker/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWorkerHeartbeatRoute =
+  ApiPublicWorkerHeartbeatRouteImport.update({
+    id: '/api/public/worker/heartbeat',
+    path: '/api/public/worker/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWorkerClaimRoute = ApiPublicWorkerClaimRouteImport.update({
+  id: '/api/public/worker/claim',
+  path: '/api/public/worker/claim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWebhooksAgentEventRoute =
@@ -241,10 +278,16 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id/': typeof AppsIdIndexRoute
+  '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
@@ -276,10 +319,16 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id': typeof AppsIdIndexRoute
+  '/qa/projects': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
@@ -312,10 +361,16 @@ export interface FileRoutesById {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id/': typeof AppsIdIndexRoute
+  '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
@@ -349,10 +404,16 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id/'
+    | '/qa/projects/'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -384,10 +445,16 @@ export interface FileRouteTypes {
     | '/projects'
     | '/qa'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id'
+    | '/qa/projects'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
@@ -419,10 +486,16 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id/'
+    | '/qa/projects/'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
@@ -455,10 +528,16 @@ export interface RootRouteChildren {
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   AppsIdSubmitRoute: typeof AppsIdSubmitRoute
+  QaAutomatedRunIdRoute: typeof QaAutomatedRunIdRoute
+  QaProjectsProjectIdRoute: typeof QaProjectsProjectIdRoute
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   AppsIdIndexRoute: typeof AppsIdIndexRoute
+  QaProjectsIndexRoute: typeof QaProjectsIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
+  ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
+  ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
+  ApiPublicWorkerReportRoute: typeof ApiPublicWorkerReportRoute
   ApiPublicFormsAppIdFormNameRoute: typeof ApiPublicFormsAppIdFormNameRoute
 }
 
@@ -653,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qa/projects/': {
+      id: '/qa/projects/'
+      path: '/qa/projects'
+      fullPath: '/qa/projects/'
+      preLoaderRoute: typeof QaProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apps/$id/': {
       id: '/apps/$id/'
       path: '/apps/$id'
@@ -667,11 +753,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QaRunsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qa/projects/$projectId': {
+      id: '/qa/projects/$projectId'
+      path: '/qa/projects/$projectId'
+      fullPath: '/qa/projects/$projectId'
+      preLoaderRoute: typeof QaProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/automated/$runId': {
+      id: '/qa/automated/$runId'
+      path: '/qa/automated/$runId'
+      fullPath: '/qa/automated/$runId'
+      preLoaderRoute: typeof QaAutomatedRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apps/$id/submit': {
       id: '/apps/$id/submit'
       path: '/apps/$id/submit'
       fullPath: '/apps/$id/submit'
       preLoaderRoute: typeof AppsIdSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/report': {
+      id: '/api/public/worker/report'
+      path: '/api/public/worker/report'
+      fullPath: '/api/public/worker/report'
+      preLoaderRoute: typeof ApiPublicWorkerReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/heartbeat': {
+      id: '/api/public/worker/heartbeat'
+      path: '/api/public/worker/heartbeat'
+      fullPath: '/api/public/worker/heartbeat'
+      preLoaderRoute: typeof ApiPublicWorkerHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/claim': {
+      id: '/api/public/worker/claim'
+      path: '/api/public/worker/claim'
+      fullPath: '/api/public/worker/claim'
+      preLoaderRoute: typeof ApiPublicWorkerClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/agent-event': {
@@ -727,10 +848,16 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   AppsIdSubmitRoute: AppsIdSubmitRoute,
+  QaAutomatedRunIdRoute: QaAutomatedRunIdRoute,
+  QaProjectsProjectIdRoute: QaProjectsProjectIdRoute,
   QaRunsRunIdRoute: QaRunsRunIdRoute,
   AppsIdIndexRoute: AppsIdIndexRoute,
+  QaProjectsIndexRoute: QaProjectsIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
+  ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
+  ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
+  ApiPublicWorkerReportRoute: ApiPublicWorkerReportRoute,
   ApiPublicFormsAppIdFormNameRoute: ApiPublicFormsAppIdFormNameRoute,
 }
 export const routeTree = rootRouteImport

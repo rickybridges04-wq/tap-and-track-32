@@ -211,6 +211,88 @@ export type Database = {
         }
         Relationships: []
       }
+      automated_results: {
+        Row: {
+          axe_violations: Json
+          case_id: string
+          console_errors: Json
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          error_signature: string | null
+          failed_step_index: number | null
+          id: string
+          job_id: string
+          network_failures: Json
+          run_id: string
+          screenshot_path: string | null
+          status: string
+          step_log: Json
+          user_id: string
+          web_vitals: Json
+        }
+        Insert: {
+          axe_violations?: Json
+          case_id: string
+          console_errors?: Json
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_signature?: string | null
+          failed_step_index?: number | null
+          id?: string
+          job_id: string
+          network_failures?: Json
+          run_id: string
+          screenshot_path?: string | null
+          status: string
+          step_log?: Json
+          user_id: string
+          web_vitals?: Json
+        }
+        Update: {
+          axe_violations?: Json
+          case_id?: string
+          console_errors?: Json
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_signature?: string | null
+          failed_step_index?: number | null
+          id?: string
+          job_id?: string
+          network_failures?: Json
+          run_id?: string
+          screenshot_path?: string | null
+          status?: string
+          step_log?: Json
+          user_id?: string
+          web_vitals?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_results_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "qa_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "qa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_campaigns: {
         Row: {
           app_id: string
@@ -343,6 +425,7 @@ export type Database = {
       }
       qa_findings: {
         Row: {
+          basis: string
           category: string
           confidence: number
           created_at: string
@@ -357,6 +440,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          basis?: string
           category: string
           confidence?: number
           created_at?: string
@@ -371,6 +455,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          basis?: string
           category?: string
           confidence?: number
           created_at?: string
@@ -394,37 +479,106 @@ export type Database = {
           },
         ]
       }
+      qa_jobs: {
+        Row: {
+          attempts: number
+          case_id: string
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          error: string | null
+          heartbeat_at: string | null
+          id: string
+          run_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          case_id: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          error?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          run_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          case_id?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          error?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          run_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_jobs_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_jobs_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "qa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qa_pages: {
         Row: {
           created_at: string
           id: string
+          latency_ms: number | null
           links: Json
           markdown_preview: string | null
           run_id: string
+          screenshot_url: string | null
           status: number | null
           title: string | null
+          truncated: boolean
           url: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          latency_ms?: number | null
           links?: Json
           markdown_preview?: string | null
           run_id: string
+          screenshot_url?: string | null
           status?: number | null
           title?: string | null
+          truncated?: boolean
           url: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          latency_ms?: number | null
           links?: Json
           markdown_preview?: string | null
           run_id?: string
+          screenshot_url?: string | null
           status?: number | null
           title?: string | null
+          truncated?: boolean
           url?: string
           user_id?: string
         }
@@ -438,19 +592,62 @@ export type Database = {
           },
         ]
       }
+      qa_projects: {
+        Row: {
+          base_url: string
+          created_at: string
+          environment: string
+          id: string
+          name: string
+          password: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          environment?: string
+          id?: string
+          name: string
+          password?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          environment?: string
+          id?: string
+          name?: string
+          password?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       qa_runs: {
         Row: {
           completed_at: string | null
           created_at: string
           depth: string
           error: string | null
+          failed_count: number | null
           id: string
+          kind: string
+          pages_discovered: number | null
+          pages_scraped: number | null
+          passed_count: number | null
           personas: string[]
           progress_pct: number
           progress_stage: string | null
+          project_id: string | null
           score: number | null
           status: string
           target_url: string
+          updated_at: string
           user_id: string
           verdict: string | null
           warnings: Json
@@ -460,13 +657,20 @@ export type Database = {
           created_at?: string
           depth: string
           error?: string | null
+          failed_count?: number | null
           id?: string
+          kind?: string
+          pages_discovered?: number | null
+          pages_scraped?: number | null
+          passed_count?: number | null
           personas?: string[]
           progress_pct?: number
           progress_stage?: string | null
+          project_id?: string | null
           score?: number | null
           status?: string
           target_url: string
+          updated_at?: string
           user_id: string
           verdict?: string | null
           warnings?: Json
@@ -476,18 +680,33 @@ export type Database = {
           created_at?: string
           depth?: string
           error?: string | null
+          failed_count?: number | null
           id?: string
+          kind?: string
+          pages_discovered?: number | null
+          pages_scraped?: number | null
+          passed_count?: number | null
           personas?: string[]
           progress_pct?: number
           progress_stage?: string | null
+          project_id?: string | null
           score?: number | null
           status?: string
           target_url?: string
+          updated_at?: string
           user_id?: string
           verdict?: string | null
           warnings?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "qa_runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "qa_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -521,6 +740,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      test_cases: {
+        Row: {
+          code: string
+          created_at: string
+          expected: string
+          generated_by: string
+          id: string
+          project_id: string
+          steps_json: Json
+          suite_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expected?: string
+          generated_by?: string
+          id?: string
+          project_id: string
+          steps_json?: Json
+          suite_id: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expected?: string
+          generated_by?: string
+          id?: string
+          project_id?: string
+          steps_json?: Json
+          suite_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_cases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "qa_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_cases_suite_id_fkey"
+            columns: ["suite_id"]
+            isOneToOne: false
+            referencedRelation: "test_suites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_suites: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_suites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "qa_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usage_events: {
         Row: {
@@ -572,6 +886,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_qa_job: { Args: { p_worker: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -597,12 +912,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -626,11 +941,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -651,11 +966,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -676,11 +991,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -693,11 +1008,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
