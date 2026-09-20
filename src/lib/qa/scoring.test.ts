@@ -26,8 +26,9 @@ describe("computeScore", () => {
   });
 
   it("weights severities: critical costs more than high, high more than low", () => {
+    // One page so a single finding's weight is visible in the score.
     const base = (s: QaFinding["severity"]) =>
-      computeScore([finding({ severity: s })], 10, 10, 1).score;
+      computeScore([finding({ severity: s })], 1, 1, 1).score;
     expect(base("critical")).toBeLessThan(base("high"));
     expect(base("high")).toBeLessThan(base("medium"));
     expect(base("medium")).toBeLessThan(base("low"));
@@ -63,11 +64,15 @@ describe("computeScore", () => {
     expect(deep).toBe(shallow);
   });
 
-  it("caps the verdict at 'minor' when coverage is thin", () => {
-    const r = computeScore([], 2, 20, 1);
-    expect(r.lowCoverage).toBe(true);
-    expect(r.verdict).toBe("minor");
-    expect(r.score).toBeLessThan(100);
+  it("flags thin coverage and never certifies a half-crawled site as ready", () => {
+    const thin = computeScore([], 2, 20, 1);
+    expect(thin.lowCoverage).toBe(true);
+    expect(thin.verdict).not.toBe("ready");
+    expect(thin.score).toBeLessThan(100);
+
+    // Coverage acts as a multiplier, so more pages of the same site score higher.
+    expect(computeScore([], 16, 20, 1).score).toBeGreaterThan(thin.score);
+    expect(computeScore([], 16, 20, 1).lowCoverage).toBe(false);
   });
 
   it("blocks the release on any critical finding", () => {
