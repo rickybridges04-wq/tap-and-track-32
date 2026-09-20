@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { StepsSchema } from "@/lib/qa/steps";
 
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
 export type QaProject = {
   id: string;
   name: string;
@@ -29,7 +31,7 @@ export type TestCase = {
   code: string;
   title: string;
   expected: string;
-  steps_json: unknown;
+  steps_json: Json;
   generated_by: "ai" | "human";
   created_at: string;
 };
@@ -43,11 +45,11 @@ export type AutomatedResult = {
   duration_ms: number | null;
   failed_step_index: number | null;
   error_message: string | null;
-  console_errors: unknown;
-  network_failures: unknown;
-  axe_violations: unknown;
-  web_vitals: unknown;
-  step_log: unknown;
+  console_errors: Json;
+  network_failures: Json;
+  axe_violations: Json;
+  web_vitals: Json;
+  step_log: Json;
   screenshot_path: string | null;
   error_signature: string | null;
 };
@@ -358,7 +360,7 @@ export const getAutomatedRun = createServerFn({ method: "GET" })
     const caseIds = (jobsRes.data ?? []).map((j) => j.case_id);
     const { data: cases } = caseIds.length
       ? await supabase.from("test_cases").select("id, code, title, steps_json").in("id", caseIds)
-      : { data: [] as Array<{ id: string; code: string; title: string; steps_json: unknown }> };
+      : { data: [] as Array<{ id: string; code: string; title: string; steps_json: Json }> };
 
     // Signed URLs for the private evidence bucket.
     const results = (resultsRes.data ?? []) as unknown as AutomatedResult[];
