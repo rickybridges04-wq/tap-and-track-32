@@ -160,7 +160,7 @@ export async function runQa(input: {
               latency_ms: scraped.page.latencyMs ?? null,
               truncated: scraped.page.truncated ?? false,
             },
-          }).catch(() => {});
+          }).catch((err) => note(`save page ${u} failed`, err));
         } else {
           warnings.push(`scrape ${u}: ${scraped.error}`);
         }
@@ -228,7 +228,9 @@ export async function runQa(input: {
           }));
           if (batch.length) {
             collected.push(...batch);
-            await addFindings({ data: { run_id: runId, findings: batch } }).catch(() => {});
+            await addFindings({ data: { run_id: runId, findings: batch } }).catch((err) =>
+              note(`save findings for ${page.url} failed`, err),
+            );
           }
         } else {
           warnings.push(`inspect ${personaId} ${page.url}: ${res.error}`);
@@ -252,7 +254,9 @@ export async function runQa(input: {
     const measured = pages.flatMap(perfFindings);
     if (measured.length) {
       collected.push(...measured);
-      await addFindings({ data: { run_id: runId, findings: measured } }).catch(() => {});
+      await addFindings({ data: { run_id: runId, findings: measured } }).catch((err) =>
+        note("save measured performance findings failed", err),
+      );
     }
 
     const authWalled = pages.length > 0 && pages.every(looksLikeAuthWall);
