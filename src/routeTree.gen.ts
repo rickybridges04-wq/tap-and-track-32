@@ -39,6 +39,8 @@ import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as QaProjectsIndexRouteImport } from './routes/qa.projects.index'
 import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
+import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$projectId'
+import { Route as QaAutomatedRunIdRouteImport } from './routes/qa.automated.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
 import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
 import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
@@ -197,6 +199,16 @@ const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
   path: '/qa/runs/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QaProjectsProjectIdRoute = QaProjectsProjectIdRouteImport.update({
+  id: '/qa/projects/$projectId',
+  path: '/qa/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaAutomatedRunIdRoute = QaAutomatedRunIdRouteImport.update({
+  id: '/qa/automated/$runId',
+  path: '/qa/automated/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
   id: '/apps/$id/submit',
   path: '/apps/$id/submit',
@@ -266,6 +278,8 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
@@ -305,6 +319,8 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id': typeof AppsIdIndexRoute
   '/qa/projects': typeof QaProjectsIndexRoute
@@ -345,6 +361,8 @@ export interface FileRoutesById {
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
+  '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
+  '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
   '/qa/runs/$runId': typeof QaRunsRunIdRoute
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
@@ -386,6 +404,8 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id/'
     | '/qa/projects/'
@@ -425,6 +445,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/qa'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id'
     | '/qa/projects'
@@ -464,6 +486,8 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
+    | '/qa/automated/$runId'
+    | '/qa/projects/$projectId'
     | '/qa/runs/$runId'
     | '/apps/$id/'
     | '/qa/projects/'
@@ -504,6 +528,8 @@ export interface RootRouteChildren {
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   AppsIdSubmitRoute: typeof AppsIdSubmitRoute
+  QaAutomatedRunIdRoute: typeof QaAutomatedRunIdRoute
+  QaProjectsProjectIdRoute: typeof QaProjectsProjectIdRoute
   QaRunsRunIdRoute: typeof QaRunsRunIdRoute
   AppsIdIndexRoute: typeof AppsIdIndexRoute
   QaProjectsIndexRoute: typeof QaProjectsIndexRoute
@@ -727,6 +753,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QaRunsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qa/projects/$projectId': {
+      id: '/qa/projects/$projectId'
+      path: '/qa/projects/$projectId'
+      fullPath: '/qa/projects/$projectId'
+      preLoaderRoute: typeof QaProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/automated/$runId': {
+      id: '/qa/automated/$runId'
+      path: '/qa/automated/$runId'
+      fullPath: '/qa/automated/$runId'
+      preLoaderRoute: typeof QaAutomatedRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apps/$id/submit': {
       id: '/apps/$id/submit'
       path: '/apps/$id/submit'
@@ -808,6 +848,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   AppsIdSubmitRoute: AppsIdSubmitRoute,
+  QaAutomatedRunIdRoute: QaAutomatedRunIdRoute,
+  QaProjectsProjectIdRoute: QaProjectsProjectIdRoute,
   QaRunsRunIdRoute: QaRunsRunIdRoute,
   AppsIdIndexRoute: AppsIdIndexRoute,
   QaProjectsIndexRoute: QaProjectsIndexRoute,
