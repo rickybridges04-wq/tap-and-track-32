@@ -377,35 +377,14 @@ export const Route = createFileRoute("/api/public/worker/report")({
             if (fErr) console.error("findings insert failed:", fErr.message);
           }
 
-          const functionalPenalty = Math.round((failed / total) * 50);
-          const a11yPenalty = Math.min(
-            25,
-            findings
-              .filter((f) => f.category === "accessibility")
-              .reduce((sum, f) => sum + PENALTY[f.severity], 0),
-          );
-          const perfPenalty = Math.min(
-            25,
-            findings
-              .filter((f) => f.category === "performance")
-              .reduce((sum, f) => sum + PENALTY[f.severity], 0),
-          );
-          const score = Math.max(0, 100 - functionalPenalty - a11yPenalty - perfPenalty);
-
-          await supabaseAdmin
-            .from("qa_runs")
-            .update({
-              status: "completed",
-              progress_pct: 100,
-              progress_stage: "Complete",
-              score,
-              verdict: verdictFor(score),
-              passed_count: passed,
-              failed_count: failed,
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", job.run_id);
         }
+
+        // Single source of truth for completion, counts, score and verdict —
+        // shared with the claim route and the stale-heartbeat sweep.
+        const { error: settleErr } = await supabaseAdmin.rpc("settle_qa_run", {
+          p_run_id: job.run_id,
+        });
+        if (settleErr) console.error("settle_qa_run failed:", settleErr.message);
 
         return Response.json({ ok: true });
       },
