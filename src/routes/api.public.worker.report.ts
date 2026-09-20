@@ -109,14 +109,7 @@ function axeSeverity(impact: string | null): "high" | "medium" | "low" {
   return "low";
 }
 
-const PENALTY = { critical: 10, high: 6, medium: 3, low: 1 } as const;
-
-function verdictFor(score: number): "ready" | "minor" | "major" | "blocked" {
-  if (score >= 90) return "ready";
-  if (score >= 75) return "minor";
-  if (score >= 50) return "major";
-  return "blocked";
-}
+// Score, verdict and completion live in the shared SQL function settle_qa_run.
 
 function vitalsFindings(runId: string, userId: string, url: string, v: Vitals): FindingInsert[] {
   const out: FindingInsert[] = [];
