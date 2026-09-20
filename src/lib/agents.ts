@@ -49,6 +49,15 @@ const SAFE_READ: ToolName[] = [
   "proposePlan",
 ];
 
+/**
+ * Several agents re-list tools that SAFE_READ already includes. Duplicates
+ * bloat the tool list shown in the prompt and previously produced repeated
+ * React keys on the roster page, so collapse them here at the source.
+ */
+function tools(...names: ToolName[]): ToolName[] {
+  return Array.from(new Set(names));
+}
+
 export const AGENTS: Record<AgentType, AgentDef> = {
   debug: {
     id: "debug",
@@ -58,7 +67,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-rose-500",
     systemPrompt:
       "You are the Debug Agent for Bridges AI Enterprises. You diagnose bugs, runtime errors, and failed jobs. Read the errors and runs tables first. Recommend a concrete fix. Verify before action. Never guess.",
-    tools: [...SAFE_READ, "runBridgesTester", "markResolved", "updateRow"],
+    tools: tools(...SAFE_READ, "runBridgesTester", "markResolved", "updateRow"),
   },
   research: {
     id: "research",
@@ -68,7 +77,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-sky-500",
     systemPrompt:
       "You are the Research / Knowledge Agent. Gather facts before answering. Cite which table you read. Never invent citations or assume missing information.",
-    tools: [...SAFE_READ],
+    tools: tools(...SAFE_READ),
   },
   ceo: {
     id: "ceo",
@@ -78,7 +87,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-amber-500",
     systemPrompt:
       "You are the CEO Agent. Decide priorities and direction in line with Bridges AI Enterprises' mission and values: family, God, integrity. Ask: is this honest, ethical, protective of values, and supportive of long-term value?",
-    tools: [...SAFE_READ, "proposePlan"],
+    tools: tools(...SAFE_READ, "proposePlan"),
   },
   cfo: {
     id: "cfo",
@@ -88,7 +97,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-emerald-500",
     systemPrompt:
       "You are the CFO Agent. Handle money, pricing, billing. Never spend money, approve refunds, or change billing without explicit approval. Prepare drafts labeled DRAFT — PENDING APPROVAL.",
-    tools: [...SAFE_READ, "proposePlan", "chargeMoney", "sendEmail"],
+    tools: tools(...SAFE_READ, "proposePlan", "chargeMoney", "sendEmail"),
   },
   marketing: {
     id: "marketing",
@@ -98,7 +107,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-fuchsia-500",
     systemPrompt:
       "You are the Marketing Agent. Draft on-brand copy, campaigns, and content plans. Keep voice consistent with Bridges AI Enterprises.",
-    tools: [...SAFE_READ, "proposePlan", "sendEmail"],
+    tools: tools(...SAFE_READ, "proposePlan", "sendEmail"),
   },
   architect: {
     id: "architect",
@@ -108,7 +117,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-indigo-500",
     systemPrompt:
       "You are the Software Architect Agent. Recommend changes to app structure, code organization, and database schema. Preserve working systems unless the user requests otherwise. Never deploy without approval.",
-    tools: [...SAFE_READ, "proposePlan", "deploy", "updateProdSetting", "updateRow"],
+    tools: tools(...SAFE_READ, "proposePlan", "deploy", "updateProdSetting", "updateRow"),
   },
   pm: {
     id: "pm",
@@ -118,7 +127,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-violet-500",
     systemPrompt:
       "You are the Project Manager Agent. Break work into small, ordered, owner-tagged tasks. Surface blockers. Recommend next actions.",
-    tools: [...SAFE_READ, "proposePlan", "markResolved", "updateRow"],
+    tools: tools(...SAFE_READ, "proposePlan", "markResolved", "updateRow"),
   },
   sre: {
     id: "sre",
@@ -128,7 +137,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-cyan-500",
     systemPrompt:
       "You are the SRE / Reliability Engineer. Your job is to keep the app up at 100k+ users. Watch errors, failed jobs, retry storms, latency spikes, and queue backlogs. Define SLOs and error budgets. Recommend circuit breakers, retries with backoff, and graceful degradation. Never change production settings without explicit approval.",
-    tools: [...SAFE_READ, "listErrors", "runBridgesTester", "markResolved", "updateProdSetting"],
+    tools: tools(...SAFE_READ, "listErrors", "runBridgesTester", "markResolved", "updateProdSetting"),
   },
   perf: {
     id: "perf",
@@ -138,7 +147,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-yellow-500",
     systemPrompt:
       "You are the Performance Engineer. Own the speed budget. At 100k users a 200ms query becomes a 5-minute backlog. Profile bundle size, render times, p95/p99 latency, N+1 queries, missing indexes, cache hit rates, and oversized payloads. Recommend pagination, memoization, indexes, and CDN/caching strategies. Quantify before/after.",
-    tools: [...SAFE_READ, "listRuns", "listErrors", "proposePlan"],
+    tools: tools(...SAFE_READ, "listRuns", "listErrors", "proposePlan"),
   },
   security: {
     id: "security",
@@ -148,7 +157,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     color: "text-red-500",
     systemPrompt:
       "You are the Security & Compliance Officer. One leak at scale is a company-ending event. Audit auth flows, RLS policies, secret handling, PII exposure (URLs, logs, error messages), CORS, CSRF, third-party trackers, and dependency CVEs. Verify GDPR/CCPA basics: consent, export, delete. Never change production settings without explicit approval.",
-    tools: [...SAFE_READ, "listErrors", "proposePlan", "markResolved", "updateProdSetting"],
+    tools: tools(...SAFE_READ, "listErrors", "proposePlan", "markResolved", "updateProdSetting"),
   },
 };
 
