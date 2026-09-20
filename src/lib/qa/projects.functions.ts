@@ -411,3 +411,114 @@ export const getAutomatedRun = createServerFn({ method: "GET" })
     };
   });
 
+// ---------------- regression diff ----------------
+export const getRunRegression = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => IdInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: run, error } = await supabase
+      .from("qa_runs")
+      .select("id, project_id, created_at, user_id")
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!run) return null;
+    const { computeRegression } = await import("@/lib/qa/report.server");
+    return await computeRegression(supabase as never, run);
+  });
+
+// ---------------- trends ----------------
+export type TrendPoint = {
+  run_id: string;
+  short_id: string;
+  created_at: string;
+  median_lcp_ms: number | null;
+  median_ttfb_ms: number | null;
+  axe_critical: number;
+  axe_serious: number;
+  axe_moderate: number;
+  axe_minor: number;
+};
+
+export const getProjectTrends = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => IdInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: runs, error } = await supabase
+      .from("qa_runs")
+      .select("id, kind, status, score, created_at")
+      .eq("project_id", data.id)
+      .eq("user_id", userId)
+      .eq("status", "completed")
+      .order("created_at")
+      .limit(30);
+    if (error) throw new Error(error.message);
+
+    const automated = (runs ?? []).filter((r) => r.kind === "automated");
+    const { median } = await import("@/lib/qa/regression");
+
+    const points: TrendPoint[] = [];
+    const slowest: Array<{ code: string; title: string; duration_ms: number; run_id: string }> = [];
+
+    for (const r of automated) {
+      const { data: rows } = await supabase
+        .from("automated_results")
+        .select("case_id, duration_ms, web_vitals, axe_violations")
+        .eq("run_id", r.id)
+        .eq("user_id", userId);
+      const list = rows ?? [];
+      const vital = (row: { web_vitals: unknown }, key: string) => {
+        const v = row.web_vitals as Record<string, unknown> | null;
+        return Number(v?.[key]);
+      };
+      const impacts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
+      for (const row of list) {
+        const axe = Array.isArray(row.axe_violations) ? row.axe_violations : [];
+        for (const v of axe as Array<{ impact?: string | null }>) {
+          const key = String(v?.impact ?? "").toLowerCase();
+          if (key in impacts) impacts[key as keyof typeof impacts]++;
+        }
+      }
+      points.push({
+        run_id: r.id,
+        short_id: r.id.slice(0, 8),
+        created_at: r.created_at,
+        median_lcp_ms: median(list.map((row) => vital(row, "lcp_ms"))),
+        median_ttfb_ms: median(list.map((row) => vital(row, "ttfb_ms"))),
+        axe_critical: impacts.critical,
+        axe_serious: impacts.serious,
+        axe_moderate: impacts.moderate,
+        axe_minor: impacts.minor,
+      });
+
+      const caseIds = list.map((row) => row.case_id);
+      const { data: cases } = caseIds.length
+        ? await supabase.from("test_cases").select("id, code, title").in("id", caseIds)
+        : { data: [] as Array<{ id: string; code: string; title: string }> };
+      const byId = new Map((cases ?? []).map((c) => [c.id, c]));
+      for (const row of list) {
+        if (!Number.isFinite(Number(row.duration_ms))) continue;
+        slowest.push({
+          run_id: r.id,
+          code: byId.get(row.case_id)?.code ?? "—",
+          title: byId.get(row.case_id)?.title ?? "",
+          duration_ms: Number(row.duration_ms),
+        });
+      }
+    }
+
+    return {
+      points,
+      scores: (runs ?? []).map((r) => ({
+        run_id: r.id,
+        kind: r.kind,
+        created_at: r.created_at,
+        score: r.score,
+      })),
+      slowest: slowest.sort((a, b) => b.duration_ms - a.duration_ms).slice(0, 10),
+    };
+  });
+

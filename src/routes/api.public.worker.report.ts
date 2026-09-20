@@ -109,14 +109,7 @@ function axeSeverity(impact: string | null): "high" | "medium" | "low" {
   return "low";
 }
 
-const PENALTY = { critical: 10, high: 6, medium: 3, low: 1 } as const;
-
-function verdictFor(score: number): "ready" | "minor" | "major" | "blocked" {
-  if (score >= 90) return "ready";
-  if (score >= 75) return "minor";
-  if (score >= 50) return "major";
-  return "blocked";
-}
+// Score, verdict and completion live in the shared SQL function settle_qa_run.
 
 function vitalsFindings(runId: string, userId: string, url: string, v: Vitals): FindingInsert[] {
   const out: FindingInsert[] = [];
@@ -304,7 +297,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
           })
           .eq("id", job.id);
 
-        // Run complete? Then score it from the real results.
+        // All jobs settled? Then write the observed findings for the whole run.
         const { count: outstanding } = await supabaseAdmin
           .from("qa_jobs")
           .select("id", { count: "exact", head: true })
@@ -317,9 +310,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
             .select("status, axe_violations, web_vitals, error_message, case_id, failed_step_index")
             .eq("run_id", job.run_id);
           const rows = results ?? [];
-          const total = Math.max(1, rows.length);
-          const passed = rows.filter((r) => r.status === "pass").length;
-          const failed = rows.length - passed;
+
 
           const { data: run } = await supabaseAdmin
             .from("qa_runs")
@@ -377,35 +368,14 @@ export const Route = createFileRoute("/api/public/worker/report")({
             if (fErr) console.error("findings insert failed:", fErr.message);
           }
 
-          const functionalPenalty = Math.round((failed / total) * 50);
-          const a11yPenalty = Math.min(
-            25,
-            findings
-              .filter((f) => f.category === "accessibility")
-              .reduce((sum, f) => sum + PENALTY[f.severity], 0),
-          );
-          const perfPenalty = Math.min(
-            25,
-            findings
-              .filter((f) => f.category === "performance")
-              .reduce((sum, f) => sum + PENALTY[f.severity], 0),
-          );
-          const score = Math.max(0, 100 - functionalPenalty - a11yPenalty - perfPenalty);
-
-          await supabaseAdmin
-            .from("qa_runs")
-            .update({
-              status: "completed",
-              progress_pct: 100,
-              progress_stage: "Complete",
-              score,
-              verdict: verdictFor(score),
-              passed_count: passed,
-              failed_count: failed,
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", job.run_id);
         }
+
+        // Single source of truth for completion, counts, score and verdict —
+        // shared with the claim route and the stale-heartbeat sweep.
+        const { error: settleErr } = await supabaseAdmin.rpc("settle_qa_run", {
+          p_run_id: job.run_id,
+        });
+        if (settleErr) console.error("settle_qa_run failed:", settleErr.message);
 
         return Response.json({ ok: true });
       },

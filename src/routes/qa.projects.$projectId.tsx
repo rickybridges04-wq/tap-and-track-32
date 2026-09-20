@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TrashButton } from "@/components/TrashButton";
 import { StepsEditor } from "@/components/StepsEditor";
+import { ProjectTrends } from "@/components/ProjectTrends";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -345,6 +346,9 @@ function ProjectDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <h2 className="mt-8 text-lg font-semibold">Trends</h2>
+      <ProjectTrends projectId={projectId} />
 
       {caseDraft && (
         <Card className="mt-4">
