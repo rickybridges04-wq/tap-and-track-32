@@ -250,6 +250,10 @@ function Settings() {
 
       <GithubCard />
 
+      <div className="mt-6">
+        <ApiKeysCard />
+      </div>
+
       <Card className="mt-6">
 
         <CardHeader>
