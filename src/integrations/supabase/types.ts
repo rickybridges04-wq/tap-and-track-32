@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          prefix: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          prefix: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          prefix?: string
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_form_submissions: {
         Row: {
           app_id: string
@@ -848,6 +881,7 @@ export type Database = {
       }
       qa_runs: {
         Row: {
+          commit_sha: string | null
           completed_at: string | null
           created_at: string
           depth: string
@@ -862,6 +896,7 @@ export type Database = {
           progress_pct: number
           progress_stage: string | null
           project_id: string | null
+          ref: string | null
           score: number | null
           status: string
           target_url: string
@@ -871,6 +906,7 @@ export type Database = {
           warnings: Json
         }
         Insert: {
+          commit_sha?: string | null
           completed_at?: string | null
           created_at?: string
           depth: string
@@ -885,6 +921,7 @@ export type Database = {
           progress_pct?: number
           progress_stage?: string | null
           project_id?: string | null
+          ref?: string | null
           score?: number | null
           status?: string
           target_url: string
@@ -894,6 +931,7 @@ export type Database = {
           warnings?: Json
         }
         Update: {
+          commit_sha?: string | null
           completed_at?: string | null
           created_at?: string
           depth?: string
@@ -908,6 +946,7 @@ export type Database = {
           progress_pct?: number
           progress_stage?: string | null
           project_id?: string | null
+          ref?: string | null
           score?: number | null
           status?: string
           target_url?: string
