@@ -54,6 +54,7 @@ import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.pu
 import { Route as ApiPublicV1RunsRouteImport } from './routes/api.public.v1.runs'
 import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
+import { Route as ApiPublicV1RunsIdRouteImport } from './routes/api.public.v1.runs.$id'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
 
 const UpgradeRoute = UpgradeRouteImport.update({
@@ -284,6 +285,11 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1RunsIdRoute = ApiPublicV1RunsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1RunsRoute,
+} as any)
 const ApiPublicFormsAppIdFormNameRoute =
   ApiPublicFormsAppIdFormNameRouteImport.update({
     id: '/api/public/forms/$appId/$formName',
@@ -331,13 +337,14 @@ export interface FileRoutesByFullPath {
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
-  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
+  '/api/public/v1/runs/$id': typeof ApiPublicV1RunsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -379,13 +386,14 @@ export interface FileRoutesByTo {
   '/qa/projects': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
-  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
+  '/api/public/v1/runs/$id': typeof ApiPublicV1RunsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -428,13 +436,14 @@ export interface FileRoutesById {
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
-  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
+  '/api/public/v1/runs/$id': typeof ApiPublicV1RunsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -485,6 +494,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/report'
     | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
+    | '/api/public/v1/runs/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -533,6 +543,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/report'
     | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
+    | '/api/public/v1/runs/$id'
   id:
     | '__root__'
     | '/'
@@ -581,6 +592,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/report'
     | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
+    | '/api/public/v1/runs/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -623,7 +635,7 @@ export interface RootRouteChildren {
   QaProjectsIndexRoute: typeof QaProjectsIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicReportTokenRoute: typeof ApiPublicReportTokenRoute
-  ApiPublicV1RunsRoute: typeof ApiPublicV1RunsRoute
+  ApiPublicV1RunsRoute: typeof ApiPublicV1RunsRouteWithChildren
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
   ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
   ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
@@ -948,6 +960,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/runs/$id': {
+      id: '/api/public/v1/runs/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/runs/$id'
+      preLoaderRoute: typeof ApiPublicV1RunsIdRouteImport
+      parentRoute: typeof ApiPublicV1RunsRoute
+    }
     '/api/public/forms/$appId/$formName': {
       id: '/api/public/forms/$appId/$formName'
       path: '/api/public/forms/$appId/$formName'
@@ -968,6 +987,18 @@ const ApiV1RunsRouteChildren: ApiV1RunsRouteChildren = {
 
 const ApiV1RunsRouteWithChildren = ApiV1RunsRoute._addFileChildren(
   ApiV1RunsRouteChildren,
+)
+
+interface ApiPublicV1RunsRouteChildren {
+  ApiPublicV1RunsIdRoute: typeof ApiPublicV1RunsIdRoute
+}
+
+const ApiPublicV1RunsRouteChildren: ApiPublicV1RunsRouteChildren = {
+  ApiPublicV1RunsIdRoute: ApiPublicV1RunsIdRoute,
+}
+
+const ApiPublicV1RunsRouteWithChildren = ApiPublicV1RunsRoute._addFileChildren(
+  ApiPublicV1RunsRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -1010,7 +1041,7 @@ const rootRouteChildren: RootRouteChildren = {
   QaProjectsIndexRoute: QaProjectsIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicReportTokenRoute: ApiPublicReportTokenRoute,
-  ApiPublicV1RunsRoute: ApiPublicV1RunsRoute,
+  ApiPublicV1RunsRoute: ApiPublicV1RunsRouteWithChildren,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
   ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
   ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
