@@ -346,6 +346,9 @@ function ProjectDetail() {
         </Card>
       </div>
 
+      <h2 className="mt-8 text-lg font-semibold">Trends</h2>
+      <ProjectTrends projectId={projectId} />
+
       {caseDraft && (
         <Card className="mt-4">
           <CardHeader>
