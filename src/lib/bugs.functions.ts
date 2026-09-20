@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
 export const BUG_STATUSES = ["open", "in_progress", "resolved", "wontfix"] as const;
 export const BUG_SEVERITIES = ["low", "medium", "high", "critical"] as const;
 
@@ -18,7 +20,7 @@ export type Bug = {
   severity: BugSeverity;
   status: BugStatus;
   assignee: string | null;
-  steps_to_reproduce: unknown;
+  steps_to_reproduce: Json;
   expected: string | null;
   actual: string | null;
   likely_cause: string | null;
@@ -27,6 +29,7 @@ export type Bug = {
   created_at: string;
   updated_at: string;
 };
+
 
 export type BugComment = {
   id: string;

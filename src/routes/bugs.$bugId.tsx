@@ -88,7 +88,14 @@ function BugDetail() {
   const { bug, comments, screenshotUrl } = data;
   const steps = Array.isArray(bug.steps_to_reproduce) ? (bug.steps_to_reproduce as string[]) : [];
 
-  async function patch(patchData: Parameters<typeof updateBug>[0]["data"]) {
+  async function patch(patchData: {
+    id: string;
+    status?: (typeof BUG_STATUSES)[number];
+    severity?: (typeof BUG_SEVERITIES)[number];
+    assignee?: string | null;
+    title?: string;
+  }) {
+
     setBusy(true);
     try {
       await updateBug({ data: patchData });
