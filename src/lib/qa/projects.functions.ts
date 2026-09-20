@@ -496,3 +496,97 @@ export const getProjectTrends = createServerFn({ method: "GET" })
     };
   });
 
+
+// ---------------- self-test suite (owner only) ----------------
+/** Cases that check this app's own published site through the Playwright worker. */
+const SELF_TEST_CASES = [
+  {
+    code: "SELF-001",
+    title: "Landing page loads and the hero heading is visible",
+    expected: "The landing page returns HTTP 200 and shows its main heading.",
+    steps: [
+      { action: "goto", value: "/" },
+      { action: "expect_status", value: "200" },
+      { action: "expect_visible", selector: "h1" },
+    ],
+  },
+  {
+    code: "SELF-002",
+    title: "Sign-in page shows the sign-in form",
+    expected: "The /auth page shows an email field and a password field.",
+    steps: [
+      { action: "goto", value: "/auth" },
+      { action: "expect_visible", selector: "input[type=email]" },
+      { action: "expect_visible", selector: "input[type=password]" },
+    ],
+  },
+  {
+    code: "SELF-003",
+    title: "\"How it works\" section is visible on the landing page",
+    expected: "The landing page contains the How it works section.",
+    steps: [
+      { action: "goto", value: "/" },
+      { action: "expect_text", value: "How it works" },
+    ],
+  },
+  {
+    code: "SELF-004",
+    title: "Unknown route shows the not-found page",
+    expected: "An unknown path renders the 404 page instead of a blank screen.",
+    steps: [
+      { action: "goto", value: "/this-route-does-not-exist" },
+      { action: "expect_text", value: "Page not found" },
+    ],
+  },
+] as const;
+
+export const loadSelfTestSuite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ base_url: z.string().url().optional() }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isOwner } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "owner",
+    });
+    if (!isOwner) throw new Error("Only the workspace owner can load the self-test suite");
+
+    const baseUrl = data.base_url ?? "https://tap-and-track-32.lovable.app";
+
+    const { data: project, error: pErr } = await supabase
+      .from("qa_projects")
+      .insert({
+        user_id: userId,
+        name: "Synapse QA OS (self-test)",
+        base_url: baseUrl,
+        environment: "production",
+      })
+      .select("id")
+      .single();
+    if (pErr) throw new Error(pErr.message);
+
+    const { data: suite, error: sErr } = await supabase
+      .from("test_suites")
+      .insert({ user_id: userId, project_id: project.id, name: "Self-test", category: "ui" })
+      .select("id")
+      .single();
+    if (sErr) throw new Error(sErr.message);
+
+    const { error: cErr } = await supabase.from("test_cases").insert(
+      SELF_TEST_CASES.map((c) => ({
+        user_id: userId,
+        project_id: project.id,
+        suite_id: suite.id,
+        code: c.code,
+        title: c.title,
+        expected: c.expected,
+        steps_json: StepsSchema.parse(c.steps),
+        generated_by: "human" as const,
+      })),
+    );
+    if (cErr) throw new Error(cErr.message);
+
+    return { project_id: project.id as string, cases: SELF_TEST_CASES.length };
+  });
