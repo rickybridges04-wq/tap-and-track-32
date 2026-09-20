@@ -59,10 +59,9 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
       }
 
       // 3. The auth user. Deleting it drops every session row, so no refresh
-      //    token can mint a new access token. Note the already-issued access
-      //    already-issued access token stays cryptographically valid until it
-      //    expires, but it can no longer be refreshed and every row it could
-      //    read is gone.
+      //    token can mint a new access token. The already-issued access token
+      //    stays cryptographically valid until it expires, but every row it
+      //    could read is gone by then.
       const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (authError) return { error: authError.message };
 
