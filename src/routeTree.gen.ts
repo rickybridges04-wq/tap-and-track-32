@@ -51,6 +51,7 @@ import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.w
 import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
 import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
+import { Route as ApiPublicV1RunsRouteImport } from './routes/api.public.v1.runs'
 import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
@@ -267,6 +268,11 @@ const ApiPublicWebhooksAgentEventRoute =
     path: '/api/public/webhooks/agent-event',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1RunsRoute = ApiPublicV1RunsRouteImport.update({
+  id: '/api/public/v1/runs',
+  path: '/api/public/v1/runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicReportTokenRoute = ApiPublicReportTokenRouteImport.update({
   id: '/api/public/report/$token',
   path: '/api/public/report/$token',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -372,6 +379,7 @@ export interface FileRoutesByTo {
   '/qa/projects': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
+  '/api/public/v1/runs': typeof ApiPublicV1RunsRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/qa/projects/'
     | '/api/public/payments/webhook'
     | '/api/public/report/$token'
+    | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/qa/projects'
     | '/api/public/payments/webhook'
     | '/api/public/report/$token'
+    | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/qa/projects/'
     | '/api/public/payments/webhook'
     | '/api/public/report/$token'
+    | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -611,6 +623,7 @@ export interface RootRouteChildren {
   QaProjectsIndexRoute: typeof QaProjectsIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicReportTokenRoute: typeof ApiPublicReportTokenRoute
+  ApiPublicV1RunsRoute: typeof ApiPublicV1RunsRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
   ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
   ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
@@ -914,6 +927,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/runs': {
+      id: '/api/public/v1/runs'
+      path: '/api/public/v1/runs'
+      fullPath: '/api/public/v1/runs'
+      preLoaderRoute: typeof ApiPublicV1RunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/report/$token': {
       id: '/api/public/report/$token'
       path: '/api/public/report/$token'
@@ -990,6 +1010,7 @@ const rootRouteChildren: RootRouteChildren = {
   QaProjectsIndexRoute: QaProjectsIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicReportTokenRoute: ApiPublicReportTokenRoute,
+  ApiPublicV1RunsRoute: ApiPublicV1RunsRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
   ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
   ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
