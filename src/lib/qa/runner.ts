@@ -102,8 +102,16 @@ export async function runQa(input: {
   const { id: runId, url, depth, personas } = input;
   const warnings: string[] = [];
 
+  // Persistence failures are recorded, never swallowed.
+  const note = (label: string, err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    warnings.push(`${label}: ${msg}`);
+  };
+
   const patch = (p: Record<string, unknown>) =>
-    patchRun({ data: { id: runId, ...p } }).catch(() => {});
+    patchRun({ data: { id: runId, ...p } }).catch((err) => {
+      note("save run progress failed", err);
+    });
 
   try {
     await patch({ status: "mapping", progress_pct: 5, progress_stage: "Discovering URLs" });
