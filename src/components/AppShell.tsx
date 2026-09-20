@@ -22,6 +22,7 @@ const nav: NavItem[] = [
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
   { to: "/qa/projects", label: "Test projects", icon: FlaskConical },
   { to: "/bugs", label: "Bugs", icon: BugIcon },
+  { to: "/qa/ci", label: "CI integration", icon: GitBranch },
 
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/agents", label: "Agents", icon: Bot },

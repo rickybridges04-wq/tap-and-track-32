@@ -29,6 +29,7 @@ import { Route as RunsIdRouteImport } from './routes/runs.$id'
 import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
 import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
 import { Route as QaNewRouteImport } from './routes/qa.new'
+import { Route as QaCiRouteImport } from './routes/qa.ci'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
 import { Route as BugsBugIdRouteImport } from './routes/bugs.$bugId'
@@ -155,6 +156,11 @@ const RosterAgentsRoute = RosterAgentsRouteImport.update({
 const QaNewRoute = QaNewRouteImport.update({
   id: '/qa/new',
   path: '/qa/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaCiRoute = QaCiRouteImport.update({
+  id: '/qa/ci',
+  path: '/qa/ci',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsNewRoute = ProjectsNewRouteImport.update({
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/ci': typeof QaCiRoute
   '/qa/new': typeof QaNewRoute
   '/roster/agents': typeof RosterAgentsRoute
   '/roster/personas': typeof RosterPersonasRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/ci': typeof QaCiRoute
   '/qa/new': typeof QaNewRoute
   '/roster/agents': typeof RosterAgentsRoute
   '/roster/personas': typeof RosterPersonasRoute
@@ -417,6 +425,7 @@ export interface FileRoutesById {
   '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
+  '/qa/ci': typeof QaCiRoute
   '/qa/new': typeof QaNewRoute
   '/roster/agents': typeof RosterAgentsRoute
   '/roster/personas': typeof RosterPersonasRoute
@@ -468,6 +477,7 @@ export interface FileRouteTypes {
     | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/ci'
     | '/qa/new'
     | '/roster/agents'
     | '/roster/personas'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/ci'
     | '/qa/new'
     | '/roster/agents'
     | '/roster/personas'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
+    | '/qa/ci'
     | '/qa/new'
     | '/roster/agents'
     | '/roster/personas'
@@ -616,6 +628,7 @@ export interface RootRouteChildren {
   BugsBugIdRoute: typeof BugsBugIdRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
+  QaCiRoute: typeof QaCiRoute
   QaNewRoute: typeof QaNewRoute
   RosterAgentsRoute: typeof RosterAgentsRoute
   RosterPersonasRoute: typeof RosterPersonasRoute
@@ -783,6 +796,13 @@ declare module '@tanstack/react-router' {
       path: '/qa/new'
       fullPath: '/qa/new'
       preLoaderRoute: typeof QaNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/ci': {
+      id: '/qa/ci'
+      path: '/qa/ci'
+      fullPath: '/qa/ci'
+      preLoaderRoute: typeof QaCiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/new': {
@@ -1022,6 +1042,7 @@ const rootRouteChildren: RootRouteChildren = {
   BugsBugIdRoute: BugsBugIdRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
+  QaCiRoute: QaCiRoute,
   QaNewRoute: QaNewRoute,
   RosterAgentsRoute: RosterAgentsRoute,
   RosterPersonasRoute: RosterPersonasRoute,
