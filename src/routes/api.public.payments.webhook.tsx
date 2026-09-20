@@ -20,7 +20,7 @@ async function upsertSubscription(sub: any) {
   const priceCents = item?.price?.unit_amount ?? null;
   const periodEnd = item?.current_period_end ?? sub.current_period_end;
 
-  await admin().from("subscriptions").upsert(
+  const { error } = await admin().from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_customer_id: sub.customer,
@@ -32,15 +32,25 @@ async function upsertSubscription(sub: any) {
     },
     { onConflict: "user_id" },
   );
+  // Never swallow this. A rejected write here means a paying customer has no
+  // subscription record, and throwing makes Stripe retry for up to 3 days.
+  if (error) {
+    console.error(`Webhook: subscription upsert failed for ${sub.id} (${sub.status}): ${error.message}`);
+    throw new Error(`subscription upsert failed: ${error.message}`);
+  }
 }
 
 async function markCanceled(sub: any) {
   const userId = sub.metadata?.userId;
   if (!userId) return;
-  await admin()
+  const { error } = await admin()
     .from("subscriptions")
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("user_id", userId);
+  if (error) {
+    console.error(`Webhook: cancel update failed for ${sub.id}: ${error.message}`);
+    throw new Error(`cancel update failed: ${error.message}`);
+  }
 }
 
 async function handle(req: Request, env: StripeEnv) {

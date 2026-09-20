@@ -17,10 +17,13 @@ export const Route = createFileRoute("/apps/published")({
 function Published() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
+  // Every hook runs unconditionally and in a stable order — bailing out before
+  // useServerFn (as this page used to) makes React render a different number of
+  // hooks between passes and crashes the page.
   useEffect(() => { if (!loading && !user) nav({ to: "/auth", replace: true }); }, [loading, user, nav]);
   const q = useQuery({ queryKey: ["apps"], queryFn: () => listApps(), enabled: !!user });
-  if (loading || !user) return null;
   const del = useServerFn(deleteApp);
+
   if (loading || !user) return null;
 
   const published = (q.data ?? []).filter((a: any) => a.status === "published");

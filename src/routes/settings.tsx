@@ -1,61 +1,237 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, KeyRound, Cloud, Globe, Bot, Eye, EyeOff, Check, Github } from "lucide-react";
+import {
+  ExternalLink, KeyRound, Cloud, Globe, Check, Github,
+  Loader2, AlertTriangle, CircleDashed,
+} from "lucide-react";
 import { useMounted } from "@/lib/agent-store";
 import { useSecret, setSecret, clearSecret } from "@/lib/secrets-store";
 import { ApiKeysCard } from "@/components/ApiKeysCard";
+import { DeleteAccountCard } from "@/components/DeleteAccountCard";
+import { getSystemStatus, type SecretStatus } from "@/lib/system-status.functions";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings · Bridges Ops" }] }),
+  head: () => ({
+    meta: [
+      { title: "Settings · Walkthrough Wizard QAOS" },
+      { name: "description", content: "Manage integrations, API keys, bug tracking and your account for Walkthrough Wizard QAOS." },
+      { property: "og:title", content: "Settings · Walkthrough Wizard QAOS" },
+      { property: "og:description", content: "Manage integrations, API keys, bug tracking and your account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Settings,
 });
 
 type SecretDef = {
   name: string;
-  managed?: boolean;
   what: string;
   where: string;
   link: string;
+  required: boolean;
 };
 
-const secrets: SecretDef[] = [
+const SECRET_DOCS: SecretDef[] = [
   {
     name: "LOVABLE_API_KEY",
-    managed: true,
-    what: "Already provisioned. Powers Lovable AI Gateway calls — every agent reasoning step uses this.",
-    where: "Auto-managed by Lovable. No action required.",
+    what: "Powers AI reasoning for crawl inspection, findings and root-cause analysis.",
+    where: "Managed automatically for this project.",
     link: "https://docs.lovable.dev/features/ai",
+    required: true,
+  },
+  {
+    name: "FIRECRAWL_API_KEY",
+    what: "Fetches and renders the pages of the app being tested.",
+    where: "Firecrawl dashboard → API Keys",
+    link: "https://www.firecrawl.dev/app/api-keys",
+    required: true,
+  },
+  {
+    name: "STRIPE_SANDBOX_API_KEY",
+    what: "Test-mode payments for the Pro subscription.",
+    where: "Managed automatically once payments are enabled.",
+    link: "https://dashboard.stripe.com/test/apikeys",
+    required: true,
+  },
+  {
+    name: "STRIPE_LIVE_API_KEY",
+    what: "Live payments for the Pro subscription.",
+    where: "Managed automatically once live payments are enabled.",
+    link: "https://dashboard.stripe.com/apikeys",
+    required: true,
+  },
+  {
+    name: "QA_WORKER_TOKEN",
+    what: "Authenticates the external browser worker that runs scripted test cases.",
+    where: "Any long random string you generate.",
+    link: "https://generate-secret.vercel.app/64",
+    required: true,
   },
   {
     name: "BROWSERBASE_API_KEY",
-    what: "Lets Bridges Tester drive a real headless Chromium to walk through your apps.",
+    what: "Hosted Chromium sessions for browser-driven checks.",
     where: "Browserbase dashboard → Settings → API Keys",
     link: "https://www.browserbase.com/settings",
+    required: false,
   },
   {
     name: "BROWSERBASE_PROJECT_ID",
-    what: "The Browserbase project that sessions will be created under.",
+    what: "The Browserbase project sessions are created under.",
     where: "Browserbase dashboard → Projects",
     link: "https://www.browserbase.com/projects",
+    required: false,
   },
   {
-    name: "TESTER_WEBHOOK_SECRET",
-    what: "Signs CI / external trigger requests to /api/public/runs/trigger and /api/public/webhooks/agent-event so we can verify them.",
-    where: "Pick any long random string (you generate it).",
-    link: "https://generate-secret.vercel.app/64",
+    name: "AI_GATEWAY_API_KEY",
+    what: "Routes AI calls through the BAE AI Gateway instead of calling a model provider directly.",
+    where: "BAE AI Gateway project → API keys",
+    link: "https://supabase.com/dashboard",
+    required: false,
+  },
+  {
+    name: "GITHUB_TOKEN",
+    what: "Files bugs as GitHub issues. Filing is skipped cleanly when absent.",
+    where: "GitHub → Settings → Developer settings → Personal access tokens",
+    link: "https://github.com/settings/personal-access-tokens",
+    required: false,
+  },
+  {
+    name: "QA_WORKER_DISPATCH_TOKEN",
+    what: "Notifies your worker repository when new test jobs are queued.",
+    where: "GitHub personal access token with repo dispatch scope.",
+    link: "https://github.com/settings/personal-access-tokens",
+    required: false,
+  },
+  {
+    name: "QA_WORKER_REPO",
+    what: "The owner/repo that receives the queued-jobs notification.",
+    where: "You set this to your worker repository.",
+    link: "https://github.com/new",
+    required: false,
   },
   {
     name: "RESEND_API_KEY",
-    what: "Sends email alerts on completion, failed runs, or approval requests. (optional)",
+    what: "Sends email alerts for completed or failed runs.",
     where: "Resend dashboard → API Keys",
     link: "https://resend.com/api-keys",
+    required: false,
   },
 ];
+
+function BackendCard() {
+  const q = useQuery({ queryKey: ["system-status"], queryFn: () => getSystemStatus() });
+  const b = q.data?.backend;
+
+  if (q.isLoading) {
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Loader2 className="h-4 w-4 animate-spin" /> Checking backend…
+          </CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const ok = !!b?.connected;
+  return (
+    <Card className={"mt-6 " + (ok ? "border-emerald-500/40 bg-emerald-500/5" : "border-destructive/50 bg-destructive/5")}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Cloud className="h-4 w-4" /> Backend
+          {ok ? (
+            <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
+              <Check className="mr-1 h-3 w-3" /> Connected
+            </Badge>
+          ) : (
+            <Badge variant="destructive" className="text-[10px]">Unreachable</Badge>
+          )}
+        </CardTitle>
+        <CardDescription>
+          {b?.detail ?? "Status unknown."}{" "}
+          {ok && "Runs, pages, findings, bugs and screenshots are stored server-side."}
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function SecretsCard() {
+  const q = useQuery({ queryKey: ["system-status"], queryFn: () => getSystemStatus() });
+  const byName = new Map<string, SecretStatus>((q.data?.secrets ?? []).map((s) => [s.name, s]));
+  const missingRequired = SECRET_DOCS.filter(
+    (d) => d.required && q.data && !byName.get(d.name)?.configured,
+  );
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <KeyRound className="h-4 w-4" /> Integrations
+        </CardTitle>
+        <CardDescription>
+          Live status, read from this project's server-side secrets. Values are never shown here.
+          Add or change one in Project Settings → Secrets.
+          {missingRequired.length > 0 && (
+            <span className="mt-2 flex items-center gap-1.5 text-amber-600">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {missingRequired.length} required integration
+              {missingRequired.length === 1 ? "" : "s"} still missing.
+            </span>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {q.isLoading ? (
+          <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Reading real status…
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {SECRET_DOCS.map((def) => {
+              const configured = byName.get(def.name)?.configured ?? false;
+              return (
+                <li key={def.name} className="py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <code className="rounded bg-muted px-2 py-1 text-xs font-medium">{def.name}</code>
+                      {configured ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
+                          <Check className="mr-1 h-3 w-3" /> Set
+                        </Badge>
+                      ) : def.required ? (
+                        <Badge variant="destructive" className="text-[10px]">Missing — required</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px]">
+                          <CircleDashed className="mr-1 h-3 w-3" /> Not set — optional
+                        </Badge>
+                      )}
+                    </div>
+                    <Button asChild size="sm" variant="ghost">
+                      <a href={def.link} target="_blank" rel="noreferrer">
+                        Where to get it <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{def.what}</p>
+                  <p className="text-xs text-muted-foreground">Source: {def.where}</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function GithubCard() {
   const mounted = useMounted();
@@ -69,9 +245,9 @@ function GithubCard() {
           <Github className="h-4 w-4" /> Bug tracking → GitHub (optional)
         </CardTitle>
         <CardDescription>
-          Set the repository bugs should be filed into, as owner/repo. The token itself is a project
-          secret named GITHUB_TOKEN — if it is missing, filing an issue is skipped with a message and
-          nothing else breaks.
+          The repository bugs should be filed into, as owner/repo. This is a preference saved in this
+          browser, not a secret. The token itself is the project secret GITHUB_TOKEN above — when it
+          is missing, filing an issue is skipped and nothing else breaks.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -92,96 +268,8 @@ function GithubCard() {
             </>
           )}
         </div>
-        <Button asChild size="sm" variant="ghost">
-          <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer">
-            Create a GitHub token <ExternalLink className="ml-1 h-3.5 w-3.5" />
-          </a>
-        </Button>
       </CardContent>
     </Card>
-  );
-}
-
-
-function SecretRow({ def }: { def: SecretDef }) {
-  const mounted = useMounted();
-  const stored = useSecret(def.name);
-  const [draft, setDraft] = useState("");
-  const [reveal, setReveal] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
-
-  const hasValue = mounted && !!stored;
-  const masked = stored ? "•".repeat(Math.min(stored.length, 24)) : "";
-
-  return (
-    <li className="py-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <code className="rounded bg-muted px-2 py-1 text-xs font-medium">{def.name}</code>
-          {def.managed ? (
-            <Badge variant="secondary" className="text-[10px]">Managed by Lovable</Badge>
-          ) : hasValue ? (
-            <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
-              <Check className="mr-1 h-3 w-3" /> Saved locally
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="text-[10px]">Not set</Badge>
-          )}
-        </div>
-        <Button asChild size="sm" variant="ghost">
-          <a href={def.link} target="_blank" rel="noreferrer">
-            Get it <ExternalLink className="ml-1 h-3.5 w-3.5" />
-          </a>
-        </Button>
-      </div>
-      <p className="mt-1 text-sm text-muted-foreground">{def.what}</p>
-      <p className="text-xs text-muted-foreground">Where: {def.where}</p>
-
-      {!def.managed && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <Input
-              type={reveal ? "text" : "password"}
-              autoComplete="off"
-              spellCheck={false}
-              placeholder={hasValue ? masked : `Paste ${def.name}`}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              className="pr-9 font-mono text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => setReveal((v) => !v)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={reveal ? "Hide" : "Show"}
-            >
-              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <Button
-            size="sm"
-            disabled={!draft.trim()}
-            onClick={() => {
-              setSecret(def.name, draft.trim());
-              setDraft("");
-              setJustSaved(true);
-              setTimeout(() => setJustSaved(false), 1500);
-            }}
-          >
-            {justSaved ? "Saved" : "Save"}
-          </Button>
-          {hasValue && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => clearSecret(def.name)}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-      )}
-    </li>
   );
 }
 
@@ -190,65 +278,11 @@ function Settings() {
     <AppShell>
       <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        What you need to wire up to switch from simulated to real backend execution.
+        Live integration status, API keys, bug tracking and your account.
       </p>
 
-      <Card className="mt-6 border-amber-500/40 bg-amber-500/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Cloud className="h-4 w-4" /> Step 1 — Enable Lovable Cloud
-          </CardTitle>
-          <CardDescription>
-            Cloud provides Postgres-backed agent_tasks / agent_runs / agent_approvals / errors tables,
-            RLS, auth, screenshot storage, and pg_cron for the scheduled-trigger sweep. Cloud could not
-            be enabled automatically — workspace is out of credits. Add credits, then ask me to enable it.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <a href="https://lovable.dev/settings/billing" target="_blank" rel="noreferrer">
-              Add credits <ExternalLink className="ml-1 h-3.5 w-3.5" />
-            </a>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Bot className="h-4 w-4" /> Agents are live now
-          </CardTitle>
-          <CardDescription>
-            Agent reasoning uses Lovable AI Gateway by default. Switch to Anthropic (Claude) below to
-            A/B test reasoning quality. Tasks/runs/approvals persist in localStorage.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProviderSelector />
-        </CardContent>
-      </Card>
-
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <KeyRound className="h-4 w-4" /> Step 2 — Secrets
-          </CardTitle>
-          <CardDescription>
-            Paste keys as you get them. Stored in this browser only (localStorage) until Lovable Cloud is
-            enabled — then I'll promote them to real Cloud secrets. Don't paste production secrets on a
-            shared device.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="divide-y divide-border">
-            {secrets.map((s) => (
-              <SecretRow key={s.name} def={s} />
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
+      <BackendCard />
+      <SecretsCard />
       <GithubCard />
 
       <div className="mt-6">
@@ -256,68 +290,26 @@ function Settings() {
       </div>
 
       <Card className="mt-6">
-
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Globe className="h-4 w-4" /> Step 3 — Webhook URLs (live)
+            <Globe className="h-4 w-4" /> Webhook and worker endpoints
           </CardTitle>
-          <CardDescription>External callers can POST to these endpoints today.</CardDescription>
+          <CardDescription>External callers can POST to these endpoints.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <code className="block break-all rounded-md bg-muted p-2 text-xs">
             POST /api/public/webhooks/agent-event
-            {"\n"}{`{ "source": "ci", "type": "build_failed", "title": "...", "description": "...", "agentType": "debug" }`}
           </code>
           <code className="block break-all rounded-md bg-muted p-2 text-xs">
-            POST /api/public/runs/trigger  (Bridges Tester run)
+            POST /api/public/worker/claim · /heartbeat · /report (Bearer QA_WORKER_TOKEN)
+          </code>
+          <code className="block break-all rounded-md bg-muted p-2 text-xs">
+            POST /api/v1/runs · GET /api/v1/runs/:id (Bearer API key)
           </code>
         </CardContent>
       </Card>
 
-      <p className="mt-8 text-xs text-muted-foreground">
-        Bridges Tester runs a real headless Chromium via Browserbase. Approved risky agent tools
-        (sendEmail, chargeMoney, updateRow, deleteRow) execute for real against Resend / Stripe /
-        the database. Agent tasks + approval queue still persist in localStorage.
-      </p>
+      <DeleteAccountCard />
     </AppShell>
   );
 }
-
-function ProviderSelector() {
-  const mounted = useMounted();
-  const [provider, setProviderState] = useState<"lovable" | "anthropic">("lovable");
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const v = window.localStorage.getItem("bridges.agentProvider");
-      if (v === "anthropic" || v === "lovable") setProviderState(v);
-    }
-  }, []);
-
-  function pick(p: "lovable" | "anthropic") {
-    setProviderState(p);
-    if (typeof window !== "undefined") window.localStorage.setItem("bridges.agentProvider", p);
-  }
-  if (!mounted) return null;
-  return (
-    <div className="flex flex-wrap gap-2">
-      <Button
-        size="sm"
-        variant={provider === "lovable" ? "default" : "outline"}
-        onClick={() => pick("lovable")}
-      >
-        Lovable AI (Gemini) {provider === "lovable" && <Check className="ml-1 h-3.5 w-3.5" />}
-      </Button>
-      <Button
-        size="sm"
-        variant={provider === "anthropic" ? "default" : "outline"}
-        onClick={() => pick("anthropic")}
-      >
-        Anthropic (Claude Sonnet 4.5) {provider === "anthropic" && <Check className="ml-1 h-3.5 w-3.5" />}
-      </Button>
-      <Badge variant="secondary" className="ml-auto">
-        Requires ANTHROPIC_API_KEY {provider === "anthropic" ? "· active" : ""}
-      </Badge>
-    </div>
-  );
-}
-
