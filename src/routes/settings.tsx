@@ -202,7 +202,10 @@ function Settings() {
         </CardContent>
       </Card>
 
+      <GithubCard />
+
       <Card className="mt-6">
+
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Globe className="h-4 w-4" /> Step 3 — Webhook URLs (live)
