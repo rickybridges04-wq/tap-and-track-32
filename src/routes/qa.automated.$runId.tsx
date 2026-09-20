@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAutomatedRun } from "@/lib/qa/projects.functions";
+import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { getAutomatedRun, getRunRegression } from "@/lib/qa/projects.functions";
 import { CreateBugDialog } from "@/components/CreateBugDialog";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
+import { DIFF_CLASS, DIFF_LABEL, type DiffState } from "@/lib/qa/regression";
+
 
 
 export const Route = createFileRoute("/qa/automated/$runId")({
@@ -42,14 +48,44 @@ type Vitals = { lcp_ms?: number | null; cls?: number | null; ttfb_ms?: number | 
 
 function AutomatedRun() {
   const { runId } = Route.useParams();
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["qa-automated-run", runId],
     queryFn: () => getAutomatedRun({ data: { id: runId } }),
+    // Realtime drives updates; this slow poll is the fallback.
     refetchInterval: (q) => {
       const d = q.state.data as { run?: { status?: string } } | null | undefined;
-      return d?.run && d.run.status !== "completed" && d.run.status !== "failed" ? 3000 : false;
+      return d?.run && d.run.status !== "completed" && d.run.status !== "failed" ? 8000 : false;
     },
   });
+  const live = data?.run && data.run.status !== "completed" && data.run.status !== "failed";
+
+  const { data: regression } = useQuery({
+    queryKey: ["qa-run-regression", runId],
+    queryFn: () => getRunRegression({ data: { id: runId } }),
+    enabled: data?.run?.status === "completed",
+  });
+
+  // Realtime: jobs and results for this run. RLS still applies.
+  useEffect(() => {
+    const invalidate = () => qc.invalidateQueries({ queryKey: ["qa-automated-run", runId] });
+    const channel = supabase
+      .channel(`qa-run-${runId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "qa_jobs", filter: `run_id=eq.${runId}` },
+        invalidate,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "automated_results", filter: `run_id=eq.${runId}` },
+        invalidate,
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [runId, qc]);
 
   if (isLoading) {
     return (
@@ -80,37 +116,129 @@ function AutomatedRun() {
   }
   const infraErrors = results.filter((r) => r.status === "error");
 
+  // Live counters
+  const total = jobs.length;
+  const passing = results.filter((r) => r.status === "pass").length;
+  const failing = failures.length;
+  const errors = infraErrors.length;
+  const done = results.length;
+  const queued = jobs.filter((j) => j.status === "queued").length;
+  const running = jobs.filter((j) => j.status === "claimed").length;
+  const feed = [...results]
+    .map((r) => ({ ...r, code: caseById.get(r.case_id)?.code ?? "—" }))
+    .reverse();
+
   return (
     <AppShell>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Automated run</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            RUN #{run.id.slice(0, 8)} ·{" "}
+            {run.status === "completed" ? "Complete" : running > 0 ? "Running" : run.status}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {run.target_url} · {new Date(run.created_at).toLocaleString()} · {jobs.length} case(s)
           </p>
         </div>
-        {run.status === "completed" && run.score != null && run.verdict && (
-          <div className="text-right">
-            <div className="text-3xl font-semibold">{run.score}</div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(
-                run.verdict as "ready" | "minor" | "major" | "block",
-              )}`}
-            >
-              {verdictLabel(run.verdict as "ready" | "minor" | "major" | "block")}
-            </span>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {run.passed_count ?? 0} pass · {run.failed_count ?? 0} fail
+        <div className="flex items-end gap-4">
+          <Button asChild variant="outline">
+            <Link to="/qa/report/$runId" params={{ runId }}>
+              View report
+            </Link>
+          </Button>
+          {run.status === "completed" && run.score != null && run.verdict && (
+            <div className="text-right">
+              <div className="text-3xl font-semibold">{run.score}</div>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${verdictColor(
+                  run.verdict as "ready" | "minor" | "major" | "block",
+                )}`}
+              >
+                {verdictLabel(run.verdict as "ready" | "minor" | "major" | "block")}
+              </span>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {run.passed_count ?? 0} pass · {run.failed_count ?? 0} fail
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      <Card className="mb-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">
+            {done}/{total} settled
+          </CardTitle>
+          <CardDescription>
+            {passing} passing · {failing} failing · {errors} error{errors === 1 ? "" : "s"} ·{" "}
+            {queued} queued{running > 0 ? ` · ${running} running` : ""}
+            {live ? " · live" : ""}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Progress value={total ? Math.round((done / total) * 100) : 0} />
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            {suiteCounters(jobs, results, cases).map((s) => (
+              <span key={s.label} className="rounded-full bg-muted px-2 py-0.5">
+                {s.label} {s.done}/{s.total}
+              </span>
+            ))}
+          </div>
+          {feed.length > 0 && (
+            <div className="space-y-0.5 text-xs">
+              {feed.slice(0, 12).map((r) => (
+                <div key={r.id} className="flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 font-medium ${stateClass(r.status)}`}>
+                    {stateLabel(r.status)}
+                  </span>
+                  <span className="font-mono">{r.code}</span>
+                  <span className="text-muted-foreground">
+                    {r.duration_ms != null ? `${r.duration_ms} ms` : "—"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {regression && regression.diff.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Regression diff</CardTitle>
+            <CardDescription>
+              {regression.previous_run_id
+                ? `Compared with run #${regression.previous_run_id.slice(0, 8)}.`
+                : "First completed automated run for this project."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            {regression.diff.map((d) => (
+              <div key={d.case_id} className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${DIFF_CLASS[d.state as DiffState]}`}
+                >
+                  {DIFF_LABEL[d.state as DiffState]}
+                </span>
+                {d.flaky && (
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                    Flaky
+                  </span>
+                )}
+                <span className="font-mono text-xs">{d.code}</span>
+                <span className="text-muted-foreground">{d.title}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {run.status !== "completed" && (
         <p className="mb-4 text-sm text-muted-foreground">
           {run.progress_stage ?? run.status} — results appear as the browser worker reports them.
         </p>
       )}
+
 
       {groups.size > 0 && (
         <section className="mb-8">
