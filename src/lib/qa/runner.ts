@@ -43,8 +43,8 @@ function perfFindings(page: PageLite): FindingLite[] {
       category: "performance",
       severity: ms >= VERY_SLOW_MS ? "high" : "medium",
       confidence: 1,
-      title: `Page responded in ${(ms / 1000).toFixed(1)}s`,
-      detail: `Measured server response time for ${page.url} was ${ms}ms, above the ${SLOW_MS}ms threshold. This is a real timing measurement, not an inference.`,
+      title: `Page fetch took ${(ms / 1000).toFixed(1)}s`,
+      detail: `Page fetch time through the crawler (includes rendering and screenshot) for ${page.url} was ${ms}ms, above the ${SLOW_MS}ms threshold. This is a real timing measurement of the crawler request, not the target server alone.`,
       suggestion: "Check server response time, payload size and any blocking upstream calls for this route.",
     },
   ];

@@ -39,6 +39,7 @@ import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
+import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
 import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
 import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
@@ -195,6 +196,11 @@ const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
   path: '/apps/$id/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWorkerReportRoute = ApiPublicWorkerReportRouteImport.update({
+  id: '/api/public/worker/report',
+  path: '/api/public/worker/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWorkerHeartbeatRoute =
   ApiPublicWorkerHeartbeatRouteImport.update({
     id: '/api/public/worker/heartbeat',
@@ -260,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
+  '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
+    | '/api/public/worker/report'
     | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
@@ -486,6 +498,7 @@ export interface RootRouteChildren {
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
   ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
   ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
+  ApiPublicWorkerReportRoute: typeof ApiPublicWorkerReportRoute
   ApiPublicFormsAppIdFormNameRoute: typeof ApiPublicFormsAppIdFormNameRoute
 }
 
@@ -701,6 +714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppsIdSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/worker/report': {
+      id: '/api/public/worker/report'
+      path: '/api/public/worker/report'
+      fullPath: '/api/public/worker/report'
+      preLoaderRoute: typeof ApiPublicWorkerReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/worker/heartbeat': {
       id: '/api/public/worker/heartbeat'
       path: '/api/public/worker/heartbeat'
@@ -774,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
   ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
   ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
+  ApiPublicWorkerReportRoute: ApiPublicWorkerReportRoute,
   ApiPublicFormsAppIdFormNameRoute: ApiPublicFormsAppIdFormNameRoute,
 }
 export const routeTree = rootRouteImport
