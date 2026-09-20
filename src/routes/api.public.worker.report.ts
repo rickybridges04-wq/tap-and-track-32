@@ -297,7 +297,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
           })
           .eq("id", job.id);
 
-        // Run complete? Then score it from the real results.
+        // All jobs settled? Then write the observed findings for the whole run.
         const { count: outstanding } = await supabaseAdmin
           .from("qa_jobs")
           .select("id", { count: "exact", head: true })
@@ -310,9 +310,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
             .select("status, axe_violations, web_vitals, error_message, case_id, failed_step_index")
             .eq("run_id", job.run_id);
           const rows = results ?? [];
-          const total = Math.max(1, rows.length);
-          const passed = rows.filter((r) => r.status === "pass").length;
-          const failed = rows.length - passed;
+
 
           const { data: run } = await supabaseAdmin
             .from("qa_runs")
