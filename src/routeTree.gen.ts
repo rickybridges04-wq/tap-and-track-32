@@ -48,6 +48,7 @@ import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.w
 import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
 import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
+import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
 
@@ -248,6 +249,11 @@ const ApiPublicWebhooksAgentEventRoute =
     path: '/api/public/webhooks/agent-event',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicReportTokenRoute = ApiPublicReportTokenRouteImport.update({
+  id: '/api/public/report/$token',
+  path: '/api/public/report/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/apps/$id': typeof AppsIdIndexRoute
   '/qa/projects': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
@@ -430,6 +439,7 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/qa/projects/'
     | '/api/public/payments/webhook'
+    | '/api/public/report/$token'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/apps/$id'
     | '/qa/projects'
     | '/api/public/payments/webhook'
+    | '/api/public/report/$token'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/qa/projects/'
     | '/api/public/payments/webhook'
+    | '/api/public/report/$token'
     | '/api/public/webhooks/agent-event'
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
@@ -560,6 +572,7 @@ export interface RootRouteChildren {
   AppsIdIndexRoute: typeof AppsIdIndexRoute
   QaProjectsIndexRoute: typeof QaProjectsIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicReportTokenRoute: typeof ApiPublicReportTokenRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
   ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
   ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
@@ -842,6 +855,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/report/$token': {
+      id: '/api/public/report/$token'
+      path: '/api/public/report/$token'
+      fullPath: '/api/public/report/$token'
+      preLoaderRoute: typeof ApiPublicReportTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -896,6 +916,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppsIdIndexRoute: AppsIdIndexRoute,
   QaProjectsIndexRoute: QaProjectsIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicReportTokenRoute: ApiPublicReportTokenRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
   ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
   ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
