@@ -39,6 +39,8 @@ import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
 import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
+import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
+import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
@@ -193,6 +195,17 @@ const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
   path: '/apps/$id/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWorkerHeartbeatRoute =
+  ApiPublicWorkerHeartbeatRouteImport.update({
+    id: '/api/public/worker/heartbeat',
+    path: '/api/public/worker/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWorkerClaimRoute = ApiPublicWorkerClaimRouteImport.update({
+  id: '/api/public/worker/claim',
+  path: '/api/public/worker/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksAgentEventRoute =
   ApiPublicWebhooksAgentEventRouteImport.update({
     id: '/api/public/webhooks/agent-event',
@@ -245,6 +258,8 @@ export interface FileRoutesByFullPath {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
@@ -280,6 +295,8 @@ export interface FileRoutesByTo {
   '/apps/$id': typeof AppsIdIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
@@ -316,6 +333,8 @@ export interface FileRoutesById {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
+  '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
+  '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
@@ -353,6 +372,8 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
     | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -388,6 +409,8 @@ export interface FileRouteTypes {
     | '/apps/$id'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
     | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
@@ -423,6 +446,8 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/agent-event'
+    | '/api/public/worker/claim'
+    | '/api/public/worker/heartbeat'
     | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
@@ -459,6 +484,8 @@ export interface RootRouteChildren {
   AppsIdIndexRoute: typeof AppsIdIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
+  ApiPublicWorkerClaimRoute: typeof ApiPublicWorkerClaimRoute
+  ApiPublicWorkerHeartbeatRoute: typeof ApiPublicWorkerHeartbeatRoute
   ApiPublicFormsAppIdFormNameRoute: typeof ApiPublicFormsAppIdFormNameRoute
 }
 
@@ -674,6 +701,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppsIdSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/worker/heartbeat': {
+      id: '/api/public/worker/heartbeat'
+      path: '/api/public/worker/heartbeat'
+      fullPath: '/api/public/worker/heartbeat'
+      preLoaderRoute: typeof ApiPublicWorkerHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/claim': {
+      id: '/api/public/worker/claim'
+      path: '/api/public/worker/claim'
+      fullPath: '/api/public/worker/claim'
+      preLoaderRoute: typeof ApiPublicWorkerClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/agent-event': {
       id: '/api/public/webhooks/agent-event'
       path: '/api/public/webhooks/agent-event'
@@ -731,6 +772,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppsIdIndexRoute: AppsIdIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,
+  ApiPublicWorkerClaimRoute: ApiPublicWorkerClaimRoute,
+  ApiPublicWorkerHeartbeatRoute: ApiPublicWorkerHeartbeatRoute,
   ApiPublicFormsAppIdFormNameRoute: ApiPublicFormsAppIdFormNameRoute,
 }
 export const routeTree = rootRouteImport
