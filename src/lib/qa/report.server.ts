@@ -175,7 +175,9 @@ export async function buildReport(
         .eq("user_id", run.user_id)
         .in("error_signature", signatures)
     : { data: [] as any[] };
-  const analysisBySig = new Map((analyses ?? []).map((a: any) => [a.error_signature, a]));
+  const analysisBySig = new Map<string, any>(
+    (analyses ?? []).map((a: any) => [a.error_signature as string, a]),
+  );
 
   const failureGroups = signatures.map((sig) => {
     const group = rows.filter((r) => r.error_signature === sig);
