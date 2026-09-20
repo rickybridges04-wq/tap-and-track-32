@@ -531,3 +531,25 @@ function stateClass(state: string) {
   if (state === "running") return "bg-blue-500/15 text-blue-600";
   return "bg-muted text-muted-foreground";
 }
+
+/** Per-suite counters derived from the case code prefix (AUTH-001 -> AUTH). */
+function suiteCounters(
+  jobs: Array<{ id: string; case_id: string }>,
+  results: Array<{ job_id: string }>,
+  cases: Array<{ id: string; code: string }>,
+): Array<{ label: string; done: number; total: number }> {
+  const codeById = new Map(cases.map((c) => [c.id, c.code]));
+  const settled = new Set(results.map((r) => r.job_id));
+  const acc = new Map<string, { done: number; total: number }>();
+  for (const j of jobs) {
+    const code = codeById.get(j.case_id) ?? "Other";
+    const label = code.includes("-") ? code.slice(0, code.indexOf("-")) : "Other";
+    const entry = acc.get(label) ?? { done: 0, total: 0 };
+    entry.total++;
+    if (settled.has(j.id)) entry.done++;
+    acc.set(label, entry);
+  }
+  return Array.from(acc.entries())
+    .map(([label, v]) => ({ label, ...v }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
