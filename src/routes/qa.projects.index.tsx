@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { deleteProject, listProjects, saveProject } from "@/lib/qa/projects.functions";
-import { FlaskConical, Plus } from "lucide-react";
+import {
+  deleteProject,
+  listProjects,
+  loadSelfTestSuite,
+  saveProject,
+} from "@/lib/qa/projects.functions";
+import { FlaskConical, Plus, Beaker } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/qa/projects/")({
@@ -49,6 +54,15 @@ function ProjectsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const selfTest = useMutation({
+    mutationFn: () => loadSelfTestSuite({ data: {} }),
+    onSuccess: () => {
+      toast.success("Self-test project ready");
+      qc.invalidateQueries({ queryKey: ["qa-projects"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <AppShell>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -61,9 +75,20 @@ function ProjectsPage() {
             Each project holds its own suites, test cases and run history.
           </p>
         </div>
-        <Button onClick={() => setOpen((v) => !v)}>
-          <Plus className="mr-1 h-4 w-4" /> New project
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => selfTest.mutate()}
+            disabled={selfTest.isPending}
+            title="Owner only: create a project that tests this app itself"
+          >
+            <Beaker className="mr-1 h-4 w-4" />
+            {selfTest.isPending ? "Loading…" : "Load self-test suite"}
+          </Button>
+          <Button onClick={() => setOpen((v) => !v)}>
+            <Plus className="mr-1 h-4 w-4" /> New project
+          </Button>
+        </div>
       </div>
 
       {open && (

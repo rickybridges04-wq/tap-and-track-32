@@ -1,7 +1,7 @@
 import { Link, useRouterState, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2, Smartphone, Upload, Globe, Bell, Database, Inbox, Bug as BugIcon } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2, Smartphone, Upload, Globe, Bell, Database, Inbox, Bug as BugIcon, GitBranch } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
@@ -22,6 +22,7 @@ const nav: NavItem[] = [
   { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
   { to: "/qa/projects", label: "Test projects", icon: FlaskConical },
   { to: "/bugs", label: "Bugs", icon: BugIcon },
+  { to: "/qa/ci", label: "CI integration", icon: GitBranch },
 
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/agents", label: "Agents", icon: Bot },

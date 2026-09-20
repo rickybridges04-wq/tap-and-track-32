@@ -304,49 +304,23 @@ export const getProject = createServerFn({ method: "GET" })
 // ---------------- automated runs ----------------
 export const startAutomatedRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ project_id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: project, error: pErr } = await supabase
-      .from("qa_projects")
-      .select("id, base_url")
-      .eq("id", data.project_id)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (pErr) throw new Error(pErr.message);
-    if (!project) throw new Error("Project not found");
-
-    const { data: cases, error: cErr } = await supabase
-      .from("test_cases")
-      .select("id")
-      .eq("project_id", data.project_id)
-      .eq("user_id", userId);
-    if (cErr) throw new Error(cErr.message);
-    if (!cases || cases.length === 0) throw new Error("This project has no test cases yet");
-
-    const { data: run, error: rErr } = await supabase
-      .from("qa_runs")
-      .insert({
-        user_id: userId,
-        project_id: data.project_id,
-        kind: "automated",
-        target_url: project.base_url,
-        depth: "automated",
-        personas: [],
-        status: "queued",
-        progress_pct: 0,
-        progress_stage: `Queued ${cases.length} test case${cases.length === 1 ? "" : "s"}`,
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        project_id: z.string().uuid(),
+        ref: z.string().max(200).optional(),
+        commit_sha: z.string().max(80).optional(),
       })
-      .select("id")
-      .single();
-    if (rErr) throw new Error(rErr.message);
-
-    const { error: jErr } = await supabase.from("qa_jobs").insert(
-      cases.map((c) => ({ user_id: userId, run_id: run.id, case_id: c.id })),
-    );
-    if (jErr) throw new Error(jErr.message);
-
-    return { id: run.id as string, jobs: cases.length };
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    // Same queueing path the public API uses, so both stay in step.
+    const { queueAutomatedRun } = await import("@/lib/qa/queue.server");
+    const res = await queueAutomatedRun(context.supabase, context.userId, data.project_id, {
+      ref: data.ref ?? null,
+      commit_sha: data.commit_sha ?? null,
+    });
+    return { id: res.run_id, jobs: res.jobs_queued };
   });
 
 export const getAutomatedRun = createServerFn({ method: "GET" })
@@ -522,3 +496,97 @@ export const getProjectTrends = createServerFn({ method: "GET" })
     };
   });
 
+
+// ---------------- self-test suite (owner only) ----------------
+/** Cases that check this app's own published site through the Playwright worker. */
+const SELF_TEST_CASES = [
+  {
+    code: "SELF-001",
+    title: "Landing page loads and the hero heading is visible",
+    expected: "The landing page returns HTTP 200 and shows its main heading.",
+    steps: [
+      { action: "goto", value: "/" },
+      { action: "expect_status", value: "200" },
+      { action: "expect_visible", selector: "h1" },
+    ],
+  },
+  {
+    code: "SELF-002",
+    title: "Sign-in page shows the sign-in form",
+    expected: "The /auth page shows an email field and a password field.",
+    steps: [
+      { action: "goto", value: "/auth" },
+      { action: "expect_visible", selector: "input[type=email]" },
+      { action: "expect_visible", selector: "input[type=password]" },
+    ],
+  },
+  {
+    code: "SELF-003",
+    title: "\"How it works\" section is visible on the landing page",
+    expected: "The landing page contains the How it works section.",
+    steps: [
+      { action: "goto", value: "/" },
+      { action: "expect_text", value: "How it works" },
+    ],
+  },
+  {
+    code: "SELF-004",
+    title: "Unknown route shows the not-found page",
+    expected: "An unknown path renders the 404 page instead of a blank screen.",
+    steps: [
+      { action: "goto", value: "/this-route-does-not-exist" },
+      { action: "expect_text", value: "Page not found" },
+    ],
+  },
+] as const;
+
+export const loadSelfTestSuite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ base_url: z.string().url().optional() }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isOwner } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "owner",
+    });
+    if (!isOwner) throw new Error("Only the workspace owner can load the self-test suite");
+
+    const baseUrl = data.base_url ?? "https://tap-and-track-32.lovable.app";
+
+    const { data: project, error: pErr } = await supabase
+      .from("qa_projects")
+      .insert({
+        user_id: userId,
+        name: "Synapse QA OS (self-test)",
+        base_url: baseUrl,
+        environment: "production",
+      })
+      .select("id")
+      .single();
+    if (pErr) throw new Error(pErr.message);
+
+    const { data: suite, error: sErr } = await supabase
+      .from("test_suites")
+      .insert({ user_id: userId, project_id: project.id, name: "Self-test", category: "ui" })
+      .select("id")
+      .single();
+    if (sErr) throw new Error(sErr.message);
+
+    const { error: cErr } = await supabase.from("test_cases").insert(
+      SELF_TEST_CASES.map((c) => ({
+        user_id: userId,
+        project_id: project.id,
+        suite_id: suite.id,
+        code: c.code,
+        title: c.title,
+        expected: c.expected,
+        steps_json: StepsSchema.parse(c.steps),
+        generated_by: "human" as const,
+      })),
+    );
+    if (cErr) throw new Error(cErr.message);
+
+    return { project_id: project.id as string, cases: SELF_TEST_CASES.length };
+  });

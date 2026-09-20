@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, KeyRound, Cloud, Globe, Bot, Eye, EyeOff, Check, Github } from "lucide-react";
 import { useMounted } from "@/lib/agent-store";
 import { useSecret, setSecret, clearSecret } from "@/lib/secrets-store";
+import { ApiKeysCard } from "@/components/ApiKeysCard";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings · Bridges Ops" }] }),
@@ -249,6 +250,10 @@ function Settings() {
       </Card>
 
       <GithubCard />
+
+      <div className="mt-6">
+        <ApiKeysCard />
+      </div>
 
       <Card className="mt-6">
 
