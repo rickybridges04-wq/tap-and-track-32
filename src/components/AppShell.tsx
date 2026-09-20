@@ -1,7 +1,7 @@
 import { Link, useRouterState, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2, Smartphone, Upload, Globe, Bell, Database, Inbox, Bug as BugIcon } from "lucide-react";
+import { Activity, FolderKanban, Settings, Zap, Bot, ShieldCheck, History, Sparkles, FlaskConical, Route as RouteIcon, Users, BookUser, Crown, LogOut, BarChart3, Loader2, Smartphone, Upload, Globe, Bell, Database, Inbox, Bug as BugIcon, GitBranch } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
