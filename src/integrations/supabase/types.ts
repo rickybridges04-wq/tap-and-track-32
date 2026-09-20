@@ -811,6 +811,41 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_report_shares: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          run_id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          run_id: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          run_id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_report_shares_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "qa_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qa_runs: {
         Row: {
           completed_at: string | null
@@ -1077,6 +1112,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      settle_qa_run: { Args: { p_run_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "owner" | "admin" | "user"
