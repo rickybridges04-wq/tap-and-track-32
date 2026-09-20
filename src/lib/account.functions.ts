@@ -58,8 +58,16 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
         if (error) console.error(`deleteMyAccount: ${table}: ${error.message}`);
       }
 
-      // 3. The auth user. Every other table cascades from here, and all
-      //    existing access tokens stop resolving to a real user.
+      // 3. Kill every active session first so no refresh token can mint a new
+      //    access token during or after deletion.
+      await supabaseAdmin.auth.admin
+        .signOut(context.accessToken ?? "", "global")
+        .catch(() => {});
+
+      // 4. The auth user. Every other table cascades from here. Note the
+      //    already-issued access token stays cryptographically valid until it
+      //    expires, but it can no longer be refreshed and every row it could
+      //    read is gone.
       const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (authError) return { error: authError.message };
 
