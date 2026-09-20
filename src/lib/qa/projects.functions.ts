@@ -470,7 +470,7 @@ export const getProjectTrends = createServerFn({ method: "GET" })
         .eq("run_id", r.id)
         .eq("user_id", userId);
       const list = rows ?? [];
-      const vital = (row: { web_vitals: Json }, key: string) => {
+      const vital = (row: { web_vitals: unknown }, key: string) => {
         const v = row.web_vitals as Record<string, unknown> | null;
         return Number(v?.[key]);
       };
