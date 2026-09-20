@@ -46,6 +46,7 @@ import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$p
 import { Route as QaAutomatedRunIdRouteImport } from './routes/qa.automated.$runId'
 import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
 import { Route as ApiV1RunsRouteImport } from './routes/api.v1.runs'
+import { Route as ApiV1RunsIdRouteImport } from './routes/api.v1.runs.$id'
 import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
 import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
 import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
@@ -239,6 +240,11 @@ const ApiV1RunsRoute = ApiV1RunsRouteImport.update({
   path: '/api/v1/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1RunsIdRoute = ApiV1RunsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiV1RunsRoute,
+} as any)
 const ApiPublicWorkerReportRoute = ApiPublicWorkerReportRouteImport.update({
   id: '/api/public/worker/report',
   path: '/api/public/worker/report',
@@ -309,7 +315,7 @@ export interface FileRoutesByFullPath {
   '/bugs/': typeof BugsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
-  '/api/v1/runs': typeof ApiV1RunsRoute
+  '/api/v1/runs': typeof ApiV1RunsRouteWithChildren
   '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
   '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
+  '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesByTo {
@@ -355,7 +362,7 @@ export interface FileRoutesByTo {
   '/bugs': typeof BugsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
-  '/api/v1/runs': typeof ApiV1RunsRoute
+  '/api/v1/runs': typeof ApiV1RunsRouteWithChildren
   '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
   '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
+  '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRoutesById {
@@ -402,7 +410,7 @@ export interface FileRoutesById {
   '/bugs/': typeof BugsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
-  '/api/v1/runs': typeof ApiV1RunsRoute
+  '/api/v1/runs': typeof ApiV1RunsRouteWithChildren
   '/apps/$id/submit': typeof AppsIdSubmitRoute
   '/qa/automated/$runId': typeof QaAutomatedRunIdRoute
   '/qa/projects/$projectId': typeof QaProjectsProjectIdRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/api/public/worker/claim': typeof ApiPublicWorkerClaimRoute
   '/api/public/worker/heartbeat': typeof ApiPublicWorkerHeartbeatRoute
   '/api/public/worker/report': typeof ApiPublicWorkerReportRoute
+  '/api/v1/runs/$id': typeof ApiV1RunsIdRoute
   '/api/public/forms/$appId/$formName': typeof ApiPublicFormsAppIdFormNameRoute
 }
 export interface FileRouteTypes {
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
     | '/api/public/worker/report'
+    | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
     | '/api/public/worker/report'
+    | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
   id:
     | '__root__'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/api/public/worker/claim'
     | '/api/public/worker/heartbeat'
     | '/api/public/worker/report'
+    | '/api/v1/runs/$id'
     | '/api/public/forms/$appId/$formName'
   fileRoutesById: FileRoutesById
 }
@@ -589,7 +601,7 @@ export interface RootRouteChildren {
   BugsIndexRoute: typeof BugsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
-  ApiV1RunsRoute: typeof ApiV1RunsRoute
+  ApiV1RunsRoute: typeof ApiV1RunsRouteWithChildren
   AppsIdSubmitRoute: typeof AppsIdSubmitRoute
   QaAutomatedRunIdRoute: typeof QaAutomatedRunIdRoute
   QaProjectsProjectIdRoute: typeof QaProjectsProjectIdRoute
@@ -867,6 +879,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RunsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/runs/$id': {
+      id: '/api/v1/runs/$id'
+      path: '/$id'
+      fullPath: '/api/v1/runs/$id'
+      preLoaderRoute: typeof ApiV1RunsIdRouteImport
+      parentRoute: typeof ApiV1RunsRoute
+    }
     '/api/public/worker/report': {
       id: '/api/public/worker/report'
       path: '/api/public/worker/report'
@@ -919,6 +938,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiV1RunsRouteChildren {
+  ApiV1RunsIdRoute: typeof ApiV1RunsIdRoute
+}
+
+const ApiV1RunsRouteChildren: ApiV1RunsRouteChildren = {
+  ApiV1RunsIdRoute: ApiV1RunsIdRoute,
+}
+
+const ApiV1RunsRouteWithChildren = ApiV1RunsRoute._addFileChildren(
+  ApiV1RunsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -949,7 +980,7 @@ const rootRouteChildren: RootRouteChildren = {
   BugsIndexRoute: BugsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
-  ApiV1RunsRoute: ApiV1RunsRoute,
+  ApiV1RunsRoute: ApiV1RunsRouteWithChildren,
   AppsIdSubmitRoute: AppsIdSubmitRoute,
   QaAutomatedRunIdRoute: QaAutomatedRunIdRoute,
   QaProjectsProjectIdRoute: QaProjectsProjectIdRoute,
