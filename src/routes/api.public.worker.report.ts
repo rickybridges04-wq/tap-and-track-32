@@ -2,6 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { requireWorkerToken } from "@/lib/qa/worker.server";
+import { errorSignature } from "@/lib/qa/signature";
 
 const CAP = 200;
 const MAX_SCREENSHOT_BYTES = 3 * 1024 * 1024;
@@ -60,23 +61,6 @@ const Body = z.object({
 });
 
 type Report = z.infer<typeof Body>;
-
-/** sha256 of the normalized error text + the failing step's selector. */
-async function errorSignature(report: Report, selector: string | null): Promise<string | null> {
-  if (report.status === "pass") return null;
-  const normalized = (report.error_message ?? "")
-    .toLowerCase()
-    .replace(/0x[0-9a-f]+/g, "<hex>")
-    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/g, "<uuid>")
-    .replace(/\d+/g, "<n>")
-    .replace(/\s+/g, " ")
-    .trim();
-  const input = `${normalized}|${selector ?? ""}`;
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 function base64ToBytes(b64: string): Uint8Array {
   const clean = b64.includes(",") ? b64.slice(b64.indexOf(",") + 1) : b64;
@@ -213,7 +197,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
           failedSelector = step?.selector ?? null;
         }
 
-        const signature = await errorSignature(report, failedSelector);
+        const signature = await errorSignature(report.status, report.error_message, failedSelector);
 
         const { data: resultRow, error: resErr } = await supabaseAdmin
           .from("automated_results")

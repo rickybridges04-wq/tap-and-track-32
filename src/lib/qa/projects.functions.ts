@@ -304,49 +304,23 @@ export const getProject = createServerFn({ method: "GET" })
 // ---------------- automated runs ----------------
 export const startAutomatedRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ project_id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: project, error: pErr } = await supabase
-      .from("qa_projects")
-      .select("id, base_url")
-      .eq("id", data.project_id)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (pErr) throw new Error(pErr.message);
-    if (!project) throw new Error("Project not found");
-
-    const { data: cases, error: cErr } = await supabase
-      .from("test_cases")
-      .select("id")
-      .eq("project_id", data.project_id)
-      .eq("user_id", userId);
-    if (cErr) throw new Error(cErr.message);
-    if (!cases || cases.length === 0) throw new Error("This project has no test cases yet");
-
-    const { data: run, error: rErr } = await supabase
-      .from("qa_runs")
-      .insert({
-        user_id: userId,
-        project_id: data.project_id,
-        kind: "automated",
-        target_url: project.base_url,
-        depth: "automated",
-        personas: [],
-        status: "queued",
-        progress_pct: 0,
-        progress_stage: `Queued ${cases.length} test case${cases.length === 1 ? "" : "s"}`,
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        project_id: z.string().uuid(),
+        ref: z.string().max(200).optional(),
+        commit_sha: z.string().max(80).optional(),
       })
-      .select("id")
-      .single();
-    if (rErr) throw new Error(rErr.message);
-
-    const { error: jErr } = await supabase.from("qa_jobs").insert(
-      cases.map((c) => ({ user_id: userId, run_id: run.id, case_id: c.id })),
-    );
-    if (jErr) throw new Error(jErr.message);
-
-    return { id: run.id as string, jobs: cases.length };
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    // Same queueing path the public API uses, so both stay in step.
+    const { queueAutomatedRun } = await import("@/lib/qa/queue.server");
+    const res = await queueAutomatedRun(context.supabase, context.userId, data.project_id, {
+      ref: data.ref ?? null,
+      commit_sha: data.commit_sha ?? null,
+    });
+    return { id: res.run_id, jobs: res.jobs_queued };
   });
 
 export const getAutomatedRun = createServerFn({ method: "GET" })
