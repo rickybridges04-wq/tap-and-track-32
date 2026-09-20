@@ -22,6 +22,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QaIndexRouteImport } from './routes/qa.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as BugsIndexRouteImport } from './routes/bugs.index'
 import { Route as AppsIndexRouteImport } from './routes/apps.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as RunsIdRouteImport } from './routes/runs.$id'
@@ -30,6 +31,7 @@ import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
 import { Route as QaNewRouteImport } from './routes/qa.new'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as BugsBugIdRouteImport } from './routes/bugs.$bugId'
 import { Route as AppsPublishedRouteImport } from './routes/apps.published'
 import { Route as AppsNewRouteImport } from './routes/apps.new'
 import { Route as AgentsNewRouteImport } from './routes/agents.new'
@@ -114,6 +116,11 @@ const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BugsIndexRoute = BugsIndexRouteImport.update({
+  id: '/bugs/',
+  path: '/bugs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppsIndexRoute = AppsIndexRouteImport.update({
   id: '/apps/',
   path: '/apps/',
@@ -152,6 +159,11 @@ const ProjectsNewRoute = ProjectsNewRouteImport.update({
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
   id: '/projects/$id',
   path: '/projects/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsBugIdRoute = BugsBugIdRouteImport.update({
+  id: '/bugs/$bugId',
+  path: '/bugs/$bugId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppsPublishedRoute = AppsPublishedRouteImport.update({
@@ -267,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/agents/new': typeof AgentsNewRoute
   '/apps/new': typeof AppsNewRoute
   '/apps/published': typeof AppsPublishedRoute
+  '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -275,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/apps/': typeof AppsIndexRoute
+  '/bugs/': typeof BugsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
@@ -308,6 +322,7 @@ export interface FileRoutesByTo {
   '/agents/new': typeof AgentsNewRoute
   '/apps/new': typeof AppsNewRoute
   '/apps/published': typeof AppsPublishedRoute
+  '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -316,6 +331,7 @@ export interface FileRoutesByTo {
   '/runs/$id': typeof RunsIdRoute
   '/agents': typeof AgentsIndexRoute
   '/apps': typeof AppsIndexRoute
+  '/bugs': typeof BugsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/qa': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
@@ -350,6 +366,7 @@ export interface FileRoutesById {
   '/agents/new': typeof AgentsNewRoute
   '/apps/new': typeof AppsNewRoute
   '/apps/published': typeof AppsPublishedRoute
+  '/bugs/$bugId': typeof BugsBugIdRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/qa/new': typeof QaNewRoute
@@ -358,6 +375,7 @@ export interface FileRoutesById {
   '/runs/$id': typeof RunsIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/apps/': typeof AppsIndexRoute
+  '/bugs/': typeof BugsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/qa/': typeof QaIndexRoute
   '/apps/$id/submit': typeof AppsIdSubmitRoute
@@ -393,6 +411,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/new'
     | '/apps/published'
+    | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -401,6 +420,7 @@ export interface FileRouteTypes {
     | '/runs/$id'
     | '/agents/'
     | '/apps/'
+    | '/bugs/'
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
@@ -434,6 +454,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/new'
     | '/apps/published'
+    | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -442,6 +463,7 @@ export interface FileRouteTypes {
     | '/runs/$id'
     | '/agents'
     | '/apps'
+    | '/bugs'
     | '/projects'
     | '/qa'
     | '/apps/$id/submit'
@@ -475,6 +497,7 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/apps/new'
     | '/apps/published'
+    | '/bugs/$bugId'
     | '/projects/$id'
     | '/projects/new'
     | '/qa/new'
@@ -483,6 +506,7 @@ export interface FileRouteTypes {
     | '/runs/$id'
     | '/agents/'
     | '/apps/'
+    | '/bugs/'
     | '/projects/'
     | '/qa/'
     | '/apps/$id/submit'
@@ -517,6 +541,7 @@ export interface RootRouteChildren {
   AgentsNewRoute: typeof AgentsNewRoute
   AppsNewRoute: typeof AppsNewRoute
   AppsPublishedRoute: typeof AppsPublishedRoute
+  BugsBugIdRoute: typeof BugsBugIdRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   QaNewRoute: typeof QaNewRoute
@@ -525,6 +550,7 @@ export interface RootRouteChildren {
   RunsIdRoute: typeof RunsIdRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   AppsIndexRoute: typeof AppsIndexRoute
+  BugsIndexRoute: typeof BugsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   QaIndexRoute: typeof QaIndexRoute
   AppsIdSubmitRoute: typeof AppsIdSubmitRoute
@@ -634,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bugs/': {
+      id: '/bugs/'
+      path: '/bugs'
+      fullPath: '/bugs/'
+      preLoaderRoute: typeof BugsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apps/': {
       id: '/apps/'
       path: '/apps'
@@ -688,6 +721,13 @@ declare module '@tanstack/react-router' {
       path: '/projects/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof ProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/$bugId': {
+      id: '/bugs/$bugId'
+      path: '/bugs/$bugId'
+      fullPath: '/bugs/$bugId'
+      preLoaderRoute: typeof BugsBugIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apps/published': {
@@ -837,6 +877,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsNewRoute: AgentsNewRoute,
   AppsNewRoute: AppsNewRoute,
   AppsPublishedRoute: AppsPublishedRoute,
+  BugsBugIdRoute: BugsBugIdRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   QaNewRoute: QaNewRoute,
@@ -845,6 +886,7 @@ const rootRouteChildren: RootRouteChildren = {
   RunsIdRoute: RunsIdRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   AppsIndexRoute: AppsIndexRoute,
+  BugsIndexRoute: BugsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   QaIndexRoute: QaIndexRoute,
   AppsIdSubmitRoute: AppsIdSubmitRoute,

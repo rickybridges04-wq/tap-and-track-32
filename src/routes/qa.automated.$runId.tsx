@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAutomatedRun } from "@/lib/qa/projects.functions";
+import { CreateBugDialog } from "@/components/CreateBugDialog";
 import { verdictColor, verdictLabel } from "@/lib/qa/scoring";
+
 
 export const Route = createFileRoute("/qa/automated/$runId")({
   head: () => ({
@@ -64,9 +66,19 @@ function AutomatedRun() {
     );
   }
 
-  const { run, jobs, results, cases, screenshots } = data;
+  const { run, jobs, results, cases, screenshots, analyses } = data;
   const resultByJob = new Map(results.map((r) => [r.job_id, r]));
   const caseById = new Map(cases.map((c) => [c.id, c]));
+  const analysisBySignature = new Map((analyses ?? []).map((a) => [a.error_signature, a]));
+
+  // Group real failures by signature — several failures often share one root cause.
+  const failures = results.filter((r) => r.status === "fail");
+  const groups = new Map<string, typeof failures>();
+  for (const r of failures) {
+    const key = r.error_signature ?? `no-signature:${r.id}`;
+    groups.set(key, [...(groups.get(key) ?? []), r]);
+  }
+  const infraErrors = results.filter((r) => r.status === "error");
 
   return (
     <AppShell>
@@ -99,6 +111,142 @@ function AutomatedRun() {
           {run.progress_stage ?? run.status} — results appear as the browser worker reports them.
         </p>
       )}
+
+      {groups.size > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold">
+            Failure groups · {failures.length} failure{failures.length === 1 ? "" : "s"} ·{" "}
+            {groups.size} root cause{groups.size === 1 ? "" : "s"}
+          </h2>
+          <div className="mt-3 space-y-3">
+            {Array.from(groups.entries()).map(([key, group]) => {
+              const first = group[0];
+              const analysis = first.error_signature
+                ? analysisBySignature.get(first.error_signature)
+                : undefined;
+              const steps = Array.isArray(analysis?.repro_steps)
+                ? (analysis!.repro_steps as string[])
+                : [];
+              const tc = caseById.get(first.case_id);
+              const consoleErrors = (first.console_errors ?? []) as string[];
+              const network = (first.network_failures ?? []) as Array<{
+                url: string;
+                status: number | null;
+                method: string;
+                failure: string | null;
+              }>;
+              return (
+                <Card key={key} className="border-destructive/40">
+                  <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base">
+                        {group.length} failure{group.length === 1 ? "" : "s"} · 1 root cause
+                      </CardTitle>
+                      <CardDescription className="break-words">
+                        {group
+                          .map((g) => caseById.get(g.case_id)?.code ?? "case")
+                          .join(", ")}{" "}
+                        · step {first.failed_step_index ?? "?"} ·{" "}
+                        {first.error_message ?? "no message"}
+                      </CardDescription>
+                    </div>
+                    <CreateBugDialog
+                      draft={{
+                        title:
+                          analysis?.likely_cause?.split(/[.\n]/)[0]?.slice(0, 120) ||
+                          `${tc?.code ?? "Test"} fails at step ${first.failed_step_index ?? 0}`,
+                        severity: (analysis?.suggested_severity ?? "high") as
+                          | "low"
+                          | "medium"
+                          | "high"
+                          | "critical",
+                        steps: steps.length ? steps : [`Run test case ${tc?.code ?? ""} against ${run.target_url}`],
+                        expected: tc?.title ? `${tc.title} should succeed.` : "",
+                        actual: first.error_message ?? "The test failed.",
+                        likelyCause: analysis?.likely_cause ?? "",
+                        projectId: (run.project_id as string | null) ?? null,
+                        resultId: first.id,
+                        analysisId: analysis?.id ?? null,
+                        screenshotPath: first.screenshot_path,
+                      }}
+                    />
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {analysis ? (
+                      <div className="rounded-md border border-border bg-muted/40 p-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span className="rounded-full bg-violet-500/15 px-2 py-0.5 font-medium text-violet-600">
+                            Suggestion — AI
+                          </span>
+                          <span>
+                            suggested {analysis.suggested_severity ?? "—"} · confidence{" "}
+                            {analysis.confidence != null ? `${Math.round(analysis.confidence * 100)}%` : "—"}
+                          </span>
+                          <span>· seen {analysis.occurrences}×</span>
+                        </div>
+                        <p className="mt-2">{analysis.likely_cause}</p>
+                        {steps.length > 0 && (
+                          <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-xs">
+                            {steps.map((s, i) => (
+                              <li key={i}>{s}</li>
+                            ))}
+                          </ol>
+                        )}
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                          The browser decided this failure. This explanation is a suggestion and does not
+                          change the result.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        No AI explanation stored for this failure.
+                      </p>
+                    )}
+
+                    {consoleErrors.length > 0 && (
+                      <Section title={`Console errors (${consoleErrors.length})`}>
+                        <ul className="list-disc space-y-0.5 pl-5 text-xs">
+                          {consoleErrors.slice(0, 10).map((c, i) => (
+                            <li key={i} className="break-words">{c}</li>
+                          ))}
+                        </ul>
+                      </Section>
+                    )}
+                    {network.length > 0 && (
+                      <Section title={`Network failures (${network.length})`}>
+                        <ul className="space-y-0.5 text-xs">
+                          {network.slice(0, 10).map((n, i) => (
+                            <li key={i} className="break-words">
+                              {n.method} {n.url} — {n.status ?? n.failure ?? "failed"}
+                            </li>
+                          ))}
+                        </ul>
+                      </Section>
+                    )}
+                    {screenshots[first.id] && (
+                      <Section title="Screenshot">
+                        <img
+                          src={screenshots[first.id]}
+                          alt={`Screenshot from the failing test case ${tc?.code ?? ""}`}
+                          className="max-h-80 rounded-md border border-border"
+                        />
+                      </Section>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {infraErrors.length > 0 && (
+        <p className="mb-6 rounded-md border border-orange-500/40 bg-orange-500/5 p-3 text-sm">
+          {infraErrors.length} case{infraErrors.length === 1 ? "" : "s"} ended in an infrastructure
+          error, re-run. These are not analysed.
+        </p>
+      )}
+
 
       <div className="space-y-3">
         {jobs.map((job) => {

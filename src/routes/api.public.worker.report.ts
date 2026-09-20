@@ -207,45 +207,93 @@ export const Route = createFileRoute("/api/public/worker/report")({
           else screenshotPath = path;
         }
 
-        // Selector of the failing step, for the error signature.
+        // The failing step's selector (for the signature) and the case metadata.
+        const { data: testCase } = await supabaseAdmin
+          .from("test_cases")
+          .select("code, title, steps_json")
+          .eq("id", job.case_id)
+          .maybeSingle();
+        const steps = Array.isArray(testCase?.steps_json) ? (testCase!.steps_json as unknown[]) : [];
         let failedSelector: string | null = null;
         if (report.failed_step_index != null) {
-          const { data: tc } = await supabaseAdmin
-            .from("test_cases")
-            .select("steps_json")
-            .eq("id", job.case_id)
-            .maybeSingle();
-          const steps = Array.isArray(tc?.steps_json) ? (tc!.steps_json as unknown[]) : [];
           const step = steps[report.failed_step_index] as { selector?: string } | undefined;
           failedSelector = step?.selector ?? null;
         }
 
         const signature = await errorSignature(report, failedSelector);
 
-        const { error: resErr } = await supabaseAdmin.from("automated_results").upsert(
-          {
-            user_id: job.user_id,
-            run_id: job.run_id,
-            case_id: job.case_id,
-            job_id: job.id,
-            status: report.status,
-            duration_ms: report.duration_ms,
-            failed_step_index: report.failed_step_index,
-            error_message: report.error_message,
-            console_errors: report.console_errors,
-            network_failures: report.network_failures,
-            axe_violations: report.axe_violations,
-            web_vitals: report.web_vitals,
-            step_log: report.step_log,
-            screenshot_path: screenshotPath,
-            error_signature: signature,
-          },
-          { onConflict: "job_id" },
-        );
+        const { data: resultRow, error: resErr } = await supabaseAdmin
+          .from("automated_results")
+          .upsert(
+            {
+              user_id: job.user_id,
+              run_id: job.run_id,
+              case_id: job.case_id,
+              job_id: job.id,
+              status: report.status,
+              duration_ms: report.duration_ms,
+              failed_step_index: report.failed_step_index,
+              error_message: report.error_message,
+              console_errors: report.console_errors,
+              network_failures: report.network_failures,
+              axe_violations: report.axe_violations,
+              web_vitals: report.web_vitals,
+              step_log: report.step_log,
+              screenshot_path: screenshotPath,
+              error_signature: signature,
+            },
+            { onConflict: "job_id" },
+          )
+          .select("id")
+          .single();
         if (resErr) {
           console.error("result insert failed:", resErr.message);
           return new Response(resErr.message, { status: 500 });
         }
+
+        // ---- AI failure analyst -------------------------------------------
+        // Playwright already decided the verdict. 'error' results are
+        // infrastructure problems, never analysed. One analysis per signature.
+        const { data: runRow } = await supabaseAdmin
+          .from("qa_runs")
+          .select("project_id, warnings")
+          .eq("id", job.run_id)
+          .maybeSingle();
+
+        if (report.status === "fail" && signature) {
+          const { analyseFailure } = await import("@/lib/qa/failure-analysis.server");
+          const { data: projectUrl } = await supabaseAdmin
+            .from("qa_projects")
+            .select("base_url")
+            .eq("id", runRow?.project_id ?? "")
+            .maybeSingle();
+          const outcome = await analyseFailure({
+            admin: supabaseAdmin as never,
+            userId: job.user_id,
+            projectId: runRow?.project_id ?? null,
+            resultId: resultRow?.id ?? null,
+            signature,
+            evidence: {
+              case_code: testCase?.code ?? "",
+              case_title: testCase?.title ?? "",
+              steps,
+              failed_step_index: report.failed_step_index,
+              error_message: report.error_message,
+              console_errors: report.console_errors,
+              network_failures: report.network_failures,
+              axe_violations: report.axe_violations,
+              url: projectUrl?.base_url ?? "",
+            },
+          });
+          if (outcome.warning) {
+            const existing = Array.isArray(runRow?.warnings) ? (runRow!.warnings as string[]) : [];
+            await supabaseAdmin
+              .from("qa_runs")
+              .update({ warnings: [...existing, outcome.warning] })
+              .eq("id", job.run_id);
+          }
+        }
+
 
         await supabaseAdmin
           .from("qa_jobs")

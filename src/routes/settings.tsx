@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, KeyRound, Cloud, Globe, Bot, Eye, EyeOff, Check } from "lucide-react";
+import { ExternalLink, KeyRound, Cloud, Globe, Bot, Eye, EyeOff, Check, Github } from "lucide-react";
 import { useMounted } from "@/lib/agent-store";
 import { useSecret, setSecret, clearSecret } from "@/lib/secrets-store";
 
@@ -55,6 +55,52 @@ const secrets: SecretDef[] = [
     link: "https://resend.com/api-keys",
   },
 ];
+
+function GithubCard() {
+  const mounted = useMounted();
+  const repo = useSecret("GITHUB_REPO");
+  const [draft, setDraft] = useState("");
+  const valid = /^[\w.-]+\/[\w.-]+$/.test(draft.trim());
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Github className="h-4 w-4" /> Bug tracking → GitHub (optional)
+        </CardTitle>
+        <CardDescription>
+          Set the repository bugs should be filed into, as owner/repo. The token itself is a project
+          secret named GITHUB_TOKEN — if it is missing, filing an issue is skipped with a message and
+          nothing else breaks.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            className="max-w-xs font-mono text-xs"
+            placeholder={mounted && repo ? repo : "owner/repo"}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <Button size="sm" disabled={!valid} onClick={() => { setSecret("GITHUB_REPO", draft.trim()); setDraft(""); }}>
+            Save repo
+          </Button>
+          {mounted && repo && (
+            <>
+              <Badge variant="secondary" className="text-[10px]">{repo}</Badge>
+              <Button size="sm" variant="ghost" onClick={() => clearSecret("GITHUB_REPO")}>Clear</Button>
+            </>
+          )}
+        </div>
+        <Button asChild size="sm" variant="ghost">
+          <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer">
+            Create a GitHub token <ExternalLink className="ml-1 h-3.5 w-3.5" />
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 function SecretRow({ def }: { def: SecretDef }) {
   const mounted = useMounted();
@@ -202,7 +248,10 @@ function Settings() {
         </CardContent>
       </Card>
 
+      <GithubCard />
+
       <Card className="mt-6">
+
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Globe className="h-4 w-4" /> Step 3 — Webhook URLs (live)

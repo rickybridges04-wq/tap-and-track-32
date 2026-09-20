@@ -54,6 +54,20 @@ export type AutomatedResult = {
   error_signature: string | null;
 };
 
+export type FailureAnalysis = {
+  id: string;
+  error_signature: string;
+  occurrences: number;
+  last_seen_at: string;
+  likely_cause: string | null;
+  repro_steps: Json;
+  suggested_severity: "low" | "medium" | "high" | "critical" | null;
+  confidence: number | null;
+  basis: string;
+  model: string | null;
+};
+
+
 // ---------------- projects ----------------
 const ProjectInput = z.object({
   id: z.string().uuid().optional(),
@@ -373,11 +387,27 @@ export const getAutomatedRun = createServerFn({ method: "GET" })
       if (url?.signedUrl) signed[r.id] = url.signedUrl;
     }
 
+    // AI explanations, grouped by error signature (one per root cause).
+    const signatures = Array.from(
+      new Set(results.map((r) => r.error_signature).filter((s): s is string => !!s)),
+    );
+    const { data: analyses } = signatures.length
+      ? await supabase
+          .from("failure_analyses")
+          .select(
+            "id, error_signature, occurrences, last_seen_at, likely_cause, repro_steps, suggested_severity, confidence, basis, model",
+          )
+          .eq("user_id", userId)
+          .in("error_signature", signatures)
+      : { data: [] as FailureAnalysis[] };
+
     return {
       run: runRes.data,
       jobs: jobsRes.data ?? [],
       results,
       cases: cases ?? [],
       screenshots: signed,
+      analyses: (analyses ?? []) as unknown as FailureAnalysis[],
     };
   });
+

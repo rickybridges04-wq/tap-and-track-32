@@ -293,6 +293,189 @@ export type Database = {
           },
         ]
       }
+      bug_comments: {
+        Row: {
+          body: string
+          bug_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          bug_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          bug_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_comments_bug_id_fkey"
+            columns: ["bug_id"]
+            isOneToOne: false
+            referencedRelation: "bugs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bugs: {
+        Row: {
+          actual: string | null
+          assignee: string | null
+          created_at: string
+          expected: string | null
+          failure_analysis_id: string | null
+          github_issue_url: string | null
+          id: string
+          likely_cause: string | null
+          project_id: string | null
+          result_id: string | null
+          screenshot_path: string | null
+          severity: string
+          status: string
+          steps_to_reproduce: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual?: string | null
+          assignee?: string | null
+          created_at?: string
+          expected?: string | null
+          failure_analysis_id?: string | null
+          github_issue_url?: string | null
+          id?: string
+          likely_cause?: string | null
+          project_id?: string | null
+          result_id?: string | null
+          screenshot_path?: string | null
+          severity?: string
+          status?: string
+          steps_to_reproduce?: Json
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual?: string | null
+          assignee?: string | null
+          created_at?: string
+          expected?: string | null
+          failure_analysis_id?: string | null
+          github_issue_url?: string | null
+          id?: string
+          likely_cause?: string | null
+          project_id?: string | null
+          result_id?: string | null
+          screenshot_path?: string | null
+          severity?: string
+          status?: string
+          steps_to_reproduce?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bugs_failure_analysis_id_fkey"
+            columns: ["failure_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "failure_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bugs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "qa_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bugs_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "automated_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      failure_analyses: {
+        Row: {
+          basis: string
+          confidence: number | null
+          created_at: string
+          error_signature: string
+          first_seen_result_id: string | null
+          id: string
+          last_seen_at: string
+          likely_cause: string | null
+          model: string | null
+          occurrences: number
+          project_id: string | null
+          repro_steps: Json
+          suggested_severity: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          basis?: string
+          confidence?: number | null
+          created_at?: string
+          error_signature: string
+          first_seen_result_id?: string | null
+          id?: string
+          last_seen_at?: string
+          likely_cause?: string | null
+          model?: string | null
+          occurrences?: number
+          project_id?: string | null
+          repro_steps?: Json
+          suggested_severity?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          basis?: string
+          confidence?: number | null
+          created_at?: string
+          error_signature?: string
+          first_seen_result_id?: string | null
+          id?: string
+          last_seen_at?: string
+          likely_cause?: string | null
+          model?: string | null
+          occurrences?: number
+          project_id?: string | null
+          repro_steps?: Json
+          suggested_severity?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "failure_analyses_first_seen_result_id_fkey"
+            columns: ["first_seen_result_id"]
+            isOneToOne: false
+            referencedRelation: "automated_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "failure_analyses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "qa_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_campaigns: {
         Row: {
           app_id: string
