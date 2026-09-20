@@ -61,8 +61,9 @@ function buildPrompt(e: FailureEvidence): string {
     `Failed at step index: ${e.failed_step_index ?? "unknown"}`,
     `Error message: ${e.error_message ?? "(none reported)"}`,
     `Console errors: ${JSON.stringify(e.console_errors.slice(0, 20))}`,
-    `Failed network requests: ${JSON.stringify(redact(e.network_failures).valueOf())}`,
-    `Accessibility violations: ${JSON.stringify(redact(e.axe_violations).valueOf())}`,
+    `Failed network requests: ${JSON.stringify(redact(e.network_failures))}`,
+    `Accessibility violations: ${JSON.stringify(redact(e.axe_violations))}`,
+
     "",
     "Return JSON only: likely_cause (one short paragraph), repro_steps (array of short imperative strings),",
     "suggested_severity (low|medium|high|critical), confidence (0 to 1).",
