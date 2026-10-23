@@ -35,7 +35,7 @@ export const Route = createFileRoute("/qa/report/$runId")({
   component: ReportPage,
   errorComponent: ({ error }) => (
     <AppShell>
-      <p className="text-sm text-destructive">Could not load this report: {error.message}</p>
+      <p className="text-sm text-destructive">Could not load this report: {error instanceof Error ? error.message : String(error)}</p>
     </AppShell>
   ),
 });

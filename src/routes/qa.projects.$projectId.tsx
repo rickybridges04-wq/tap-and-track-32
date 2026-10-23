@@ -46,7 +46,7 @@ export const Route = createFileRoute("/qa/projects/$projectId")({
   component: ProjectDetail,
   errorComponent: ({ error }) => (
     <AppShell>
-      <p className="text-sm text-destructive">Could not load this project: {error.message}</p>
+      <p className="text-sm text-destructive">Could not load this project: {error instanceof Error ? error.message : String(error)}</p>
     </AppShell>
   ),
   notFoundComponent: () => (

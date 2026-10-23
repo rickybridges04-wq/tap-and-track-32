@@ -24,7 +24,7 @@ export const Route = createFileRoute("/bugs/")({
   component: BugsList,
   errorComponent: ({ error }) => (
     <AppShell>
-      <p className="text-sm text-destructive">Could not load bugs: {error.message}</p>
+      <p className="text-sm text-destructive">Could not load bugs: {error instanceof Error ? error.message : String(error)}</p>
     </AppShell>
   ),
   notFoundComponent: () => (

@@ -9,98 +9,58 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UpgradeRouteImport } from './routes/upgrade'
-import { Route as SubmissionsRouteImport } from './routes/submissions'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as PathwaysRouteImport } from './routes/pathways'
-import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
-import { Route as DataRouteImport } from './routes/data'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as QaIndexRouteImport } from './routes/qa.index'
-import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
-import { Route as BugsIndexRouteImport } from './routes/bugs.index'
-import { Route as AppsIndexRouteImport } from './routes/apps.index'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DataRouteImport } from './routes/data'
+import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as PathwaysRouteImport } from './routes/pathways'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SubmissionsRouteImport } from './routes/submissions'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
-import { Route as RunsIdRouteImport } from './routes/runs.$id'
-import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
-import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
-import { Route as QaNewRouteImport } from './routes/qa.new'
-import { Route as QaCiRouteImport } from './routes/qa.ci'
-import { Route as ProjectsNewRouteImport } from './routes/projects.new'
-import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
-import { Route as BugsBugIdRouteImport } from './routes/bugs.$bugId'
-import { Route as AppsPublishedRouteImport } from './routes/apps.published'
-import { Route as AppsNewRouteImport } from './routes/apps.new'
-import { Route as AgentsNewRouteImport } from './routes/agents.new'
-import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
-import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
 import { Route as AgentsTaskIdRouteImport } from './routes/agents.$taskId'
-import { Route as QaProjectsIndexRouteImport } from './routes/qa.projects.index'
-import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
-import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
-import { Route as QaReportRunIdRouteImport } from './routes/qa.report.$runId'
-import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$projectId'
-import { Route as QaAutomatedRunIdRouteImport } from './routes/qa.automated.$runId'
-import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
+import { Route as AgentsApprovalsRouteImport } from './routes/agents.approvals'
+import { Route as AgentsHistoryRouteImport } from './routes/agents.history'
+import { Route as AgentsNewRouteImport } from './routes/agents.new'
+import { Route as AppsIndexRouteImport } from './routes/apps.index'
+import { Route as AppsNewRouteImport } from './routes/apps.new'
+import { Route as AppsPublishedRouteImport } from './routes/apps.published'
+import { Route as BugsIndexRouteImport } from './routes/bugs.index'
+import { Route as BugsBugIdRouteImport } from './routes/bugs.$bugId'
+import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as ProjectsNewRouteImport } from './routes/projects.new'
+import { Route as QaIndexRouteImport } from './routes/qa.index'
+import { Route as QaCiRouteImport } from './routes/qa.ci'
+import { Route as QaNewRouteImport } from './routes/qa.new'
+import { Route as RosterAgentsRouteImport } from './routes/roster.agents'
+import { Route as RosterPersonasRouteImport } from './routes/roster.personas'
+import { Route as RunsIdRouteImport } from './routes/runs.$id'
 import { Route as ApiV1RunsRouteImport } from './routes/api.v1.runs'
-import { Route as ApiV1RunsIdRouteImport } from './routes/api.v1.runs.$id'
-import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
-import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
-import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
-import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
-import { Route as ApiPublicV1RunsRouteImport } from './routes/api.public.v1.runs'
-import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
+import { Route as AppsIdIndexRouteImport } from './routes/apps.$id.index'
+import { Route as AppsIdSubmitRouteImport } from './routes/apps.$id.submit'
+import { Route as QaAutomatedRunIdRouteImport } from './routes/qa.automated.$runId'
+import { Route as QaProjectsIndexRouteImport } from './routes/qa.projects.index'
+import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$projectId'
+import { Route as QaReportRunIdRouteImport } from './routes/qa.report.$runId'
+import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
-import { Route as ApiPublicV1RunsIdRouteImport } from './routes/api.public.v1.runs.$id'
+import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
+import { Route as ApiPublicV1RunsRouteImport } from './routes/api.public.v1.runs'
+import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
+import { Route as ApiPublicWorkerClaimRouteImport } from './routes/api.public.worker.claim'
+import { Route as ApiPublicWorkerHeartbeatRouteImport } from './routes/api.public.worker.heartbeat'
+import { Route as ApiPublicWorkerReportRouteImport } from './routes/api.public.worker.report'
+import { Route as ApiV1RunsIdRouteImport } from './routes/api.v1.runs.$id'
 import { Route as ApiPublicFormsAppIdFormNameRouteImport } from './routes/api.public.forms.$appId.$formName'
+import { Route as ApiPublicV1RunsIdRouteImport } from './routes/api.public.v1.runs.$id'
 
-const UpgradeRoute = UpgradeRouteImport.update({
-  id: '/upgrade',
-  path: '/upgrade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubmissionsRoute = SubmissionsRouteImport.update({
-  id: '/submissions',
-  path: '/submissions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PathwaysRoute = PathwaysRouteImport.update({
-  id: '/pathways',
-  path: '/pathways',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticsRoute = DiagnosticsRouteImport.update({
-  id: '/diagnostics',
-  path: '/diagnostics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DataRoute = DataRouteImport.update({
-  id: '/data',
-  path: '/data',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -108,29 +68,49 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaIndexRoute = QaIndexRouteImport.update({
-  id: '/qa/',
-  path: '/qa/',
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
-  id: '/projects/',
-  path: '/projects/',
+const DiagnosticsRoute = DiagnosticsRouteImport.update({
+  id: '/diagnostics',
+  path: '/diagnostics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BugsIndexRoute = BugsIndexRouteImport.update({
-  id: '/bugs/',
-  path: '/bugs/',
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppsIndexRoute = AppsIndexRouteImport.update({
-  id: '/apps/',
-  path: '/apps/',
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PathwaysRoute = PathwaysRouteImport.update({
+  id: '/pathways',
+  path: '/pathways',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubmissionsRoute = SubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
@@ -138,64 +118,9 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   path: '/agents/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsIdRoute = RunsIdRouteImport.update({
-  id: '/runs/$id',
-  path: '/runs/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RosterPersonasRoute = RosterPersonasRouteImport.update({
-  id: '/roster/personas',
-  path: '/roster/personas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RosterAgentsRoute = RosterAgentsRouteImport.update({
-  id: '/roster/agents',
-  path: '/roster/agents',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QaNewRoute = QaNewRouteImport.update({
-  id: '/qa/new',
-  path: '/qa/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QaCiRoute = QaCiRouteImport.update({
-  id: '/qa/ci',
-  path: '/qa/ci',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsNewRoute = ProjectsNewRouteImport.update({
-  id: '/projects/new',
-  path: '/projects/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsIdRoute = ProjectsIdRouteImport.update({
-  id: '/projects/$id',
-  path: '/projects/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BugsBugIdRoute = BugsBugIdRouteImport.update({
-  id: '/bugs/$bugId',
-  path: '/bugs/$bugId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppsPublishedRoute = AppsPublishedRouteImport.update({
-  id: '/apps/published',
-  path: '/apps/published',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppsNewRoute = AppsNewRouteImport.update({
-  id: '/apps/new',
-  path: '/apps/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgentsNewRoute = AgentsNewRouteImport.update({
-  id: '/agents/new',
-  path: '/agents/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgentsHistoryRoute = AgentsHistoryRouteImport.update({
-  id: '/agents/history',
-  path: '/agents/history',
+const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
+  id: '/agents/$taskId',
+  path: '/agents/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsApprovalsRoute = AgentsApprovalsRouteImport.update({
@@ -203,44 +128,84 @@ const AgentsApprovalsRoute = AgentsApprovalsRouteImport.update({
   path: '/agents/approvals',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgentsTaskIdRoute = AgentsTaskIdRouteImport.update({
-  id: '/agents/$taskId',
-  path: '/agents/$taskId',
+const AgentsHistoryRoute = AgentsHistoryRouteImport.update({
+  id: '/agents/history',
+  path: '/agents/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaProjectsIndexRoute = QaProjectsIndexRouteImport.update({
-  id: '/qa/projects/',
-  path: '/qa/projects/',
+const AgentsNewRoute = AgentsNewRouteImport.update({
+  id: '/agents/new',
+  path: '/agents/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppsIdIndexRoute = AppsIdIndexRouteImport.update({
-  id: '/apps/$id/',
-  path: '/apps/$id/',
+const AppsIndexRoute = AppsIndexRouteImport.update({
+  id: '/apps/',
+  path: '/apps/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
-  id: '/qa/runs/$runId',
-  path: '/qa/runs/$runId',
+const AppsNewRoute = AppsNewRouteImport.update({
+  id: '/apps/new',
+  path: '/apps/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaReportRunIdRoute = QaReportRunIdRouteImport.update({
-  id: '/qa/report/$runId',
-  path: '/qa/report/$runId',
+const AppsPublishedRoute = AppsPublishedRouteImport.update({
+  id: '/apps/published',
+  path: '/apps/published',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaProjectsProjectIdRoute = QaProjectsProjectIdRouteImport.update({
-  id: '/qa/projects/$projectId',
-  path: '/qa/projects/$projectId',
+const BugsIndexRoute = BugsIndexRouteImport.update({
+  id: '/bugs/',
+  path: '/bugs/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QaAutomatedRunIdRoute = QaAutomatedRunIdRouteImport.update({
-  id: '/qa/automated/$runId',
-  path: '/qa/automated/$runId',
+const BugsBugIdRoute = BugsBugIdRouteImport.update({
+  id: '/bugs/$bugId',
+  path: '/bugs/$bugId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
-  id: '/apps/$id/submit',
-  path: '/apps/$id/submit',
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsIdRoute = ProjectsIdRouteImport.update({
+  id: '/projects/$id',
+  path: '/projects/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsNewRoute = ProjectsNewRouteImport.update({
+  id: '/projects/new',
+  path: '/projects/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaIndexRoute = QaIndexRouteImport.update({
+  id: '/qa/',
+  path: '/qa/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaCiRoute = QaCiRouteImport.update({
+  id: '/qa/ci',
+  path: '/qa/ci',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaNewRoute = QaNewRouteImport.update({
+  id: '/qa/new',
+  path: '/qa/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RosterAgentsRoute = RosterAgentsRouteImport.update({
+  id: '/roster/agents',
+  path: '/roster/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RosterPersonasRoute = RosterPersonasRouteImport.update({
+  id: '/roster/personas',
+  path: '/roster/personas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsIdRoute = RunsIdRouteImport.update({
+  id: '/runs/$id',
+  path: '/runs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1RunsRoute = ApiV1RunsRouteImport.update({
@@ -248,41 +213,39 @@ const ApiV1RunsRoute = ApiV1RunsRouteImport.update({
   path: '/api/v1/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1RunsIdRoute = ApiV1RunsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiV1RunsRoute,
-} as any)
-const ApiPublicWorkerReportRoute = ApiPublicWorkerReportRouteImport.update({
-  id: '/api/public/worker/report',
-  path: '/api/public/worker/report',
+const AppsIdIndexRoute = AppsIdIndexRouteImport.update({
+  id: '/apps/$id/',
+  path: '/apps/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicWorkerHeartbeatRoute =
-  ApiPublicWorkerHeartbeatRouteImport.update({
-    id: '/api/public/worker/heartbeat',
-    path: '/api/public/worker/heartbeat',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicWorkerClaimRoute = ApiPublicWorkerClaimRouteImport.update({
-  id: '/api/public/worker/claim',
-  path: '/api/public/worker/claim',
+const AppsIdSubmitRoute = AppsIdSubmitRouteImport.update({
+  id: '/apps/$id/submit',
+  path: '/apps/$id/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicWebhooksAgentEventRoute =
-  ApiPublicWebhooksAgentEventRouteImport.update({
-    id: '/api/public/webhooks/agent-event',
-    path: '/api/public/webhooks/agent-event',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicV1RunsRoute = ApiPublicV1RunsRouteImport.update({
-  id: '/api/public/v1/runs',
-  path: '/api/public/v1/runs',
+const QaAutomatedRunIdRoute = QaAutomatedRunIdRouteImport.update({
+  id: '/qa/automated/$runId',
+  path: '/qa/automated/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicReportTokenRoute = ApiPublicReportTokenRouteImport.update({
-  id: '/api/public/report/$token',
-  path: '/api/public/report/$token',
+const QaProjectsIndexRoute = QaProjectsIndexRouteImport.update({
+  id: '/qa/projects/',
+  path: '/qa/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaProjectsProjectIdRoute = QaProjectsProjectIdRouteImport.update({
+  id: '/qa/projects/$projectId',
+  path: '/qa/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaReportRunIdRoute = QaReportRunIdRouteImport.update({
+  id: '/qa/report/$runId',
+  path: '/qa/report/$runId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaRunsRunIdRoute = QaRunsRunIdRouteImport.update({
+  id: '/qa/runs/$runId',
+  path: '/qa/runs/$runId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
@@ -291,10 +254,42 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicV1RunsIdRoute = ApiPublicV1RunsIdRouteImport.update({
+const ApiPublicReportTokenRoute = ApiPublicReportTokenRouteImport.update({
+  id: '/api/public/report/$token',
+  path: '/api/public/report/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1RunsRoute = ApiPublicV1RunsRouteImport.update({
+  id: '/api/public/v1/runs',
+  path: '/api/public/v1/runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhooksAgentEventRoute =
+  ApiPublicWebhooksAgentEventRouteImport.update({
+    id: '/api/public/webhooks/agent-event',
+    path: '/api/public/webhooks/agent-event',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWorkerClaimRoute = ApiPublicWorkerClaimRouteImport.update({
+  id: '/api/public/worker/claim',
+  path: '/api/public/worker/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWorkerHeartbeatRoute =
+  ApiPublicWorkerHeartbeatRouteImport.update({
+    id: '/api/public/worker/heartbeat',
+    path: '/api/public/worker/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWorkerReportRoute = ApiPublicWorkerReportRouteImport.update({
+  id: '/api/public/worker/report',
+  path: '/api/public/worker/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1RunsIdRoute = ApiV1RunsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => ApiPublicV1RunsRoute,
+  getParentRoute: () => ApiV1RunsRoute,
 } as any)
 const ApiPublicFormsAppIdFormNameRoute =
   ApiPublicFormsAppIdFormNameRouteImport.update({
@@ -302,6 +297,11 @@ const ApiPublicFormsAppIdFormNameRoute =
     path: '/api/public/forms/$appId/$formName',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1RunsIdRoute = ApiPublicV1RunsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1RunsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -658,67 +658,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upgrade': {
-      id: '/upgrade'
-      path: '/upgrade'
-      fullPath: '/upgrade'
-      preLoaderRoute: typeof UpgradeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/submissions': {
-      id: '/submissions'
-      path: '/submissions'
-      fullPath: '/submissions'
-      preLoaderRoute: typeof SubmissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pathways': {
-      id: '/pathways'
-      path: '/pathways'
-      fullPath: '/pathways'
-      preLoaderRoute: typeof PathwaysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnostics': {
-      id: '/diagnostics'
-      path: '/diagnostics'
-      fullPath: '/diagnostics'
-      preLoaderRoute: typeof DiagnosticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/data': {
-      id: '/data'
-      path: '/data'
-      fullPath: '/data'
-      preLoaderRoute: typeof DataRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -728,39 +672,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/': {
-      id: '/qa/'
-      path: '/qa'
-      fullPath: '/qa/'
-      preLoaderRoute: typeof QaIndexRouteImport
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/': {
-      id: '/projects/'
-      path: '/projects'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof ProjectsIndexRouteImport
+    '/diagnostics': {
+      id: '/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/diagnostics'
+      preLoaderRoute: typeof DiagnosticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bugs/': {
-      id: '/bugs/'
-      path: '/bugs'
-      fullPath: '/bugs/'
-      preLoaderRoute: typeof BugsIndexRouteImport
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/apps/': {
-      id: '/apps/'
-      path: '/apps'
-      fullPath: '/apps/'
-      preLoaderRoute: typeof AppsIndexRouteImport
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pathways': {
+      id: '/pathways'
+      path: '/pathways'
+      fullPath: '/pathways'
+      preLoaderRoute: typeof PathwaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/submissions': {
+      id: '/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof SubmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/': {
@@ -770,88 +742,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/$id': {
-      id: '/runs/$id'
-      path: '/runs/$id'
-      fullPath: '/runs/$id'
-      preLoaderRoute: typeof RunsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roster/personas': {
-      id: '/roster/personas'
-      path: '/roster/personas'
-      fullPath: '/roster/personas'
-      preLoaderRoute: typeof RosterPersonasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roster/agents': {
-      id: '/roster/agents'
-      path: '/roster/agents'
-      fullPath: '/roster/agents'
-      preLoaderRoute: typeof RosterAgentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/qa/new': {
-      id: '/qa/new'
-      path: '/qa/new'
-      fullPath: '/qa/new'
-      preLoaderRoute: typeof QaNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/qa/ci': {
-      id: '/qa/ci'
-      path: '/qa/ci'
-      fullPath: '/qa/ci'
-      preLoaderRoute: typeof QaCiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects/new': {
-      id: '/projects/new'
-      path: '/projects/new'
-      fullPath: '/projects/new'
-      preLoaderRoute: typeof ProjectsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects/$id': {
-      id: '/projects/$id'
-      path: '/projects/$id'
-      fullPath: '/projects/$id'
-      preLoaderRoute: typeof ProjectsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bugs/$bugId': {
-      id: '/bugs/$bugId'
-      path: '/bugs/$bugId'
-      fullPath: '/bugs/$bugId'
-      preLoaderRoute: typeof BugsBugIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/apps/published': {
-      id: '/apps/published'
-      path: '/apps/published'
-      fullPath: '/apps/published'
-      preLoaderRoute: typeof AppsPublishedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/apps/new': {
-      id: '/apps/new'
-      path: '/apps/new'
-      fullPath: '/apps/new'
-      preLoaderRoute: typeof AppsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agents/new': {
-      id: '/agents/new'
-      path: '/agents/new'
-      fullPath: '/agents/new'
-      preLoaderRoute: typeof AgentsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agents/history': {
-      id: '/agents/history'
-      path: '/agents/history'
-      fullPath: '/agents/history'
-      preLoaderRoute: typeof AgentsHistoryRouteImport
+    '/agents/$taskId': {
+      id: '/agents/$taskId'
+      path: '/agents/$taskId'
+      fullPath: '/agents/$taskId'
+      preLoaderRoute: typeof AgentsTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/approvals': {
@@ -861,60 +756,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/agents/$taskId': {
-      id: '/agents/$taskId'
-      path: '/agents/$taskId'
-      fullPath: '/agents/$taskId'
-      preLoaderRoute: typeof AgentsTaskIdRouteImport
+    '/agents/history': {
+      id: '/agents/history'
+      path: '/agents/history'
+      fullPath: '/agents/history'
+      preLoaderRoute: typeof AgentsHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/projects/': {
-      id: '/qa/projects/'
-      path: '/qa/projects'
-      fullPath: '/qa/projects/'
-      preLoaderRoute: typeof QaProjectsIndexRouteImport
+    '/agents/new': {
+      id: '/agents/new'
+      path: '/agents/new'
+      fullPath: '/agents/new'
+      preLoaderRoute: typeof AgentsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/apps/$id/': {
-      id: '/apps/$id/'
-      path: '/apps/$id'
-      fullPath: '/apps/$id/'
-      preLoaderRoute: typeof AppsIdIndexRouteImport
+    '/apps/': {
+      id: '/apps/'
+      path: '/apps'
+      fullPath: '/apps/'
+      preLoaderRoute: typeof AppsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/runs/$runId': {
-      id: '/qa/runs/$runId'
-      path: '/qa/runs/$runId'
-      fullPath: '/qa/runs/$runId'
-      preLoaderRoute: typeof QaRunsRunIdRouteImport
+    '/apps/new': {
+      id: '/apps/new'
+      path: '/apps/new'
+      fullPath: '/apps/new'
+      preLoaderRoute: typeof AppsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/report/$runId': {
-      id: '/qa/report/$runId'
-      path: '/qa/report/$runId'
-      fullPath: '/qa/report/$runId'
-      preLoaderRoute: typeof QaReportRunIdRouteImport
+    '/apps/published': {
+      id: '/apps/published'
+      path: '/apps/published'
+      fullPath: '/apps/published'
+      preLoaderRoute: typeof AppsPublishedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/projects/$projectId': {
-      id: '/qa/projects/$projectId'
-      path: '/qa/projects/$projectId'
-      fullPath: '/qa/projects/$projectId'
-      preLoaderRoute: typeof QaProjectsProjectIdRouteImport
+    '/bugs/': {
+      id: '/bugs/'
+      path: '/bugs'
+      fullPath: '/bugs/'
+      preLoaderRoute: typeof BugsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/qa/automated/$runId': {
-      id: '/qa/automated/$runId'
-      path: '/qa/automated/$runId'
-      fullPath: '/qa/automated/$runId'
-      preLoaderRoute: typeof QaAutomatedRunIdRouteImport
+    '/bugs/$bugId': {
+      id: '/bugs/$bugId'
+      path: '/bugs/$bugId'
+      fullPath: '/bugs/$bugId'
+      preLoaderRoute: typeof BugsBugIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/apps/$id/submit': {
-      id: '/apps/$id/submit'
-      path: '/apps/$id/submit'
-      fullPath: '/apps/$id/submit'
-      preLoaderRoute: typeof AppsIdSubmitRouteImport
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$id': {
+      id: '/projects/$id'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof ProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/new': {
+      id: '/projects/new'
+      path: '/projects/new'
+      fullPath: '/projects/new'
+      preLoaderRoute: typeof ProjectsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/': {
+      id: '/qa/'
+      path: '/qa'
+      fullPath: '/qa/'
+      preLoaderRoute: typeof QaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/ci': {
+      id: '/qa/ci'
+      path: '/qa/ci'
+      fullPath: '/qa/ci'
+      preLoaderRoute: typeof QaCiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/new': {
+      id: '/qa/new'
+      path: '/qa/new'
+      fullPath: '/qa/new'
+      preLoaderRoute: typeof QaNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roster/agents': {
+      id: '/roster/agents'
+      path: '/roster/agents'
+      fullPath: '/roster/agents'
+      preLoaderRoute: typeof RosterAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roster/personas': {
+      id: '/roster/personas'
+      path: '/roster/personas'
+      fullPath: '/roster/personas'
+      preLoaderRoute: typeof RosterPersonasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs/$id': {
+      id: '/runs/$id'
+      path: '/runs/$id'
+      fullPath: '/runs/$id'
+      preLoaderRoute: typeof RunsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/runs': {
@@ -924,53 +875,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RunsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/runs/$id': {
-      id: '/api/v1/runs/$id'
-      path: '/$id'
-      fullPath: '/api/v1/runs/$id'
-      preLoaderRoute: typeof ApiV1RunsIdRouteImport
-      parentRoute: typeof ApiV1RunsRoute
-    }
-    '/api/public/worker/report': {
-      id: '/api/public/worker/report'
-      path: '/api/public/worker/report'
-      fullPath: '/api/public/worker/report'
-      preLoaderRoute: typeof ApiPublicWorkerReportRouteImport
+    '/apps/$id/': {
+      id: '/apps/$id/'
+      path: '/apps/$id'
+      fullPath: '/apps/$id/'
+      preLoaderRoute: typeof AppsIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/worker/heartbeat': {
-      id: '/api/public/worker/heartbeat'
-      path: '/api/public/worker/heartbeat'
-      fullPath: '/api/public/worker/heartbeat'
-      preLoaderRoute: typeof ApiPublicWorkerHeartbeatRouteImport
+    '/apps/$id/submit': {
+      id: '/apps/$id/submit'
+      path: '/apps/$id/submit'
+      fullPath: '/apps/$id/submit'
+      preLoaderRoute: typeof AppsIdSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/worker/claim': {
-      id: '/api/public/worker/claim'
-      path: '/api/public/worker/claim'
-      fullPath: '/api/public/worker/claim'
-      preLoaderRoute: typeof ApiPublicWorkerClaimRouteImport
+    '/qa/automated/$runId': {
+      id: '/qa/automated/$runId'
+      path: '/qa/automated/$runId'
+      fullPath: '/qa/automated/$runId'
+      preLoaderRoute: typeof QaAutomatedRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/webhooks/agent-event': {
-      id: '/api/public/webhooks/agent-event'
-      path: '/api/public/webhooks/agent-event'
-      fullPath: '/api/public/webhooks/agent-event'
-      preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
+    '/qa/projects/': {
+      id: '/qa/projects/'
+      path: '/qa/projects'
+      fullPath: '/qa/projects/'
+      preLoaderRoute: typeof QaProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/runs': {
-      id: '/api/public/v1/runs'
-      path: '/api/public/v1/runs'
-      fullPath: '/api/public/v1/runs'
-      preLoaderRoute: typeof ApiPublicV1RunsRouteImport
+    '/qa/projects/$projectId': {
+      id: '/qa/projects/$projectId'
+      path: '/qa/projects/$projectId'
+      fullPath: '/qa/projects/$projectId'
+      preLoaderRoute: typeof QaProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/report/$token': {
-      id: '/api/public/report/$token'
-      path: '/api/public/report/$token'
-      fullPath: '/api/public/report/$token'
-      preLoaderRoute: typeof ApiPublicReportTokenRouteImport
+    '/qa/report/$runId': {
+      id: '/qa/report/$runId'
+      path: '/qa/report/$runId'
+      fullPath: '/qa/report/$runId'
+      preLoaderRoute: typeof QaReportRunIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/runs/$runId': {
+      id: '/qa/runs/$runId'
+      path: '/qa/runs/$runId'
+      fullPath: '/qa/runs/$runId'
+      preLoaderRoute: typeof QaRunsRunIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -980,12 +931,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/runs/$id': {
-      id: '/api/public/v1/runs/$id'
+    '/api/public/report/$token': {
+      id: '/api/public/report/$token'
+      path: '/api/public/report/$token'
+      fullPath: '/api/public/report/$token'
+      preLoaderRoute: typeof ApiPublicReportTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/runs': {
+      id: '/api/public/v1/runs'
+      path: '/api/public/v1/runs'
+      fullPath: '/api/public/v1/runs'
+      preLoaderRoute: typeof ApiPublicV1RunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/agent-event': {
+      id: '/api/public/webhooks/agent-event'
+      path: '/api/public/webhooks/agent-event'
+      fullPath: '/api/public/webhooks/agent-event'
+      preLoaderRoute: typeof ApiPublicWebhooksAgentEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/claim': {
+      id: '/api/public/worker/claim'
+      path: '/api/public/worker/claim'
+      fullPath: '/api/public/worker/claim'
+      preLoaderRoute: typeof ApiPublicWorkerClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/heartbeat': {
+      id: '/api/public/worker/heartbeat'
+      path: '/api/public/worker/heartbeat'
+      fullPath: '/api/public/worker/heartbeat'
+      preLoaderRoute: typeof ApiPublicWorkerHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/worker/report': {
+      id: '/api/public/worker/report'
+      path: '/api/public/worker/report'
+      fullPath: '/api/public/worker/report'
+      preLoaderRoute: typeof ApiPublicWorkerReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/runs/$id': {
+      id: '/api/v1/runs/$id'
       path: '/$id'
-      fullPath: '/api/public/v1/runs/$id'
-      preLoaderRoute: typeof ApiPublicV1RunsIdRouteImport
-      parentRoute: typeof ApiPublicV1RunsRoute
+      fullPath: '/api/v1/runs/$id'
+      preLoaderRoute: typeof ApiV1RunsIdRouteImport
+      parentRoute: typeof ApiV1RunsRoute
     }
     '/api/public/forms/$appId/$formName': {
       id: '/api/public/forms/$appId/$formName'
@@ -993,6 +986,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/forms/$appId/$formName'
       preLoaderRoute: typeof ApiPublicFormsAppIdFormNameRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/runs/$id': {
+      id: '/api/public/v1/runs/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/runs/$id'
+      preLoaderRoute: typeof ApiPublicV1RunsIdRouteImport
+      parentRoute: typeof ApiPublicV1RunsRoute
     }
   }
 }

@@ -14,6 +14,7 @@ import { useMounted } from "@/lib/agent-store";
 import { useSecret, setSecret, clearSecret } from "@/lib/secrets-store";
 import { ApiKeysCard } from "@/components/ApiKeysCard";
 import { DeleteAccountCard } from "@/components/DeleteAccountCard";
+import { SetPasswordCard } from "@/components/SetPasswordCard";
 import { getSystemStatus, type SecretStatus } from "@/lib/system-status.functions";
 
 export const Route = createFileRoute("/settings")({
@@ -309,6 +310,7 @@ function Settings() {
         </CardContent>
       </Card>
 
+      <SetPasswordCard />
       <DeleteAccountCard />
     </AppShell>
   );

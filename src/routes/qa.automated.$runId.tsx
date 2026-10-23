@@ -34,7 +34,7 @@ export const Route = createFileRoute("/qa/automated/$runId")({
   component: AutomatedRun,
   errorComponent: ({ error }) => (
     <AppShell>
-      <p className="text-sm text-destructive">Could not load this run: {error.message}</p>
+      <p className="text-sm text-destructive">Could not load this run: {error instanceof Error ? error.message : String(error)}</p>
     </AppShell>
   ),
   notFoundComponent: () => (

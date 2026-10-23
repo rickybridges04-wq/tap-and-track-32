@@ -39,7 +39,7 @@ export const Route = createFileRoute("/bugs/$bugId")({
   component: BugDetail,
   errorComponent: ({ error }) => (
     <AppShell>
-      <p className="text-sm text-destructive">Could not load this bug: {error.message}</p>
+      <p className="text-sm text-destructive">Could not load this bug: {error instanceof Error ? error.message : String(error)}</p>
     </AppShell>
   ),
   notFoundComponent: () => (
