@@ -47,8 +47,8 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
     // Also capture into the agent error queue so Debug Agent can pick it up.
     if (typeof window !== "undefined") {
       (window as any).__bridgesCaptureError?.({
-        message: error.message,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
         route: window.location.pathname,
       });
     }
