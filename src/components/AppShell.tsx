@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { RunAgentDialog } from "@/components/RunAgentDialog";
 import { pendingApprovalCount, useAgentsVersion, useMounted } from "@/lib/agent-store";
 import { useAuth } from "@/hooks/useAuth";
+import { LovableBadge } from "@/components/LovableBadge";
+
 import { useSubscription } from "@/lib/subscription";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
