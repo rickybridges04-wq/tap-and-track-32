@@ -130,9 +130,13 @@ function Landing() {
         </div>
       </section>
 
-      <footer className="relative z-10 border-t border-border/60 py-6 text-center text-xs text-foreground/60">
-        © {new Date().getFullYear()} Bridges AI Enterprises · Walkthrough Wizard QAOS
+      <footer className="relative z-10 border-t border-border/60 py-6 text-xs text-foreground/60">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 sm:px-6 sm:flex-row sm:justify-between lg:px-8">
+          <span>© {new Date().getFullYear()} Bridges AI Enterprises · Walkthrough Wizard QAOS</span>
+          <LovableBadge />
+        </div>
       </footer>
+
     </div>
   );
 }
