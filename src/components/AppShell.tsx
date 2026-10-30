@@ -182,7 +182,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</div>
+
+        <footer className="border-t border-border/60 py-4">
+          <div className="mx-auto flex max-w-6xl justify-center px-4 sm:px-6 md:justify-end lg:px-8">
+            <LovableBadge />
+          </div>
+        </footer>
       </main>
+
     </div>
   );
 }

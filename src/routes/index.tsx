@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { useAuth } from "@/hooks/useAuth";
+import { LovableBadge } from "@/components/LovableBadge";
 import {
   Plus, AlertTriangle,
   Zap, Sparkles, Bot, ShieldCheck, Search, Loader2, ArrowRight,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
