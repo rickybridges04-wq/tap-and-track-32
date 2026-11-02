@@ -48,6 +48,7 @@ import { Route as QaProjectsProjectIdRouteImport } from './routes/qa.projects.$p
 import { Route as QaReportRunIdRouteImport } from './routes/qa.report.$runId'
 import { Route as QaRunsRunIdRouteImport } from './routes/qa.runs.$runId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api.public.payments.webhook'
+import { Route as ApiPublicQaTickRouteImport } from './routes/api.public.qa.tick'
 import { Route as ApiPublicReportTokenRouteImport } from './routes/api.public.report.$token'
 import { Route as ApiPublicV1RunsRouteImport } from './routes/api.public.v1.runs'
 import { Route as ApiPublicWebhooksAgentEventRouteImport } from './routes/api.public.webhooks.agent-event'
@@ -254,6 +255,11 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicQaTickRoute = ApiPublicQaTickRouteImport.update({
+  id: '/api/public/qa/tick',
+  path: '/api/public/qa/tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicReportTokenRoute = ApiPublicReportTokenRouteImport.update({
   id: '/api/public/report/$token',
   path: '/api/public/report/$token',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/qa/tick': typeof ApiPublicQaTickRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -393,6 +400,7 @@ export interface FileRoutesByTo {
   '/apps/$id': typeof AppsIdIndexRoute
   '/qa/projects': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/qa/tick': typeof ApiPublicQaTickRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -444,6 +452,7 @@ export interface FileRoutesById {
   '/apps/$id/': typeof AppsIdIndexRoute
   '/qa/projects/': typeof QaProjectsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/qa/tick': typeof ApiPublicQaTickRoute
   '/api/public/report/$token': typeof ApiPublicReportTokenRoute
   '/api/public/v1/runs': typeof ApiPublicV1RunsRouteWithChildren
   '/api/public/webhooks/agent-event': typeof ApiPublicWebhooksAgentEventRoute
@@ -496,6 +505,7 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/qa/projects/'
     | '/api/public/payments/webhook'
+    | '/api/public/qa/tick'
     | '/api/public/report/$token'
     | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/apps/$id'
     | '/qa/projects'
     | '/api/public/payments/webhook'
+    | '/api/public/qa/tick'
     | '/api/public/report/$token'
     | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/apps/$id/'
     | '/qa/projects/'
     | '/api/public/payments/webhook'
+    | '/api/public/qa/tick'
     | '/api/public/report/$token'
     | '/api/public/v1/runs'
     | '/api/public/webhooks/agent-event'
@@ -647,6 +659,7 @@ export interface RootRouteChildren {
   AppsIdIndexRoute: typeof AppsIdIndexRoute
   QaProjectsIndexRoute: typeof QaProjectsIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicQaTickRoute: typeof ApiPublicQaTickRoute
   ApiPublicReportTokenRoute: typeof ApiPublicReportTokenRoute
   ApiPublicV1RunsRoute: typeof ApiPublicV1RunsRouteWithChildren
   ApiPublicWebhooksAgentEventRoute: typeof ApiPublicWebhooksAgentEventRoute
@@ -931,6 +944,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/qa/tick': {
+      id: '/api/public/qa/tick'
+      path: '/api/public/qa/tick'
+      fullPath: '/api/public/qa/tick'
+      preLoaderRoute: typeof ApiPublicQaTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/report/$token': {
       id: '/api/public/report/$token'
       path: '/api/public/report/$token'
@@ -1061,6 +1081,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppsIdIndexRoute: AppsIdIndexRoute,
   QaProjectsIndexRoute: QaProjectsIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicQaTickRoute: ApiPublicQaTickRoute,
   ApiPublicReportTokenRoute: ApiPublicReportTokenRoute,
   ApiPublicV1RunsRoute: ApiPublicV1RunsRouteWithChildren,
   ApiPublicWebhooksAgentEventRoute: ApiPublicWebhooksAgentEventRoute,

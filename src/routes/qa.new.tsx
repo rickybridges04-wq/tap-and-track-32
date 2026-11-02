@@ -2,12 +2,10 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { ALL_PERSONA_IDS, PERSONAS, type PersonaId } from "@/lib/qa/personas";
-import { runQa } from "@/lib/qa/runner";
 import { createRun } from "@/lib/qa/qa.functions";
 import { DEPTH_LIMITS } from "@/lib/qa/config";
 import { ArrowLeft, Play } from "lucide-react";
 import { useSubscription, useRefreshUsage } from "@/lib/subscription";
-import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard, TrialBadge } from "@/components/PaywallCard";
 
 export const Route = createFileRoute("/qa/new")({
@@ -28,6 +26,7 @@ function NewQaRun() {
   const [depth, setDepth] = useState<"quick" | "standard" | "deep">("quick");
   const [selected, setSelected] = useState<PersonaId[]>(DEFAULT_PERSONAS);
   const [submitting, setSubmitting] = useState(false);
+  const [planBlocked, setPlanBlocked] = useState(false);
 
   function togglePersona(id: PersonaId) {
     setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
@@ -41,21 +40,17 @@ function NewQaRun() {
     setSubmitting(true);
     let normalized = url.trim();
     if (!/^https?:\/\//.test(normalized)) normalized = `https://${normalized}`;
-    if (!sub.active && !sub.isOwner) {
-      const res = await recordRun({ data: { kind: "qa_run" } });
-      if (!res.ok) {
-        setSubmitting(false);
-        return;
-      }
-    }
     try {
-      const { id } = await createRun({
+      const res = await createRun({
         data: { url: normalized, depth, personas: selected },
       });
       refreshUsage();
-      // Fire and forget — runner persists progress to DB as it goes.
-      void runQa({ id, url: normalized, depth, personas: selected });
-      navigate({ to: "/qa/runs/$runId", params: { runId: id } });
+      if (!res.ok) {
+        setSubmitting(false);
+        setPlanBlocked(true);
+        return;
+      }
+      navigate({ to: "/qa/runs/$runId", params: { runId: res.id } });
     } catch (err) {
       setSubmitting(false);
       alert(err instanceof Error ? err.message : String(err));
@@ -73,11 +68,11 @@ function NewQaRun() {
           <TrialBadge />
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Synapse QA OS will discover pages, scrape them, and inspect each one with every persona you select.
+          Walkthrough Wizard QAOS will discover pages, scrape them, and inspect each one with every persona you select.
         </p>
       </div>
 
-      {!sub.canRun && (
+      {(!sub.canRun || planBlocked) && (
         <div className="mb-6 max-w-2xl">
           <PaywallCard what="run" />
         </div>
@@ -157,7 +152,7 @@ function NewQaRun() {
           <Play className="h-4 w-4" /> {submitting ? "Starting..." : !sub.canRun ? "Upgrade to run" : "Start crawl"}
         </button>
         <p className="text-xs text-muted-foreground">
-          Each page × persona uses one AI call. Keep this tab open while the run is in progress.
+          Each page × persona uses one AI call. Runs on our servers — you can close this tab and come back.
         </p>
       </form>
     </AppShell>

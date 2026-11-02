@@ -18,9 +18,10 @@ export function PaywallCard({ what = "run" }: { what?: string }) {
       </p>
       <Link
         to="/upgrade"
+        search={{ checkout: 1 }}
         className="mt-4 inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
       >
-        <Sparkles className="h-4 w-4" /> Upgrade to Pro
+        <Sparkles className="h-4 w-4" /> Upgrade to Pro · $29/month
       </Link>
     </div>
   );

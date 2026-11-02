@@ -5,6 +5,7 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const PlanSchema = z.object({
   agentSummary: z.string().describe("One-sentence summary of how the agent understood the task."),
@@ -35,6 +36,7 @@ const PlanSchema = z.object({
 });
 
 const InputSchema = z.object({
+  taskId: z.string().min(1).max(120),
   agentType: z.string(),
   systemPrompt: z.string(),
   toolCatalog: z.string(),
@@ -48,8 +50,17 @@ const InputSchema = z.object({
 });
 
 export const planAgentTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Server-side plan enforcement: each agent task is charged once (idempotent by taskId).
+    const { chargeRun, PlanError } = await import("@/lib/entitlements.server");
+    try {
+      await chargeRun(context.userId, "agent_task", data.taskId);
+    } catch (err) {
+      if (err instanceof PlanError) return { planError: err.message } as const;
+      throw err;
+    }
     const provider = data.provider ?? "lovable";
 
     let model;
@@ -143,8 +154,24 @@ const RootCauseOutput = z.object({
 });
 
 export const analyzeFixRootCauses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => RootCauseInput.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Analysis of the user's own run: findings must belong to this user.
+    const { requireEntitled, PlanError } = await import("@/lib/entitlements.server");
+    try {
+      await requireEntitled(context.userId);
+    } catch (err) {
+      if (err instanceof PlanError) return { planError: err.message } as const;
+      throw err;
+    }
+    const ids = data.findings.map((f) => f.id);
+    const owned = await context.supabase
+      .from("qa_findings")
+      .select("id", { count: "exact", head: true })
+      .in("id", ids)
+      .eq("user_id", context.userId);
+    if ((owned.count ?? 0) !== new Set(ids).size) throw new Error("Findings not found");
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY is not configured");
     const gateway = createLovableAiGatewayProvider(key);

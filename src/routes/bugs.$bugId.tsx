@@ -24,13 +24,13 @@ import { severityClass, statusClass } from "./bugs.index";
 export const Route = createFileRoute("/bugs/$bugId")({
   head: () => ({
     meta: [
-      { title: "Bug detail · Synapse QA OS" },
+      { title: "Bug detail · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content:
           "One bug: reproduction steps, expected versus actual behaviour, the AI's likely cause, comments and status.",
       },
-      { property: "og:title", content: "Bug detail · Synapse QA OS" },
+      { property: "og:title", content: "Bug detail · Walkthrough Wizard QAOS" },
       { property: "og:description", content: "Reproduction steps, evidence and status for one bug." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary" },

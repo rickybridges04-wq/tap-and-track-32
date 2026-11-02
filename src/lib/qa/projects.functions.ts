@@ -1,4 +1,4 @@
-// Synapse QA OS — projects, suites, automated test cases, and automated runs.
+// Walkthrough Wizard QAOS — projects, suites, automated test cases, and automated runs.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -559,7 +559,7 @@ export const loadSelfTestSuite = createServerFn({ method: "POST" })
       .from("qa_projects")
       .insert({
         user_id: userId,
-        name: "Synapse QA OS (self-test)",
+        name: "Walkthrough Wizard QAOS (self-test)",
         base_url: baseUrl,
         environment: "production",
       })

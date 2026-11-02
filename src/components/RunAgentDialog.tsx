@@ -19,7 +19,6 @@ import type { AgentType, TaskPriority, TaskSource } from "@/lib/agent-store";
 import { enqueueTask } from "@/lib/agent-triggers";
 import { useStartAgentRun } from "@/lib/agent-runner";
 import { useSubscription, useRefreshUsage } from "@/lib/subscription";
-import { recordRun } from "@/lib/subscription.functions";
 import { PaywallCard } from "@/components/PaywallCard";
 import { Sparkles } from "lucide-react";
 
@@ -56,13 +55,6 @@ export function RunAgentDialog({
     if (!sub.canRun) return;
     setBusy(true);
     try {
-      if (!sub.active && !sub.isOwner) {
-        const res = await recordRun({ data: { kind: "agent_task" } });
-        if (!res.ok) {
-          setBusy(false);
-          return;
-        }
-      }
       const task = enqueueTask({
         title: title.trim() || description.trim().slice(0, 80),
         description: description.trim() || title.trim(),
@@ -72,7 +64,7 @@ export function RunAgentDialog({
       });
       refreshUsage();
       setOpen(false);
-      startRun(task).catch(() => {});
+      startRun(task).then(refreshUsage, refreshUsage);
       navigate({ to: "/agents/$taskId", params: { taskId: task.id } });
     } finally {
       setBusy(false);

@@ -1,5 +1,4 @@
 // Synapse QA OS — per-page AI inspection (one call per persona).
-import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
@@ -131,9 +130,8 @@ const InspectInput = z.object({
   }),
 });
 
-export const inspectPage = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => InspectInput.parse(input))
-  .handler(async ({ data }) => {
+export async function inspectPage(input: z.input<typeof InspectInput>) {
+    const data = InspectInput.parse(input);
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -145,7 +143,7 @@ export const inspectPage = createServerFn({ method: "POST" })
 
     const system = `${persona.systemPrompt}
 
-You are inspecting ONE page of a web application as part of Synapse QA OS.
+You are inspecting ONE page of a web application as part of Walkthrough Wizard QAOS.
 Return at most 6 specific, evidence-based findings. Do NOT invent issues you cannot point to in the content.
 If the page looks fine for your persona, return an empty findings array and say so in the summary.
 
@@ -255,4 +253,4 @@ ${data.page.markdownPreview || "(empty)"}
         findings: [] as NormalizedFinding[],
       };
     }
-  });
+  }
