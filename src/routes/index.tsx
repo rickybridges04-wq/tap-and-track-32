@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { FREE_RUN_LIMIT, PRO_PRICE_KEY, savePlanIntent } from "@/lib/plan";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,8 @@ function Landing() {
           <Step icon={Sparkles} n={4} title="Fix" body="Export a ranked fix list you can paste into any dev agent." />
         </div>
 
+        <Pricing />
+
         <div className="mt-12 rounded-2xl border border-border bg-card/60 p-6 backdrop-blur sm:p-8">
           <h3 className="text-lg font-semibold">Ready to see your app's score?</h3>
           <p className="mt-1 text-sm text-foreground/70">Create an account and run your first walkthrough in under 2 minutes.</p>
@@ -139,6 +142,44 @@ function Landing() {
         </div>
       </footer>
 
+    </div>
+  );
+}
+
+function Pricing() {
+  const navigate = useNavigate();
+  function choosePro() {
+    savePlanIntent(PRO_PRICE_KEY);
+    navigate({ to: "/auth", search: { redirect: "/upgrade?checkout=1" } });
+  }
+  return (
+    <div id="pricing" className="mt-12">
+      <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h2>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card/60 p-6">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Free</div>
+          <div className="mt-2 text-3xl font-bold">$0</div>
+          <p className="mt-1 text-sm text-foreground/70">{FREE_RUN_LIMIT} runs total. No card needed.</p>
+          <Link to="/auth" className="mt-4 inline-flex min-h-11 items-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-accent">
+            Start free
+          </Link>
+        </div>
+        <div className="rounded-2xl border-2 border-fuchsia-500/60 bg-card/60 p-6">
+          <div className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">Pro</div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-3xl font-bold">$29</span>
+            <span className="text-sm text-foreground/70">/month</span>
+          </div>
+          <p className="mt-1 text-sm text-foreground/70">Unlimited QA crawls and AI agent tasks (fair use). Cancel anytime.</p>
+          <button
+            type="button"
+            onClick={choosePro}
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
+          >
+            <Sparkles className="h-4 w-4" /> Upgrade to Pro · $29/month
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

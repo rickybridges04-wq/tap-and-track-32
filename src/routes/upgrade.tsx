@@ -4,10 +4,22 @@ import { AppShell } from "@/components/AppShell";
 import { Check, Sparkles, ArrowLeft, Crown } from "lucide-react";
 import { useSubscription } from "@/lib/subscription";
 import { useAuth } from "@/hooks/useAuth";
+import { PRO_PRICE_KEY, savePlanIntent } from "@/lib/plan";
 import { StripeEmbeddedCheckoutBlock, PaymentTestModeBanner } from "@/components/StripeEmbeddedCheckout";
 
 export const Route = createFileRoute("/upgrade")({
-  head: () => ({ meta: [{ title: "Upgrade · Walkthrough Wizard QAOS" }] }),
+  validateSearch: (s: Record<string, unknown>): { checkout?: 1 } =>
+    s.checkout === 1 || s.checkout === "1" ? { checkout: 1 } : {},
+  head: () => ({
+    meta: [
+      { title: "Upgrade to Pro · Walkthrough Wizard QAOS" },
+      { name: "description", content: "Pro is $29/month: unlimited QA crawls and AI agent tasks." },
+      { property: "og:title", content: "Upgrade to Pro · Walkthrough Wizard QAOS" },
+      { property: "og:description", content: "Pro is $29/month: unlimited QA crawls and AI agent tasks." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Upgrade,
 });
 
@@ -24,11 +36,15 @@ function Upgrade() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { active, runsUsed, isOwner } = useSubscription();
-  const [showCheckout, setShowCheckout] = useState(false);
+  const search = Route.useSearch();
+  const [showCheckout, setShowCheckout] = useState(search.checkout === 1);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", replace: true });
-  }, [loading, user, navigate]);
+    if (!loading && !user) {
+      if (search.checkout === 1) savePlanIntent(PRO_PRICE_KEY);
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [loading, user, navigate, search.checkout]);
 
   if (loading || !user) return null;
 
@@ -51,10 +67,10 @@ function Upgrade() {
         </div>
       )}
 
-      {showCheckout && !isOwner ? (
+      {showCheckout && !isOwner && !active ? (
         <div className="mt-6 max-w-2xl">
           <StripeEmbeddedCheckoutBlock
-            priceId="wizard_pro_monthly"
+            priceId={PRO_PRICE_KEY}
             returnUrl={`${window.location.origin}/upgrade?success=1`}
           />
           <button

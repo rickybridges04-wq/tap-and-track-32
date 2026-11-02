@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AgentTriggersMount } from "@/lib/agent-triggers";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PlanIntentRedirect } from "@/components/PlanIntentRedirect";
 import { installDiagGlobals } from "@/lib/diag";
 import { OfflineBanner } from "@/components/OfflineBanner";
 
@@ -147,6 +148,7 @@ function RootComponent() {
       <AuthProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <PlanIntentRedirect />
         <AgentTriggersMount />
         <OfflineBanner />
         <Toaster />

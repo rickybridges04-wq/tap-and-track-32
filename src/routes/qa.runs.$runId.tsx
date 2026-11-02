@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { getRun, type QaFindingRow } from "@/lib/qa/qa.functions";
+import { getRun, nudgeRun, type QaFindingRow } from "@/lib/qa/qa.functions";
 import { PERSONAS, type PersonaId } from "@/lib/qa/personas";
 import { computeScore, verdictColor, verdictLabel } from "@/lib/qa/scoring";
 import { analyzeFixRootCauses } from "@/lib/ai.functions";
 import { ArrowLeft, ExternalLink, Wrench, Copy, X, Sparkles, Loader2, ChevronDown, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -28,6 +28,16 @@ function QaRunDetail() {
       return s && s !== "completed" && s !== "failed" ? 2000 : false;
     },
   });
+
+  // Runs execute on the server; while this page is open, nudge the engine
+  // every 20s in case a background wake-up was dropped.
+  const nudge = useServerFn(nudgeRun);
+  const runStatus = data?.run?.status;
+  useEffect(() => {
+    if (!runStatus || runStatus === "completed" || runStatus === "failed") return;
+    const t = setInterval(() => { void nudge({ data: { id: runId } }).catch(() => {}); }, 20000);
+    return () => clearInterval(t);
+  }, [runStatus, runId, nudge]);
 
   const score = useMemo(() => {
     if (!data) return null;
@@ -359,6 +369,13 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
           })),
         },
       });
+      if ("planError" in result) {
+        toast.error("Free runs used up", {
+          description: "Upgrade to Pro ($29/month) to keep analyzing.",
+          action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade?checkout=1") },
+        });
+        return;
+      }
       setAnalysis(result);
       toast.success(`Grouped into ${result.clusters.length} root cause${result.clusters.length === 1 ? "" : "s"}`);
     } catch (err: any) {
