@@ -2,6 +2,22 @@
 // Each returns a serializable { ok, data?, message } result.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function guard(userId: string, ownerOnly: boolean): Promise<ToolResult | null> {
+  const { getPlan, requireEntitled, PlanError } = await import("@/lib/entitlements.server");
+  if (ownerOnly) {
+    const p = await getPlan(userId);
+    return p.isOwner ? null : { ok: false, message: "This tool is restricted to the app owner." };
+  }
+  try {
+    await requireEntitled(userId);
+    return null;
+  } catch (err) {
+    if (err instanceof PlanError) return { ok: false, message: err.message };
+    throw err;
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ToolResult = { ok: boolean; data?: any; message: string };
@@ -18,8 +34,11 @@ const TesterInput = z.object({
 });
 
 export const runTester = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => TesterInput.parse(input))
-  .handler(async ({ data }): Promise<ToolResult> => {
+  .handler(async ({ data, context }): Promise<ToolResult> => {
+    const denied = await guard(context.userId, false);
+    if (denied) return denied;
     const started = Date.now();
     try {
       const res = await fetch(data.url, { redirect: "follow" });
@@ -70,8 +89,11 @@ const SendEmailInput = z.object({
 });
 
 export const sendEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => SendEmailInput.parse(input))
-  .handler(async ({ data }): Promise<ToolResult> => {
+  .handler(async ({ data, context }): Promise<ToolResult> => {
+    const denied = await guard(context.userId, true);
+    if (denied) return denied;
     const lovableKey = process.env.LOVABLE_API_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     if (!lovableKey || !resendKey) {
@@ -104,8 +126,11 @@ const ChargeInput = z.object({
 });
 
 export const chargeMoney = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ChargeInput.parse(input))
-  .handler(async ({ data }): Promise<ToolResult> => {
+  .handler(async ({ data, context }): Promise<ToolResult> => {
+    const denied = await guard(context.userId, true);
+    if (denied) return denied;
     try {
       const { createStripeClient } = await import("@/lib/stripe.server");
       const stripe = createStripeClient("live");
@@ -133,8 +158,11 @@ const UpdateInput = z.object({
 });
 
 export const updateRow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => UpdateInput.parse(input))
-  .handler(async ({ data }): Promise<ToolResult> => {
+  .handler(async ({ data, context }): Promise<ToolResult> => {
+    const denied = await guard(context.userId, true);
+    if (denied) return denied;
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error, data: row } = await (supabaseAdmin
@@ -156,8 +184,11 @@ const DeleteInput = z.object({
 });
 
 export const deleteRow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => DeleteInput.parse(input))
-  .handler(async ({ data }): Promise<ToolResult> => {
+  .handler(async ({ data, context }): Promise<ToolResult> => {
+    const denied = await guard(context.userId, true);
+    if (denied) return denied;
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error } = await supabaseAdmin
