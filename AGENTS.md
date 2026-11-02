@@ -207,3 +207,8 @@ Calm, methodical, plain-language. Explain *why* a step is being taken, not just 
 1. Check the reference lists above for anything relevant to the current task.
 2. Open only the specific docs/ file(s) needed — don't load the entire framework into context for a small task.
 3. If a task touches Decision-Rights Tier 3 or 4, stop and flag for founder review rather than proceeding.
+
+## Architecture rules
+- Plan limits are enforced only on the server via `src/lib/entitlements.server.ts` (charge inside the server function that starts the work, idempotent by a ref) — the browser can be forged.
+- Crawl QA runs execute server-side in bounded ticks (`src/lib/qa/engine.server.ts`), woken by the database (`qa_wake` → `/api/public/qa/tick`, secret in `qa_engine_config`) — so runs survive the tab closing.
+- Owner/admin status comes only from `user_roles` rows, never from hardcoded emails.
