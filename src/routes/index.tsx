@@ -150,7 +150,7 @@ function Pricing() {
   const navigate = useNavigate();
   function choosePro() {
     savePlanIntent(PRO_PRICE_KEY);
-    navigate({ to: "/auth", search: { redirect: "/upgrade?checkout=1" } });
+    navigate({ to: "/auth" }); // PlanIntentRedirect opens checkout after sign-in
   }
   return (
     <div id="pricing" className="mt-12">

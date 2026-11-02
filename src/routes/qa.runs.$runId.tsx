@@ -341,7 +341,7 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
   );
 
   const analyze = useServerFn(analyzeFixRootCauses);
-  const [analysis, setAnalysis] = useState<Awaited<ReturnType<typeof analyze>> | null>(null);
+  const [analysis, setAnalysis] = useState<Exclude<Awaited<ReturnType<typeof analyze>>, { planError: string }> | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
