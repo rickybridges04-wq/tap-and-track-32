@@ -16,7 +16,7 @@ const SLOW_MS = 2500;
 const VERY_SLOW_MS = 6000;
 const AUTH_WALL_RE = /\b(sign in|sign up|log in|login|create account|password)\b/i;
 
-type JobState = { urls?: string[]; scrapeIdx?: number; inspectIdx?: number; ok?: number };
+type JobState = { urls?: string[]; scrapeIdx?: number; inspectIdx?: number; ok?: number; errors?: number };
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -260,6 +260,8 @@ export async function advanceRun(runId: string): Promise<boolean> {
     return false;
   } catch (err) {
     warnings.push(`tick error: ${err instanceof Error ? err.message : String(err)}`);
+    state.errors = (state.errors ?? 0) + 1;
+    if (state.errors >= 5) return await fail("Run stopped after repeated errors", !state.urls);
     await save({ lease_until: null });
     return true;
   }
