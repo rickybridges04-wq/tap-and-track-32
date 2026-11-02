@@ -1,7 +1,15 @@
 // Pathway health checks — verify the deployable surfaces (AI gateway, Firecrawl, env).
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export const checkAiGateway = createServerFn({ method: "GET" }).handler(async () => {
+// Diagnostics spend real AI/crawler credits — owner/admin only.
+async function ownerOnly(userId: string) {
+  const { getPlan } = await import("@/lib/entitlements.server");
+  return (await getPlan(userId)).isOwner;
+}
+
+export const checkAiGateway = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  if (!(await ownerOnly(context.userId))) return { ok: false as const, error: "Owner only" } as never;
   const key = process.env.LOVABLE_API_KEY;
   if (!key) return { ok: false as const, error: "LOVABLE_API_KEY not set" };
   try {
@@ -17,7 +25,8 @@ export const checkAiGateway = createServerFn({ method: "GET" }).handler(async ()
   }
 });
 
-export const checkFirecrawl = createServerFn({ method: "GET" }).handler(async () => {
+export const checkFirecrawl = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  if (!(await ownerOnly(context.userId))) return { ok: false as const, error: "Owner only" } as never;
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) return { ok: false as const, error: "FIRECRAWL_API_KEY not set" };
   try {
@@ -32,7 +41,8 @@ export const checkFirecrawl = createServerFn({ method: "GET" }).handler(async ()
   }
 });
 
-export const checkEnv = createServerFn({ method: "GET" }).handler(async () => {
+export const checkEnv = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  if (!(await ownerOnly(context.userId))) return { ok: false as const, error: "Owner only" } as never;
   return {
     LOVABLE_API_KEY: Boolean(process.env.LOVABLE_API_KEY),
     FIRECRAWL_API_KEY: Boolean(process.env.FIRECRAWL_API_KEY),

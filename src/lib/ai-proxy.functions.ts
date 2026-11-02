@@ -9,7 +9,14 @@ export const callAiProxy = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z.object({ agent_slug: z.string().min(1), input: z.string().min(1) }).parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { requireEntitled, PlanError } = await import("@/lib/entitlements.server");
+    try {
+      await requireEntitled(context.userId);
+    } catch (err) {
+      if (err instanceof PlanError) return { status: 402, body: { error: err.message } };
+      throw err;
+    }
     const { gatewayComplete } = await import("@/lib/ai-proxy.server");
     const { status, body } = await gatewayComplete(data);
     return { status, body };
