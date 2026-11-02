@@ -639,6 +639,21 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_engine_config: {
+        Row: {
+          id: number
+          tick_secret: string
+        }
+        Insert: {
+          id?: number
+          tick_secret?: string
+        }
+        Update: {
+          id?: number
+          tick_secret?: string
+        }
+        Relationships: []
+      }
       qa_findings: {
         Row: {
           basis: string
@@ -888,7 +903,9 @@ export type Database = {
           error: string | null
           failed_count: number | null
           id: string
+          job_state: Json
           kind: string
+          lease_until: string | null
           pages_discovered: number | null
           pages_scraped: number | null
           passed_count: number | null
@@ -901,8 +918,10 @@ export type Database = {
           status: string
           target_url: string
           updated_at: string
+          usage_event_id: string | null
           user_id: string
           verdict: string | null
+          wake_url: string | null
           warnings: Json
         }
         Insert: {
@@ -913,7 +932,9 @@ export type Database = {
           error?: string | null
           failed_count?: number | null
           id?: string
+          job_state?: Json
           kind?: string
+          lease_until?: string | null
           pages_discovered?: number | null
           pages_scraped?: number | null
           passed_count?: number | null
@@ -926,8 +947,10 @@ export type Database = {
           status?: string
           target_url: string
           updated_at?: string
+          usage_event_id?: string | null
           user_id: string
           verdict?: string | null
+          wake_url?: string | null
           warnings?: Json
         }
         Update: {
@@ -938,7 +961,9 @@ export type Database = {
           error?: string | null
           failed_count?: number | null
           id?: string
+          job_state?: Json
           kind?: string
+          lease_until?: string | null
           pages_discovered?: number | null
           pages_scraped?: number | null
           passed_count?: number | null
@@ -951,8 +976,10 @@ export type Database = {
           status?: string
           target_url?: string
           updated_at?: string
+          usage_event_id?: string | null
           user_id?: string
           verdict?: string | null
+          wake_url?: string | null
           warnings?: Json
         }
         Relationships: [
@@ -1151,6 +1178,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      qa_wake: { Args: { p_run_id: string }; Returns: undefined }
       settle_qa_run: { Args: { p_run_id: string }; Returns: undefined }
     }
     Enums: {
