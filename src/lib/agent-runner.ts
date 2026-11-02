@@ -90,6 +90,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
     try {
       result = await planner({
         data: {
+          taskId: task.id,
           agentType: task.agentType,
           systemPrompt: agentDef.systemPrompt,
           toolCatalog: toolCatalogFor(task.agentType),
