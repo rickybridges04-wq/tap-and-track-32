@@ -253,4 +253,4 @@ ${data.page.markdownPreview || "(empty)"}
         findings: [] as NormalizedFinding[],
       };
     }
-  });
+  }
