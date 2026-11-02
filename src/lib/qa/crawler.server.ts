@@ -1,7 +1,6 @@
 // Synapse QA OS — Firecrawl-backed crawler (Worker-runtime safe).
 // Playwright/Browserbase browser drivers cannot bundle for the Cloudflare
 // Worker runtime, so we use Firecrawl's HTTP API for real page fetches.
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v1";
@@ -17,9 +16,8 @@ const MapInput = z.object({
   limit: z.number().int().min(1).max(100).default(15),
 });
 
-export const mapSite = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => MapInput.parse(input))
-  .handler(async ({ data }) => {
+export async function mapSite(input: z.input<typeof MapInput>) {
+    const data = MapInput.parse(input);
     try {
       const res = await fetch(`${FIRECRAWL_BASE}/map`, {
         method: "POST",
@@ -39,7 +37,7 @@ export const mapSite = createServerFn({ method: "POST" })
     } catch (err) {
       return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
     }
-  });
+  }
 
 const ScrapeInput = z.object({
   url: z.string().url(),
@@ -48,9 +46,8 @@ const ScrapeInput = z.object({
 
 const MARKDOWN_LIMIT = 4000;
 
-export const scrapePage = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => ScrapeInput.parse(input))
-  .handler(async ({ data }) => {
+export async function scrapePage(input: z.input<typeof ScrapeInput>) {
+    const data = ScrapeInput.parse(input);
     const startedAt = Date.now();
     try {
       const formats: string[] = ["markdown", "links"];
@@ -97,5 +94,5 @@ export const scrapePage = createServerFn({ method: "POST" })
     } catch (err) {
       return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
     }
-  });
+  }
 
