@@ -1,4 +1,4 @@
-// Synapse QA OS — server-side persistence for runs, pages, findings.
+// Walkthrough Wizard QAOS — server-side persistence for runs, pages, findings.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -58,132 +58,62 @@ const CreateInput = z.object({
   personas: z.array(z.string()).min(1),
 });
 
+export type CreateRunResult = { ok: true; id: string } | { ok: false; planError: string };
+
 export const createRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => CreateInput.parse(input))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<CreateRunResult> => {
     const { supabase, userId } = context;
-    const { data: row, error } = await supabase
-      .from("qa_runs")
-      .insert({
-        user_id: userId,
-        target_url: data.url,
-        depth: data.depth,
-        personas: data.personas,
-        status: "pending",
-        progress_pct: 0,
-        progress_stage: "Queued",
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { id: row.id as string };
-  });
+    const { chargeRun, refundRun, PlanError } = await import("@/lib/entitlements.server");
+    const { wakeRun, wakeUrlFor } = await import("@/lib/qa/engine.server");
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const id = crypto.randomUUID();
 
-// -------- progress patch --------
-const PatchInput = z.object({
-  id: z.string().uuid(),
-  status: z.string().optional(),
-  progress_pct: z.number().int().min(0).max(100).optional(),
-  progress_stage: z.string().optional(),
-  score: z.number().int().nullable().optional(),
-  verdict: z.string().nullable().optional(),
-  error: z.string().nullable().optional(),
-  warnings: z.array(z.string()).optional(),
-  pages_discovered: z.number().int().nullable().optional(),
-  pages_scraped: z.number().int().nullable().optional(),
-  completed_at: z.string().nullable().optional(),
-});
+    // Charge on the server when the run starts. Free = 3 runs total.
+    let usageEventId: string | null;
+    try {
+      usageEventId = await chargeRun(userId, "qa_run", id);
+    } catch (err) {
+      if (err instanceof PlanError) return { ok: false, planError: err.message };
+      throw err;
+    }
 
-export const patchRun = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => PatchInput.parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { id, ...rest } = data;
-    const { error } = await supabase
-      .from("qa_runs")
-      .update({ ...rest, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-// -------- pages --------
-const AddPageInput = z.object({
-  run_id: z.string().uuid(),
-  url: z.string(),
-  title: z.string().optional().nullable(),
-  status: z.number().int().optional().nullable(),
-  links: z.array(z.string()).default([]),
-  markdown_preview: z.string().optional().nullable(),
-  screenshot_url: z.string().optional().nullable(),
-  latency_ms: z.number().int().optional().nullable(),
-  truncated: z.boolean().optional(),
-});
-
-export const addPage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => AddPageInput.parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase.from("qa_pages").insert({
+    const { error } = await supabase.from("qa_runs").insert({
+      id,
       user_id: userId,
-      run_id: data.run_id,
-      url: data.url,
-      title: data.title ?? null,
-      status: data.status ?? null,
-      links: data.links,
-      markdown_preview: data.markdown_preview ?? null,
-      screenshot_url: data.screenshot_url ?? null,
-      latency_ms: data.latency_ms ?? null,
-      truncated: data.truncated ?? false,
+      target_url: data.url,
+      depth: data.depth,
+      personas: data.personas,
+      status: "pending",
+      progress_pct: 0,
+      progress_stage: "Queued",
+      usage_event_id: usageEventId,
+      wake_url: wakeUrlFor(getRequest().url),
     });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    if (error) {
+      await refundRun(usageEventId); // failed to start → not counted
+      throw new Error(error.message);
+    }
+    await wakeRun(id); // background engine picks it up; tab can close
+    return { ok: true, id };
   });
 
-// -------- findings --------
-const AddFindingsInput = z.object({
-  run_id: z.string().uuid(),
-  findings: z.array(
-    z.object({
-      persona_id: z.string(),
-      page_url: z.string(),
-      category: z.enum(CATEGORY),
-      severity: z.enum(SEVERITY),
-      confidence: z.number(),
-      title: z.string(),
-      detail: z.string(),
-      suggestion: z.string().optional().nullable(),
-      basis: z.enum(["observed", "inferred"]).default("inferred"),
-    }),
-  ),
-});
-
-export const addFindings = createServerFn({ method: "POST" })
+/** While the run page is open, nudge the engine (covers a dropped wake-up). */
+export const nudgeRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => AddFindingsInput.parse(input))
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    if (data.findings.length === 0) return { ok: true };
-    const rows = data.findings.map((f) => ({
-      user_id: userId,
-      run_id: data.run_id,
-      persona_id: f.persona_id,
-      page_url: f.page_url,
-      category: f.category,
-      severity: f.severity,
-      confidence: f.confidence,
-      title: f.title,
-      detail: f.detail,
-      suggestion: f.suggestion ?? null,
-      basis: f.basis,
-    }));
-    const { error } = await supabase.from("qa_findings").insert(rows);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const { data: own } = await context.supabase
+      .from("qa_runs")
+      .select("id,status,lease_until")
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!own || own.status === "completed" || own.status === "failed") return { more: false };
+    if (own.lease_until && new Date(own.lease_until) > new Date()) return { more: true };
+    const { advanceRun } = await import("@/lib/qa/engine.server");
+    return { more: await advanceRun(data.id) };
   });
 
 // -------- reads --------
@@ -191,15 +121,14 @@ export const listRuns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<QaRunRow[]> => {
     const { supabase, userId } = context;
-    // Runs are driven from the browser tab. If one stops reporting progress for
-    // 10 minutes it was interrupted — mark it failed instead of leaving it
-    // stuck "running" forever.
+    // Runs execute on the server. If one makes no progress for 10 minutes the
+    // background engine lost it — mark it failed instead of leaving it stuck.
     const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     await supabase
       .from("qa_runs")
       .update({
         status: "failed",
-        error: "Run interrupted — the tab was closed or lost connection before it finished.",
+        error: "Run stalled — the background engine made no progress for 10 minutes.",
         progress_stage: "Interrupted",
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
