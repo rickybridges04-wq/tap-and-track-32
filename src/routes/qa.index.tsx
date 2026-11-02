@@ -46,7 +46,7 @@ function QaDashboard() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5" /> Synapse QA OS
+            <Sparkles className="h-3.5 w-3.5" /> Walkthrough Wizard QAOS
           </div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Release readiness</h1>
           <p className="mt-1 text-sm text-muted-foreground">

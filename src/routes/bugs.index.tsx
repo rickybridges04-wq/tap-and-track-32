@@ -9,13 +9,13 @@ import { listBugs, BUG_STATUSES, type BugStatus } from "@/lib/bugs.functions";
 export const Route = createFileRoute("/bugs/")({
   head: () => ({
     meta: [
-      { title: "Bugs · Synapse QA OS" },
+      { title: "Bugs · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content:
           "Bugs filed from real browser test failures, with severity, status, reproduction steps and the AI's likely cause.",
       },
-      { property: "og:title", content: "Bugs · Synapse QA OS" },
+      { property: "og:title", content: "Bugs · Walkthrough Wizard QAOS" },
       { property: "og:description", content: "Track bugs filed from measured test failures." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

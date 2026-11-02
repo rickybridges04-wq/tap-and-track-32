@@ -19,13 +19,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/qa/projects/")({
   head: () => ({
     meta: [
-      { title: "Test projects · Synapse QA OS" },
+      { title: "Test projects · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content:
           "Register the apps you test, store their base URL and environment, and run automated browser test suites against them.",
       },
-      { property: "og:title", content: "Test projects · Synapse QA OS" },
+      { property: "og:title", content: "Test projects · Walkthrough Wizard QAOS" },
       {
         property: "og:description",
         content: "Automated browser test suites, cases and run history for every app you ship.",
@@ -68,7 +68,7 @@ function ProjectsPage() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <FlaskConical className="h-3.5 w-3.5" /> Synapse QA OS
+            <FlaskConical className="h-3.5 w-3.5" /> Walkthrough Wizard QAOS
           </div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Test projects</h1>
           <p className="mt-1 text-sm text-muted-foreground">

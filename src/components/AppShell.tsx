@@ -21,7 +21,7 @@ const nav: NavItem[] = [
   { to: "/notifications", label: "Push Notifications", icon: Bell },
   { to: "/data", label: "Data Manager", icon: Database },
   { to: "/submissions", label: "Submissions", icon: Inbox },
-  { to: "/qa", label: "Synapse QA OS", icon: Sparkles },
+  { to: "/qa", label: "Walkthrough Wizard QAOS", icon: Sparkles },
   { to: "/qa/projects", label: "Test projects", icon: FlaskConical },
   { to: "/bugs", label: "Bugs", icon: BugIcon },
   { to: "/qa/ci", label: "CI integration", icon: GitBranch },

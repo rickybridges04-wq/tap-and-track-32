@@ -1,4 +1,4 @@
-// Synapse QA OS — bug tracker (authenticated server functions).
+// Walkthrough Wizard QAOS — bug tracker (authenticated server functions).
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -223,7 +223,7 @@ export const openGithubIssue = createServerFn({ method: "POST" })
       "### Likely cause (Suggestion — AI)",
       bug.likely_cause ?? "_no analysis_",
       "",
-      "_Filed from Synapse QA OS._",
+      "_Filed from Walkthrough Wizard QAOS._",
     ].join("\n");
 
     const res = await fetch(`https://api.github.com/repos/${data.repo}/issues`, {

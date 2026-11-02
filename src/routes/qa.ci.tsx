@@ -9,13 +9,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/qa/ci")({
   head: () => ({
     meta: [
-      { title: "CI integration · Synapse QA OS" },
+      { title: "CI integration · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content:
           "Start automated test runs from your build pipeline and fail the build on new regressions, using a copy-paste GitHub Actions workflow.",
       },
-      { property: "og:title", content: "CI integration · Synapse QA OS" },
+      { property: "og:title", content: "CI integration · Walkthrough Wizard QAOS" },
       {
         property: "og:description",
         content: "Run your test suites on every push and block merges when checks regress.",
@@ -118,7 +118,7 @@ function CiPage() {
     <AppShell>
       <div className="mb-6">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          <GitBranch className="h-3.5 w-3.5" /> Synapse QA OS
+          <GitBranch className="h-3.5 w-3.5" /> Walkthrough Wizard QAOS
         </div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">CI integration</h1>
         <p className="mt-1 text-sm text-muted-foreground">

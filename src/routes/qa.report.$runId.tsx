@@ -17,13 +17,13 @@ import { DIFF_CLASS, DIFF_LABEL, type DiffState } from "@/lib/qa/regression";
 export const Route = createFileRoute("/qa/report/$runId")({
   head: () => ({
     meta: [
-      { title: "Automated run report · Synapse QA OS" },
+      { title: "Automated run report · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content:
           "Pass rate, critical failures, regression diff, failure groups, performance and accessibility summaries for one automated test run, exportable as CSV or PDF.",
       },
-      { property: "og:title", content: "Automated run report · Synapse QA OS" },
+      { property: "og:title", content: "Automated run report · Walkthrough Wizard QAOS" },
       {
         property: "og:description",
         content: "Shareable evidence-backed report for an automated test run.",

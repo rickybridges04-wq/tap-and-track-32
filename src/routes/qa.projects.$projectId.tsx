@@ -29,12 +29,12 @@ const CATEGORIES = ["auth", "crud", "security", "ui", "api", "a11y", "performanc
 export const Route = createFileRoute("/qa/projects/$projectId")({
   head: () => ({
     meta: [
-      { title: "Project · Synapse QA OS" },
+      { title: "Project · Walkthrough Wizard QAOS" },
       {
         name: "description",
         content: "Suites, automated test cases and run history for one tested app.",
       },
-      { property: "og:title", content: "Project · Synapse QA OS" },
+      { property: "og:title", content: "Project · Walkthrough Wizard QAOS" },
       {
         property: "og:description",
         content: "Edit test suites and cases, then run them in a real browser.",
