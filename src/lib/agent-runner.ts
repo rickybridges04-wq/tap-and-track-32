@@ -29,6 +29,7 @@ import { toast } from "sonner";
 
 type Planner = (args: {
   data: {
+    taskId: string;
     agentType: string;
     systemPrompt: string;
     toolCatalog: string;
@@ -36,7 +37,7 @@ type Planner = (args: {
     provider?: "lovable" | "anthropic";
     model?: string;
   };
-}) => Promise<{
+}) => Promise<{ planError: string } | {
   agentSummary: string;
   plan: Array<{ tool: ToolName; reasoning: string; args: string }>;
   finalReport: string;
@@ -76,6 +77,7 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
   try {
     result = await planner({
       data: {
+        taskId: task.id,
         agentType: task.agentType,
         systemPrompt: agentDef.systemPrompt,
         toolCatalog: toolCatalogFor(task.agentType),
@@ -106,6 +108,14 @@ async function startRunInternal(task: AgentTask, planner: Planner): Promise<Agen
     }
   }
 
+  if ("planError" in result) {
+    run.status = "failed";
+    run.output = `## Upgrade required\n\n${result.planError.replace("PLAN:", "").trim()}`;
+    run.completedAt = new Date().toISOString();
+    saveAgentRun(run);
+    saveAgentTask({ ...task, status: "failed", updatedAt: new Date().toISOString() });
+    throw new Error(result.planError);
+  }
 
   run.agentSummary = result.agentSummary;
   run.output = result.finalReport;
@@ -246,7 +256,15 @@ export function useStartAgentRun() {
         }
         return r;
       } catch (e) {
-        toast.error("Agent error", { description: (e as Error).message });
+        const msg = (e as Error).message;
+        if (msg.includes("PLAN:")) {
+          toast.error("Free runs used up", {
+            description: "Upgrade to Pro ($29/month) for unlimited agent tasks.",
+            action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade?checkout=1") },
+          });
+          throw e;
+        }
+        toast.error("Agent error", { description: msg });
         throw e;
       }
     },
