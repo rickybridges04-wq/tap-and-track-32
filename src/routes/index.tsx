@@ -30,14 +30,11 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-  return user ? <Dashboard /> : <Landing />;
+  // Sign-in status is only known in the browser. Render the public landing
+  // (server HTML included) until it resolves, so "/" is never an empty page
+  // for crawlers, link previews, uptime checks, or slow script loads.
+  if (loading || !user) return <Landing />;
+  return <Dashboard />;
 }
 
 /* ---------------- Public landing ---------------- */
