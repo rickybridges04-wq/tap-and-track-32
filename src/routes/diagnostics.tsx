@@ -95,10 +95,10 @@ function DiagnosticsPage() {
             <dt className="text-muted-foreground">provider</dt><dd>{user.app_metadata?.provider ?? "—"}</dd>
             <dt className="text-muted-foreground">expires</dt><dd>{session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : "—"}</dd>
             <dt className="text-muted-foreground">roles</dt>
-            <dd>{rolesErr ? <span className="text-red-500">{rolesErr}</span> : roles ? (roles.join(", ") || "(none)") : "…"}</dd>
+            <dd>{rolesErr ? <span className="text-red-400">{rolesErr}</span> : roles ? (roles.join(", ") || "(none)") : "…"}</dd>
           </dl>
         ) : (
-          <div className="text-red-500">No authenticated user. Sign in first.</div>
+          <div className="text-red-400">No authenticated user. Sign in first.</div>
         )}
       </section>
 
@@ -112,9 +112,9 @@ function DiagnosticsPage() {
             {probes.map((p) => (
               <tr key={p.table} className="border-t border-border/50">
                 <td className="py-1">{p.table}</td>
-                <td className={p.ok ? "text-green-500" : "text-red-500"}>{p.ok ? "OK" : "DENIED"}</td>
+                <td className={p.ok ? "text-green-400" : "text-red-400"}>{p.ok ? "OK" : "DENIED"}</td>
                 <td>{p.count ?? "—"}</td>
-                <td className="text-red-500">{p.error?.message ?? ""}{p.error?.hint ? ` — hint: ${p.error.hint}` : ""}</td>
+                <td className="text-red-400">{p.error?.message ?? ""}{p.error?.hint ? ` — hint: ${p.error.hint}` : ""}</td>
               </tr>
             ))}
             {probes.length === 0 && <tr><td colSpan={4} className="py-2 text-muted-foreground">No probes yet.</td></tr>}

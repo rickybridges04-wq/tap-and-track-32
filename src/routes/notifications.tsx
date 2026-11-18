@@ -62,7 +62,7 @@ function Notifications() {
         </div>
       ) : (
         <>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Stat label="Notifications sent" value={camps.filter((c) => c.sent_at).length} icon={<Send className="h-4 w-4" />} />
             <Stat label="Subscribers" value={subsQ.data?.length ?? 0} icon={<Bell className="h-4 w-4" />} />
             <Stat label="Scheduled" value={camps.filter((c) => c.status === "scheduled").length} icon={<Clock className="h-4 w-4" />} />
@@ -80,15 +80,15 @@ function Notifications() {
             <form onSubmit={send} className="mt-6 max-w-xl space-y-4 rounded-lg border border-border bg-card p-6">
               <h2 className="text-lg font-semibold">Send Push Notification</h2>
               <F label="Sending From">
-                <select value={appId} onChange={(e) => setAppId(e.target.value)} className="input">
+                <select aria-label="App id" value={appId} onChange={(e) => setAppId(e.target.value)} className="input">
                   {apps.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </F>
-              <F label="Notification Title"><input value={title} onChange={(e) => setTitle(e.target.value)} required className="input" placeholder="Enter notification title..." /></F>
-              <F label="Message"><textarea value={body} onChange={(e) => setBody(e.target.value)} required rows={3} className="input" placeholder="Enter your notification message..." /></F>
-              <F label="Click URL (optional)"><input value={url} onChange={(e) => setUrl(e.target.value)} type="url" className="input" placeholder="https://..." /></F>
-              <F label="Schedule for (optional)"><input value={when} onChange={(e) => setWhen(e.target.value)} type="datetime-local" className="input" /></F>
-              <button disabled={busy} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <F label="Notification Title"><input aria-label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="input" placeholder="Enter notification title..." /></F>
+              <F label="Message"><textarea aria-label="Body" value={body} onChange={(e) => setBody(e.target.value)} required rows={3} className="input" placeholder="Enter your notification message..." /></F>
+              <F label="Click URL (optional)"><input aria-label="Url" value={url} onChange={(e) => setUrl(e.target.value)} type="url" className="input" placeholder="https://..." /></F>
+              <F label="Schedule for (optional)"><input aria-label="When" value={when} onChange={(e) => setWhen(e.target.value)} type="datetime-local" className="input" /></F>
+              <button disabled={busy} className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
                 {busy ? "Saving..." : when ? "Schedule notification" : "Save draft"}
               </button>
               <p className="text-[11px] text-muted-foreground">Web-push delivery requires VAPID keys; once configured, campaigns dispatch to subscribers via a background job.</p>

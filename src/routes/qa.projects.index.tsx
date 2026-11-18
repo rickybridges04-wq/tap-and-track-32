@@ -109,7 +109,7 @@ function ProjectsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
             <Card key={p.id}>
               <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
@@ -176,7 +176,7 @@ function ProjectForm({ onDone }: { onDone: () => void }) {
           steps.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-2">
+      <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="p-name">Name</Label>
           <Input id="p-name" value={name} onChange={(e) => setName(e.target.value)} />

@@ -17,6 +17,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PlanIntentRedirect } from "@/components/PlanIntentRedirect";
 import { installDiagGlobals } from "@/lib/diag";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { installLoadErrorWatch } from "@/lib/load-error-watch";
+import { toast } from "sonner";
+
 
 function NotFoundComponent() {
   return (
@@ -76,7 +79,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
           </button>
           <a
             href="/agents"
-            className="inline-flex items-center justify-center rounded-md bg-amber-500/15 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-500/25"
+            className="inline-flex items-center justify-center rounded-md bg-amber-500/15 px-4 py-2 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/25"
           >
             Fix this with Debug Agent
           </a>
@@ -140,6 +143,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => { installLoadErrorWatch((m, o) => toast.error(m, o)); }, []);
   const { queryClient } = Route.useRouteContext();
   useEffect(() => { installDiagGlobals(); }, []);
 

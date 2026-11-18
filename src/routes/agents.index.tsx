@@ -49,7 +49,7 @@ function AgentsDashboard() {
         <RunAgentDialog />
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-5">
         <Stat label="Pending" value={counts.pending} />
         <Stat label="Running" value={counts.running} tone="info" />
         <Stat label="Needs approval" value={counts.needs_approval} tone="warn" />
@@ -57,7 +57,7 @@ function AgentsDashboard() {
         <Stat label="Failed" value={counts.failed} tone="bad" />
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
@@ -173,10 +173,10 @@ function AgentsDashboard() {
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "good" | "bad" | "warn" | "info" }) {
   const color =
-    tone === "good" ? "text-emerald-600" :
+    tone === "good" ? "text-emerald-400" :
     tone === "bad" ? "text-destructive" :
-    tone === "warn" ? "text-amber-600" :
-    tone === "info" ? "text-sky-600" : "";
+    tone === "warn" ? "text-amber-400" :
+    tone === "info" ? "text-sky-400" : "";
   return (
     <Card>
       <CardContent className="pt-6">

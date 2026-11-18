@@ -82,7 +82,7 @@ function RunDetail() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
         <Stat label="Status" value={run.status} />
         <Stat label="Interactions passed" value={run.stats.pass} tone="good" />
         <Stat label="Warnings" value={run.stats.warn} tone="warn" />
@@ -304,13 +304,13 @@ function ErrorList({ items }: { items: string[] }) {
 function StatusIcon({ status }: { status: "pass" | "warn" | "fail" }) {
   const label = status === "pass" ? "Passed" : status === "warn" ? "Warning" : "Failed";
   const Icon = status === "pass" ? CheckCircle2 : status === "warn" ? AlertTriangle : XCircle;
-  const color = status === "pass" ? "text-emerald-500" : status === "warn" ? "text-amber-500" : "text-destructive";
+  const color = status === "pass" ? "text-emerald-400" : status === "warn" ? "text-amber-400" : "text-destructive";
   return <Icon role="img" aria-label={`Status: ${label}`} className={`h-5 w-5 ${color}`} />;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string | number; tone?: "good" | "warn" | "bad" }) {
   const color =
-    tone === "good" ? "text-emerald-600" : tone === "warn" ? "text-amber-600" : tone === "bad" ? "text-destructive" : "";
+    tone === "good" ? "text-emerald-400" : tone === "warn" ? "text-amber-400" : tone === "bad" ? "text-destructive" : "";
   return (
     <Card>
       <CardContent className="pt-6">

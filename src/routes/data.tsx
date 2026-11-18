@@ -52,21 +52,21 @@ function DataManager() {
           <h1 className="text-3xl font-semibold tracking-tight">Data Manager</h1>
           <p className="mt-1 text-sm text-muted-foreground">Manage your app's data, databases, and content.</p>
         </div>
-        <button onClick={() => { setShowNew(true); if (apps[0]) setNewApp(apps[0].id); }} disabled={!apps.length} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 inline-flex items-center gap-2">
+        <button onClick={() => { setShowNew(true); if (apps[0]) setNewApp(apps[0].id); }} disabled={!apps.length} className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 inline-flex items-center gap-2">
           <Plus className="h-4 w-4" /> New table
         </button>
       </div>
 
       {showNew && (
         <form onSubmit={create} className="mt-4 rounded-lg border border-border bg-card p-4 space-y-3">
-          <select value={newApp} onChange={(e) => setNewApp(e.target.value)} className="input">
+          <select aria-label="New app" value={newApp} onChange={(e) => setNewApp(e.target.value)} className="input">
             {apps.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
-          <input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Table name (e.g. contacts)" className="input" />
-          <input value={newCols} onChange={(e) => setNewCols(e.target.value)} placeholder="Columns (comma-separated)" className="input" />
+          <input aria-label="New name" value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Table name (e.g. contacts)" className="input" />
+          <input aria-label="New cols" value={newCols} onChange={(e) => setNewCols(e.target.value)} placeholder="Columns (comma-separated)" className="input" />
           <div className="flex gap-2">
             <button type="button" onClick={() => setShowNew(false)} className="rounded-md border border-border px-3 py-1.5 text-xs">Cancel</button>
-            <button className="rounded-lg bg-fuchsia-500 px-3 py-1.5 text-xs font-semibold text-white">Create</button>
+            <button className="rounded-lg bg-fuchsia-700 px-3 py-1.5 text-xs font-semibold text-white">Create</button>
           </div>
         </form>
       )}
@@ -117,7 +117,7 @@ function TableView({ table, rows, onInsert, onDeleteRow }: any) {
         {cols.map((c: any) => (
           <input key={c.name} value={form[c.name] ?? ""} onChange={(e) => setForm({ ...form, [c.name]: e.target.value })} placeholder={c.name} className="flex-1 min-w-[120px] rounded-md border border-input bg-background px-3 py-1.5 text-sm" />
         ))}
-        <button className="rounded-md bg-fuchsia-500 px-3 py-1.5 text-xs font-semibold text-white">Add</button>
+        <button className="rounded-md bg-fuchsia-700 px-3 py-1.5 text-xs font-semibold text-white">Add</button>
       </form>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-sm">

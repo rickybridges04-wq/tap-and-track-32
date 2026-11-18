@@ -119,7 +119,7 @@ function Step1({ app, onNext }: any) {
         <div className="font-semibold">{app.name}</div>
         <div className="text-xs text-muted-foreground">{app.base_url ?? "no URL set"} · {app.category ?? "uncategorized"}</div>
       </div>
-      <button onClick={onNext} className="mt-6 rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white">Continue</button>
+      <button onClick={onNext} className="mt-6 rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white">Continue</button>
     </div>
   );
 }
@@ -150,7 +150,7 @@ function ChecklistStep({ store, existing, onSave, onBack }: { store: "pwa" | "ap
       </div>
       <div className="mt-6 flex gap-2">
         <button onClick={onBack} className="rounded-md border border-border px-4 py-2 text-sm">Back</button>
-        <button onClick={() => onSave(checked, complete ? "ready" : "in_progress")} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white">
+        <button onClick={() => onSave(checked, complete ? "ready" : "in_progress")} className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white">
           {complete ? "Mark ready & continue" : "Save & continue"}
         </button>
       </div>

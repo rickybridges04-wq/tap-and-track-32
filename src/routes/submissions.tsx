@@ -33,8 +33,8 @@ function Submissions() {
       <div className="mt-4 rounded-lg border border-border bg-card p-4">
         <div className="text-xs font-semibold uppercase text-muted-foreground">Public endpoint (POST JSON)</div>
         <div className="mt-1 flex items-center gap-2">
-          <code className="flex-1 rounded-md bg-muted px-2 py-1 text-xs font-mono">{origin}/api/public/forms/[appId]/[formName]</code>
-          <button onClick={() => navigator.clipboard.writeText(`${origin}/api/public/forms/[appId]/[formName]`)} className="rounded-md border border-border p-1.5 hover:bg-muted"><Copy className="h-3 w-3" /></button>
+          <code className="min-w-0 flex-1 break-all rounded-md bg-muted px-2 py-1 text-xs font-mono">{origin}/api/public/forms/[appId]/[formName]</code>
+          <button onClick={() => navigator.clipboard.writeText(`${origin}/api/public/forms/[appId]/[formName]`)} aria-label="Copy endpoint URL" className="rounded-md border border-border p-1.5 hover:bg-muted"><Copy className="h-3 w-3" /></button>
         </div>
         <p className="mt-2 text-[11px] text-muted-foreground">POST any JSON body. Replace [appId] with your app's ID and [formName] with any label.</p>
       </div>
@@ -55,7 +55,7 @@ function Submissions() {
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground">{new Date(s.created_at).toLocaleString()}</span>
-                  {!s.read_at && <button onClick={async () => { await mark({ data: { id: s.id } }); q.refetch(); }} className="rounded bg-fuchsia-500 px-2 py-0.5 text-white">Mark read</button>}
+                  {!s.read_at && <button onClick={async () => { await mark({ data: { id: s.id } }); q.refetch(); }} className="rounded bg-fuchsia-700 px-2 py-0.5 text-white">Mark read</button>}
                   <TrashButton
                     label="Delete submission"
                     confirm="Delete this submission?"

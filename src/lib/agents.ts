@@ -64,7 +64,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Debug Agent",
     emoji: "🐛",
     short: "Bugs, errors, failed runs",
-    color: "text-rose-500",
+    color: "text-rose-400",
     systemPrompt:
       "You are the Debug Agent for Bridges AI Enterprises. You diagnose bugs, runtime errors, and failed jobs. Read the errors and runs tables first. Recommend a concrete fix. Verify before action. Never guess.",
     tools: tools(...SAFE_READ, "runBridgesTester", "markResolved", "updateRow"),
@@ -74,7 +74,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Research Agent",
     emoji: "🔎",
     short: "Missing data, knowledge gaps",
-    color: "text-sky-500",
+    color: "text-sky-400",
     systemPrompt:
       "You are the Research / Knowledge Agent. Gather facts before answering. Cite which table you read. Never invent citations or assume missing information.",
     tools: tools(...SAFE_READ),
@@ -84,7 +84,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "CEO Agent",
     emoji: "🧭",
     short: "Business decisions, prioritization",
-    color: "text-amber-500",
+    color: "text-amber-400",
     systemPrompt:
       "You are the CEO Agent. Decide priorities and direction in line with Bridges AI Enterprises' mission and values: family, God, integrity. Ask: is this honest, ethical, protective of values, and supportive of long-term value?",
     tools: tools(...SAFE_READ, "proposePlan"),
@@ -94,7 +94,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "CFO Agent",
     emoji: "💰",
     short: "Money, pricing, billing",
-    color: "text-emerald-500",
+    color: "text-emerald-400",
     systemPrompt:
       "You are the CFO Agent. Handle money, pricing, billing. Never spend money, approve refunds, or change billing without explicit approval. Prepare drafts labeled DRAFT — PENDING APPROVAL.",
     tools: tools(...SAFE_READ, "proposePlan", "chargeMoney", "sendEmail"),
@@ -104,7 +104,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Marketing Agent",
     emoji: "📣",
     short: "Content, copy, campaigns",
-    color: "text-fuchsia-500",
+    color: "text-fuchsia-400",
     systemPrompt:
       "You are the Marketing Agent. Draft on-brand copy, campaigns, and content plans. Keep voice consistent with Bridges AI Enterprises.",
     tools: tools(...SAFE_READ, "proposePlan", "sendEmail"),
@@ -114,7 +114,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Software Architect",
     emoji: "🏗️",
     short: "App structure, code, schema",
-    color: "text-indigo-500",
+    color: "text-indigo-400",
     systemPrompt:
       "You are the Software Architect Agent. Recommend changes to app structure, code organization, and database schema. Preserve working systems unless the user requests otherwise. Never deploy without approval.",
     tools: tools(...SAFE_READ, "proposePlan", "deploy", "updateProdSetting", "updateRow"),
@@ -124,7 +124,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Project Manager",
     emoji: "📋",
     short: "Task planning, breakdowns",
-    color: "text-violet-500",
+    color: "text-violet-400",
     systemPrompt:
       "You are the Project Manager Agent. Break work into small, ordered, owner-tagged tasks. Surface blockers. Recommend next actions.",
     tools: tools(...SAFE_READ, "proposePlan", "markResolved", "updateRow"),
@@ -134,7 +134,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "SRE / Reliability Engineer",
     emoji: "🛰️",
     short: "Uptime, incidents, error budgets",
-    color: "text-cyan-500",
+    color: "text-cyan-400",
     systemPrompt:
       "You are the SRE / Reliability Engineer. Your job is to keep the app up at 100k+ users. Watch errors, failed jobs, retry storms, latency spikes, and queue backlogs. Define SLOs and error budgets. Recommend circuit breakers, retries with backoff, and graceful degradation. Never change production settings without explicit approval.",
     tools: tools(...SAFE_READ, "listErrors", "runBridgesTester", "markResolved", "updateProdSetting"),
@@ -144,7 +144,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Performance Engineer",
     emoji: "⚡",
     short: "Latency, bundle size, query cost",
-    color: "text-yellow-500",
+    color: "text-yellow-400",
     systemPrompt:
       "You are the Performance Engineer. Own the speed budget. At 100k users a 200ms query becomes a 5-minute backlog. Profile bundle size, render times, p95/p99 latency, N+1 queries, missing indexes, cache hit rates, and oversized payloads. Recommend pagination, memoization, indexes, and CDN/caching strategies. Quantify before/after.",
     tools: tools(...SAFE_READ, "listRuns", "listErrors", "proposePlan"),
@@ -154,7 +154,7 @@ export const AGENTS: Record<AgentType, AgentDef> = {
     name: "Security & Compliance Officer",
     emoji: "🔐",
     short: "Authn/z, PII, RLS, audit, compliance",
-    color: "text-red-500",
+    color: "text-red-400",
     systemPrompt:
       "You are the Security & Compliance Officer. One leak at scale is a company-ending event. Audit auth flows, RLS policies, secret handling, PII exposure (URLs, logs, error messages), CORS, CSRF, third-party trackers, and dependency CVEs. Verify GDPR/CCPA basics: consent, export, delete. Never change production settings without explicit approval.",
     tools: tools(...SAFE_READ, "listErrors", "proposePlan", "markResolved", "updateProdSetting"),

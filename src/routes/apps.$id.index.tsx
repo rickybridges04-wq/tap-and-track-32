@@ -78,7 +78,7 @@ function AppDetail() {
       </div>
       {syncMsg && <div className="mt-3 rounded-md border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-xs text-fuchsia-200">{syncMsg}</div>}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
         <Link to="/apps/$id/submit" params={{ id }} className="rounded-lg border border-border bg-card p-4 hover:border-fuchsia-400">
           <Upload className="h-5 w-5 text-fuchsia-400" />
           <div className="mt-2 font-semibold text-sm">Submit to stores</div>
@@ -100,20 +100,20 @@ function AppDetail() {
 
       <div className="mt-6 rounded-lg border border-border bg-card p-6 space-y-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">App details</h2>
-        <F label="Name"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></F>
-        <F label="Base URL"><input value={form.base_url ?? ""} onChange={(e) => setForm({ ...form, base_url: e.target.value })} className="input" /></F>
-        <F label="Short description"><input value={form.short_desc ?? ""} onChange={(e) => setForm({ ...form, short_desc: e.target.value })} maxLength={80} className="input" /></F>
-        <F label="Long description"><textarea value={form.long_desc ?? ""} onChange={(e) => setForm({ ...form, long_desc: e.target.value })} rows={4} maxLength={4000} className="input" /></F>
+        <F label="Name"><input aria-label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></F>
+        <F label="Base URL"><input aria-label="Base url" value={form.base_url ?? ""} onChange={(e) => setForm({ ...form, base_url: e.target.value })} className="input" /></F>
+        <F label="Short description"><input aria-label="Short desc" value={form.short_desc ?? ""} onChange={(e) => setForm({ ...form, short_desc: e.target.value })} maxLength={80} className="input" /></F>
+        <F label="Long description"><textarea aria-label="Long desc" value={form.long_desc ?? ""} onChange={(e) => setForm({ ...form, long_desc: e.target.value })} rows={4} maxLength={4000} className="input" /></F>
         <div className="grid grid-cols-2 gap-3">
-          <F label="Theme color"><input type="color" value={form.theme_color ?? "#7c3aed"} onChange={(e) => setForm({ ...form, theme_color: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background" /></F>
+          <F label="Theme color"><input aria-label="Theme color" type="color" value={form.theme_color ?? "#7c3aed"} onChange={(e) => setForm({ ...form, theme_color: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background" /></F>
           <F label="Status">
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input">
+            <select aria-label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input">
               <option value="draft">Draft</option><option value="pwa_ready">PWA ready</option>
               <option value="submitted">Submitted</option><option value="published">Published</option>
             </select>
           </F>
         </div>
-        <button onClick={save} disabled={saving} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+        <button onClick={save} disabled={saving} className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
           {saving ? "Saving..." : "Save"}
         </button>
       </div>

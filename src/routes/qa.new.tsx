@@ -80,10 +80,8 @@ function NewQaRun() {
 
       <form onSubmit={onSubmit} className="max-w-2xl space-y-6 rounded-lg border border-border bg-card p-6">
         <div>
-          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Target URL
-          </label>
-          <input
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Target URL</label>
+          <input aria-label="Target URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://your-app.com"
@@ -121,7 +119,7 @@ function NewQaRun() {
           <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             AI personas ({selected.length})
           </label>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {ALL_PERSONA_IDS.map((id) => {
               const p = PERSONAS[id];
               const on = selected.includes(id);

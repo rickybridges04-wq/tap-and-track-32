@@ -138,7 +138,7 @@ function ReportPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
         <Stat label="Pass rate" value={`${r.run.pass_rate_pct}%`} />
         <Stat label="Cases" value={`${r.run.passed} pass · ${r.run.failed} fail`} />
         <Stat label="Readiness score" value={r.run.score != null ? String(r.run.score) : "—"} />
@@ -179,7 +179,7 @@ function ReportPage() {
                 {DIFF_LABEL[d.state as DiffState]}
               </span>
               {d.flaky && (
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-400">
                   Flaky
                 </span>
               )}
@@ -223,7 +223,7 @@ function ReportPage() {
               <p className="mt-1 text-xs text-muted-foreground">{g.error_message ?? "no message"}</p>
               {g.likely_cause && (
                 <p className="mt-2">
-                  <span className="mr-2 rounded-full bg-violet-500/15 px-2 py-0.5 text-[11px] font-medium text-violet-600">
+                  <span className="mr-2 rounded-full bg-violet-500/15 px-2 py-0.5 text-[11px] font-medium text-violet-400">
                     Suggestion — AI
                   </span>
                   {g.likely_cause}
@@ -234,7 +234,7 @@ function ReportPage() {
         </CardContent>
       </Card>
 
-      <div className="mb-6 grid gap-3 md:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Performance</CardTitle>

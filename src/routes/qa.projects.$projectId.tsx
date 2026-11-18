@@ -217,7 +217,7 @@ function ProjectDetail() {
         />
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Suites &amp; cases</CardTitle>
@@ -360,7 +360,7 @@ function ProjectDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <Label htmlFor="c-code">Code</Label>
                 <Input
@@ -449,7 +449,7 @@ function EditProject({
         <CardTitle className="text-base">Edit project</CardTitle>
         <CardDescription>Leave the password blank to keep the saved one.</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-2">
+      <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="e-name">Name</Label>
           <Input id="e-name" value={name} onChange={(e) => setName(e.target.value)} />

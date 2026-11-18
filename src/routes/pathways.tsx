@@ -134,7 +134,7 @@ function PathwaysPage() {
         </Button>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <CheckCard id="storage" title="Browser storage" desc="localStorage read/write" r={results.storage} />
         <CheckCard id="env" title="Server secrets" desc="LOVABLE_API_KEY, FIRECRAWL_API_KEY, Supabase" r={results.env} />
         <CheckCard id="ai" title="Lovable AI Gateway" desc="ping google/gemini-3-flash-preview" r={results.ai} />
@@ -148,7 +148,7 @@ function PathwaysPage() {
           <CardDescription>Click any route to confirm it renders.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="grid gap-1 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
             {ROUTES.map((r) => (
               <li key={r.to}>
                 <Link
@@ -174,9 +174,9 @@ function CheckCard({ id, title, desc, r }: { id: string; title: string; desc: st
     state === "fail" ? XCircle :
     state === "running" ? Loader2 : Activity;
   const tone =
-    state === "pass" ? "text-emerald-500" :
-    state === "fail" ? "text-rose-500" :
-    state === "running" ? "text-sky-500" : "text-muted-foreground";
+    state === "pass" ? "text-emerald-400" :
+    state === "fail" ? "text-rose-400" :
+    state === "running" ? "text-sky-400" : "text-muted-foreground";
   return (
     <Card key={id}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0">

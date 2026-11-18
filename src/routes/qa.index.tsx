@@ -152,11 +152,11 @@ function RunCard({ run, onDelete }: { run: QaRunRow; onDelete: () => void }) {
                 </span>
               </>
             ) : run.status === "failed" ? (
-              <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+              <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-medium text-rose-400">
                 Failed
               </span>
             ) : (
-              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-400">
                 {run.status}
               </span>
             )}

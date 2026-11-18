@@ -63,7 +63,7 @@ function Approvals() {
                           {task && <Link to="/agents/$taskId" params={{ taskId: task.id }} className="hover:underline">{task.title}</Link>}
                         </div>
                         <div className="mt-1 flex items-center gap-2 text-sm font-medium">
-                          <ShieldAlert className="h-4 w-4 text-amber-600" />
+                          <ShieldAlert className="h-4 w-4 text-amber-400" />
                           {a.actionSummary}
                         </div>
                         <pre className="mt-2 max-h-32 overflow-auto rounded bg-muted/60 p-2 text-xs">

@@ -68,7 +68,7 @@ export function StepsEditor({
 
       {jsonMode ? (
         <div className="space-y-2">
-          <Textarea
+          <Textarea aria-label="Draft"
             rows={12}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

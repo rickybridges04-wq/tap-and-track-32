@@ -149,7 +149,7 @@ function BackendCard() {
         <CardTitle className="flex items-center gap-2 text-base">
           <Cloud className="h-4 w-4" /> Backend
           {ok ? (
-            <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
+            <Badge className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/15 text-[10px]">
               <Check className="mr-1 h-3 w-3" /> Connected
             </Badge>
           ) : (
@@ -182,7 +182,7 @@ function SecretsCard() {
           Live status, read from this project's server-side secrets. Values are never shown here.
           Add or change one in Project Settings → Secrets.
           {missingRequired.length > 0 && (
-            <span className="mt-2 flex items-center gap-1.5 text-amber-600">
+            <span className="mt-2 flex items-center gap-1.5 text-amber-400">
               <AlertTriangle className="h-3.5 w-3.5" />
               {missingRequired.length} required integration
               {missingRequired.length === 1 ? "" : "s"} still missing.
@@ -205,7 +205,7 @@ function SecretsCard() {
                     <div className="flex flex-wrap items-center gap-2">
                       <code className="rounded bg-muted px-2 py-1 text-xs font-medium">{def.name}</code>
                       {configured ? (
-                        <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15 text-[10px]">
+                        <Badge className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/15 text-[10px]">
                           <Check className="mr-1 h-3 w-3" /> Set
                         </Badge>
                       ) : def.required ? (
@@ -253,7 +253,7 @@ function GithubCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Input
+          <Input aria-label="Draft"
             className="max-w-xs font-mono text-xs"
             placeholder={mounted && repo ? repo : "owner/repo"}
             value={draft}
@@ -311,6 +311,7 @@ function Settings() {
       </Card>
 
       <SetPasswordCard />
+      <p className="mt-8 text-sm text-muted-foreground"><a className="underline" href="https://rickybridges04-wq.github.io/bae-privacy-policies/apps/walkthrough-wizard.html" target="_blank" rel="noreferrer">Privacy policy</a>{" · "}<a className="underline" href="mailto:baesupport26@gmail.com">Support</a></p>
       <DeleteAccountCard />
     </AppShell>
   );

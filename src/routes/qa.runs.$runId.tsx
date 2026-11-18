@@ -115,7 +115,7 @@ function QaRunDetail() {
               </div>
             </div>
           ) : (
-            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">
+            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-400">
               {run.status}
             </span>
           )}
@@ -139,13 +139,13 @@ function QaRunDetail() {
       )}
 
       {run.status === "failed" && (
-        <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700" role="alert">
+        <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400" role="alert">
           {run.error || "Run failed"}
         </div>
       )}
 
       {run.status === "completed" && score?.lowCoverage && (
-        <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800" role="status">
+        <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-400" role="status">
           <span className="font-medium">Partial coverage.</span> Only {pages.length} of{" "}
           {run.pages_discovered ?? pages.length} discovered pages were checked, so this score cannot
           certify a release. The verdict is capped until coverage is above 60%.
@@ -153,7 +153,7 @@ function QaRunDetail() {
       )}
 
       {run.status === "completed" && run.warnings && run.warnings.length > 0 && (
-        <details className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800">
+        <details className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-400">
           <summary className="cursor-pointer font-medium">
             {run.warnings.length} step{run.warnings.length === 1 ? "" : "s"} skipped due to transient errors
           </summary>
@@ -188,7 +188,7 @@ function QaRunDetail() {
       </div>
 
       {tab === "summary" && score && (
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
           <Stat label="Functional" v={score.subscores.functional} />
           <Stat label="Visual" v={score.subscores.visual} />
           <Stat label="Accessibility" v={score.subscores.accessibility} />
@@ -238,7 +238,7 @@ function QaRunDetail() {
                     href={p.screenshot_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-700 hover:underline"
+                    className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-400 hover:underline"
                   >
                     screenshot captured
                   </a>
@@ -246,7 +246,7 @@ function QaRunDetail() {
                   <span className="rounded-full bg-muted px-2 py-0.5 font-medium">no screenshot</span>
                 )}
                 {p.truncated && (
-                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-amber-700">
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-amber-400">
                     text truncated — partially inspected
                   </span>
                 )}
@@ -296,7 +296,7 @@ function FindingCard({ f }: { f: QaFindingRow }) {
         <span className="text-xs text-muted-foreground">· {Math.round(Number(f.confidence) * 100)}% conf</span>
         {(f.basis ?? "inferred") === "observed" ? (
           <span
-            className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+            className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-400"
             title="Backed by a rendered screenshot, HTTP status or a measured timing"
           >
             observed
@@ -478,7 +478,7 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
                         </ul>
                       )}
                     </div>
-                    <Button
+                    <Button aria-label="Copy"
                       size="sm"
                       variant="ghost"
                       onClick={async () => {

@@ -46,7 +46,7 @@ function AppsIndex() {
           <h1 className="text-3xl font-semibold tracking-tight">My Apps</h1>
           <p className="mt-1 text-sm text-muted-foreground">Register your apps, prep them for stores, ship push, collect submissions.</p>
         </div>
-        <Link to="/apps/new" className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-600 inline-flex items-center gap-2">
+        <Link to="/apps/new" className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-800 inline-flex items-center gap-2">
           <Plus className="h-4 w-4" /> New app
         </Link>
       </div>
@@ -85,7 +85,7 @@ function AppsIndex() {
           <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center">
             <Smartphone className="mx-auto h-10 w-10 text-muted-foreground" />
             <p className="mt-3 text-sm text-muted-foreground">No apps yet. Register your first one.</p>
-            <Link to="/apps/new" className="mt-4 inline-block rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white">Create app</Link>
+            <Link to="/apps/new" className="mt-4 inline-block rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white">Create app</Link>
           </div>
         )}
       </div>

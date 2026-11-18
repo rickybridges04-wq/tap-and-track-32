@@ -42,7 +42,7 @@ function Published() {
           <Globe className="mx-auto h-10 w-10 text-muted-foreground" />
           <h2 className="mt-3 text-lg font-semibold">No Published Apps</h2>
           <p className="mt-1 text-sm text-muted-foreground">You haven't published any apps yet. Submit an app to the app stores to see it here.</p>
-          <Link to="/apps" className="mt-4 inline-block rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white">Submit Your First App</Link>
+          <Link to="/apps" className="mt-4 inline-block rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white">Submit Your First App</Link>
         </div>
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

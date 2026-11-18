@@ -111,7 +111,7 @@ function Landing() {
           A "run" is one full pass: your app is crawled, walked, scored, and
           returned with a prioritized fix list. Each free-tier account gets 3.
         </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Step icon={Search} n={1} title="Crawl" body="We map every reachable page from your base URL." />
           <Step icon={Bot} n={2} title="Walk" body="AI personas complete real user flows end-to-end." />
           <Step icon={ShieldCheck} n={3} title="Score" body="Get a release-readiness score across UX, a11y, and copy." />
@@ -152,7 +152,7 @@ function Pricing() {
   return (
     <div id="pricing" className="mt-12">
       <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h2>
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card/60 p-6">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Free</div>
           <div className="mt-2 text-3xl font-bold">$0</div>
@@ -230,7 +230,7 @@ function Dashboard() {
         </Card>
       ) : (
         <>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard label="Apps registered" value={d?.apps ?? 0} />
             <StatCard label="QA runs" value={d?.runs ?? 0} />
             <StatCard label="Pages crawled" value={d?.pages ?? 0} />
@@ -314,7 +314,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
         <div
           className={
             "mt-1 text-2xl font-semibold " +
-            (tone === "good" ? "text-emerald-600" : tone === "bad" ? "text-destructive" : "")
+            (tone === "good" ? "text-emerald-400" : tone === "bad" ? "text-destructive" : "")
           }
         >
           {value}

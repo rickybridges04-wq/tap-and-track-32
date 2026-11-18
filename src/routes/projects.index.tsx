@@ -29,7 +29,7 @@ function ProjectsList() {
         </Button>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((p) => (
           <Card key={p.id}>
             <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">

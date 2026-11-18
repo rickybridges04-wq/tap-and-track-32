@@ -73,8 +73,8 @@ export const planAgentTask = createServerFn({ method: "POST" })
         model = anthropic(data.model ?? "claude-sonnet-4-5");
         providerLabel = "Anthropic";
       } else {
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+        const key = process.env.AI_GATEWAY_API_KEY;
+        if (!key) throw new Error("AI_GATEWAY_API_KEY is not configured");
         const gateway = createLovableAiGatewayProvider(key);
         model = gateway(data.model ?? "google/gemini-3-flash-preview");
         providerLabel = "Lovable AI";
@@ -172,8 +172,8 @@ export const analyzeFixRootCauses = createServerFn({ method: "POST" })
       .in("id", ids)
       .eq("user_id", context.userId);
     if ((owned.count ?? 0) !== new Set(ids).size) throw new Error("Findings not found");
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+    const key = process.env.AI_GATEWAY_API_KEY;
+    if (!key) throw new Error("AI_GATEWAY_API_KEY is not configured");
     const gateway = createLovableAiGatewayProvider(key);
     const model = gateway("openai/gpt-5.5");
 

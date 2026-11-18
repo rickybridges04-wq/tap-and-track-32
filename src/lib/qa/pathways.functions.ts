@@ -10,8 +10,8 @@ async function ownerOnly(userId: string) {
 
 export const checkAiGateway = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   if (!(await ownerOnly(context.userId))) return { ok: false as const, error: "Owner only" } as never;
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) return { ok: false as const, error: "LOVABLE_API_KEY not set" };
+  const key = process.env.AI_GATEWAY_API_KEY;
+  if (!key) return { ok: false as const, error: "AI_GATEWAY_API_KEY not set" };
   try {
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const { generateText } = await import("ai");
@@ -44,7 +44,7 @@ export const checkFirecrawl = createServerFn({ method: "GET" }).middleware([requ
 export const checkEnv = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   if (!(await ownerOnly(context.userId))) return { ok: false as const, error: "Owner only" } as never;
   return {
-    LOVABLE_API_KEY: Boolean(process.env.LOVABLE_API_KEY),
+    LOVABLE_API_KEY: Boolean(process.env.AI_GATEWAY_API_KEY),
     FIRECRAWL_API_KEY: Boolean(process.env.FIRECRAWL_API_KEY),
     SUPABASE_URL: Boolean(process.env.SUPABASE_URL),
     SUPABASE_PUBLISHABLE_KEY: Boolean(process.env.SUPABASE_PUBLISHABLE_KEY),

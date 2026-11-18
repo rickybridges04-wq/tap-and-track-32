@@ -87,8 +87,8 @@ function Upgrade() {
             <div className="mt-2 text-3xl font-bold">$0</div>
             <div className="text-xs text-muted-foreground">3 runs total</div>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-500" /> 3 QA / agent runs</li>
-              <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-500" /> Full feature preview</li>
+              <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-400" /> 3 QA / agent runs</li>
+              <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-400" /> Full feature preview</li>
             </ul>
           </div>
 

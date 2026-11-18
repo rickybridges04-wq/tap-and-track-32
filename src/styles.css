@@ -76,7 +76,7 @@
   --accent-foreground: oklch(0.12 0.03 270);
 
   --destructive: oklch(0.65 0.27 25);
-  --destructive-foreground: oklch(0.985 0.005 250);
+  --destructive-foreground: oklch(0.16 0.02 25);
 
   --border: oklch(0.30 0.04 270 / 70%);
   --input: oklch(0.26 0.04 270);
@@ -128,7 +128,7 @@
   --accent: oklch(0.65 0.27 330);
   --accent-foreground: oklch(0.12 0.03 270);
   --destructive: oklch(0.65 0.27 25);
-  --destructive-foreground: oklch(0.985 0.005 250);
+  --destructive-foreground: oklch(0.16 0.02 25);
   --border: oklch(0.30 0.04 270 / 70%);
   --input: oklch(0.26 0.04 270);
   --ring: oklch(0.72 0.20 200);
@@ -257,3 +257,11 @@
   50%      { transform: translateY(-4px); }
 }
 @utility floaty { animation: floaty 6s ease-in-out infinite; }
+
+/* Toast colours: darker text so rich-colour toasts meet WCAG AA (4.5:1). */
+html [data-sonner-toaster][data-sonner-theme="light"] {
+  --success-text: hsl(140, 100%, 20%);
+  --info-text: hsl(210, 92%, 32%);
+  --warning-text: hsl(31, 92%, 26%);
+  --error-text: hsl(360, 100%, 35%);
+}

@@ -104,7 +104,7 @@ function Block({ title, code }: { title: string; code: string }) {
           <Copy className="mr-1 h-3 w-3" /> Copy
         </Button>
       </div>
-      <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 text-xs leading-relaxed">
+      <pre tabIndex={0} className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 text-xs leading-relaxed">
         <code>{code}</code>
       </pre>
     </div>

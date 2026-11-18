@@ -88,7 +88,7 @@ export function CreateBugDialog({ draft }: { draft: BugDraft }) {
         </DialogHeader>
         <div className="space-y-3">
           <Field label="Title">
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input aria-label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
           <Field label="Severity">
             <div className="flex flex-wrap gap-2">
@@ -106,16 +106,16 @@ export function CreateBugDialog({ draft }: { draft: BugDraft }) {
             </div>
           </Field>
           <Field label="Steps to reproduce (one per line)">
-            <Textarea rows={5} value={steps} onChange={(e) => setSteps(e.target.value)} />
+            <Textarea aria-label="Steps" rows={5} value={steps} onChange={(e) => setSteps(e.target.value)} />
           </Field>
           <Field label="Expected">
-            <Textarea rows={2} value={expected} onChange={(e) => setExpected(e.target.value)} />
+            <Textarea aria-label="Expected" rows={2} value={expected} onChange={(e) => setExpected(e.target.value)} />
           </Field>
           <Field label="Actual">
-            <Textarea rows={2} value={actual} onChange={(e) => setActual(e.target.value)} />
+            <Textarea aria-label="Actual" rows={2} value={actual} onChange={(e) => setActual(e.target.value)} />
           </Field>
           <Field label="Likely cause (Suggestion — AI)">
-            <Textarea rows={3} value={cause} onChange={(e) => setCause(e.target.value)} />
+            <Textarea aria-label="Cause" rows={3} value={cause} onChange={(e) => setCause(e.target.value)} />
           </Field>
         </div>
         <DialogFooter>

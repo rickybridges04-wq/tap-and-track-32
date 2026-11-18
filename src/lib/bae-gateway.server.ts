@@ -35,6 +35,13 @@ function promptText(messages: unknown): string {
   return parts.join("\n\n").slice(0, 3800);
 }
 
+function hasInputImage(messages: unknown): boolean {
+  if (!Array.isArray(messages)) return false;
+  return (messages as Array<{ content?: unknown }>).some(
+    (m) => Array.isArray(m?.content) && (m.content as Array<{ type?: string }>).some((p) => p?.type === "image_url"),
+  );
+}
+
 async function toBase64(url: string): Promise<{ b64: string; mime: string } | null> {
   try {
     const r = await fetch(url);
@@ -78,6 +85,11 @@ export async function baeGatewayFetch(payload: Record<string, unknown>): Promise
   if (!key) return gwError(503, "AI is not configured for this app yet (AI_GATEWAY_API_KEY missing).");
   const modalities = payload["modalities"];
   if (Array.isArray(modalities) && modalities.includes("image")) {
+    // Editing a user's photo needs an image-edit provider the gateway doesn't have yet.
+    // Never fake it with a fresh image that ignores their photo.
+    if (hasInputImage(payload["messages"])) {
+      return gwError(501, "Photo-based edits are being moved to the BAE AI Gateway and are temporarily unavailable.");
+    }
     const prompt = promptText(payload["messages"]);
     if (!prompt) return gwError(400, "Image prompt is empty");
     return await baeGatewayImage(key, prompt);
@@ -93,6 +105,43 @@ export async function baeGatewayFetch(payload: Record<string, unknown>): Promise
   });
 }
 
+
+/** Video via the gateway (paid apps only call this). POST /videos starts a queued job
+ *  (v1-media-generate, video-gen); GET /videos/{id} polls it (v1-media-status).
+ *  Responses keep the old shape: { id, status: pending|processing|completed|failed, url }. */
+async function baeGatewayVideo(key: string, url: string, payload: Record<string, unknown>): Promise<Response> {
+  const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { "Content-Type": "application/json" } });
+  const m = url.match(/\/videos\/([^/?]+)/);
+  if (!m) {
+    const prompt = String(payload["prompt"] ?? "").slice(0, 3800);
+    if (!prompt) return gwError(400, "Video prompt is empty");
+    const res = await fetch(`${BAE_GATEWAY_BASE}/v1-media-generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key },
+      body: JSON.stringify({
+        external_user_id: "app-house", task_type: "video-gen", tier: "standard", prompt, promote: true,
+        aspect_ratio: payload["aspect_ratio"], duration_seconds: Number(payload["duration"] ?? 5) || 5,
+      }),
+    });
+    const d = (await res.json().catch(() => ({}))) as { request_id?: string; storage_url?: string; error?: string };
+    if (!res.ok || !d.request_id) return gwError(res.ok ? 502 : res.status, d.error ?? "Video generation failed");
+    return ok({ id: d.request_id, status: d.storage_url ? "completed" : "pending", url: d.storage_url });
+  }
+  const id = decodeURIComponent(m[1]!);
+  const res = await fetch(`${BAE_GATEWAY_BASE}/v1-media-status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": key },
+    body: JSON.stringify({ request_id: id }),
+  });
+  const d = (await res.json().catch(() => ({}))) as { status?: string; storage_url?: string; error?: string; output?: { storage_url?: string } };
+  if (!res.ok) return gwError(res.status, d.error ?? "Video status check failed");
+  const st = String(d.status ?? "queued");
+  const done = d.storage_url ?? d.output?.storage_url;
+  if (st === "error") return ok({ id, status: "failed", error: d.error ?? "Video render failed" });
+  if (st === "success" && done) return ok({ id, status: "completed", url: done });
+  return ok({ id, status: "processing" });
+}
+
 function parseBody(init?: { body?: unknown }): Record<string, unknown> {
   try {
     const b = init?.body;
@@ -106,7 +155,7 @@ function parseBody(init?: { body?: unknown }): Record<string, unknown> {
  * Drop-in for `fetch(<ai.gateway.lovable.dev URL>, init)`. Pass the same
  * arguments; the request is served by the BAE gateway instead.
  */
-export async function baeCompatFetch(input: unknown, init?: { body?: unknown }): Promise<Response> {
+export async function baeCompatFetch(input: unknown, init?: { body?: unknown; [k: string]: unknown } | RequestInit): Promise<Response> {
   const url = typeof input === "string" ? input : String((input as { url?: string })?.url ?? input);
   const payload = parseBody(init);
   if (url.includes("/images/generations")) {
@@ -122,7 +171,12 @@ export async function baeCompatFetch(input: unknown, init?: { body?: unknown }):
       headers: { "Content-Type": "application/json" },
     });
   }
-  if (url.includes("/videos") || url.includes("/audio/")) {
+  if (url.includes("/videos")) {
+    const key = baeKey();
+    if (!key) return gwError(503, "AI is not configured for this app yet (AI_GATEWAY_API_KEY missing).");
+    return await baeGatewayVideo(key, url, payload);
+  }
+  if (url.includes("/audio/")) {
     return gwError(501, "This media feature is moving to the BAE gateway and is temporarily unavailable.");
   }
   return await baeGatewayFetch(payload);
@@ -134,7 +188,7 @@ export async function baeCompatFetch(input: unknown, init?: { body?: unknown }):
  * replays the full result as an OpenAI-style SSE stream (reliable with tools
  * and structured output).
  */
-export async function baeSdkFetch(input: unknown, init?: { body?: unknown }): Promise<Response> {
+export async function baeSdkFetch(input: unknown, init?: RequestInit): Promise<Response> {
   const url = typeof input === "string" ? input : String((input as { url?: string })?.url ?? input);
   if (!url.includes("/chat/completions")) return baeCompatFetch(input, init);
   const payload = parseBody(init);

@@ -49,22 +49,22 @@ function NewApp() {
 
       <form onSubmit={submit} className="mt-6 max-w-xl space-y-4 rounded-lg border border-border bg-card p-6">
         <Field label="App name" required>
-          <input value={name} onChange={(e) => setName(e.target.value)} required className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="My awesome app" />
+          <input aria-label="Name" value={name} onChange={(e) => setName(e.target.value)} required className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="My awesome app" />
         </Field>
         <Field label="Base URL">
-          <input value={url} onChange={(e) => setUrl(e.target.value)} type="url" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="https://myapp.com" />
+          <input aria-label="Url" value={url} onChange={(e) => setUrl(e.target.value)} type="url" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="https://myapp.com" />
         </Field>
         <Field label="Short description">
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} maxLength={80} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="One-line pitch (max 80 chars)" />
+          <textarea aria-label="Description" value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} maxLength={80} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="One-line pitch (max 80 chars)" />
           <div className="text-[11px] text-muted-foreground">{desc.length}/80</div>
         </Field>
         <Field label="Category">
-          <select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+          <select aria-label="Cat" value={cat} onChange={(e) => setCat(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </Field>
         {err && <div className="rounded-md bg-red-500/10 p-2 text-xs text-red-400">{err}</div>}
-        <button disabled={busy} className="rounded-lg bg-fuchsia-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+        <button disabled={busy} className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
           {busy ? busyLabel : "Create app & sync"}
         </button>
         {url && <div className="text-[11px] text-muted-foreground">We'll crawl this URL to auto-fill branding, PWA checklist, and data tables.</div>}

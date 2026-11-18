@@ -108,7 +108,7 @@ function TaskDetail() {
                             <div className="flex items-center gap-2 text-sm font-medium">
                               <span className="text-xs text-muted-foreground">#{s.idx}</span>
                               <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{s.tool}</code>
-                              {s.risky && <Badge variant="outline" className="bg-amber-500/15 text-amber-700">risky</Badge>}
+                              {s.risky && <Badge variant="outline" className="bg-amber-500/15 text-amber-400">risky</Badge>}
                             </div>
                             {s.reasoning && (
                               <p className="mt-1 text-xs text-muted-foreground">{s.reasoning}</p>
@@ -129,7 +129,7 @@ function TaskDetail() {
                         {appr && appr.status === "pending" && (
                           <div className="mt-3 flex items-center justify-between gap-2 rounded-md bg-amber-500/10 p-2">
                             <div className="flex items-center gap-2 text-xs">
-                              <ShieldAlert className="h-4 w-4 text-amber-600" />
+                              <ShieldAlert className="h-4 w-4 text-amber-400" />
                               <span><strong>Approval needed:</strong> {appr.actionSummary}</span>
                             </div>
                             <div className="flex gap-2">
@@ -183,10 +183,10 @@ function TaskDetail() {
 
 function StepStatusIcon({ status }: { status: string }) {
   if (status === "ran" || status === "approved")
-    return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+    return <CheckCircle2 className="h-5 w-5 text-emerald-400" />;
   if (status === "failed" || status === "rejected")
     return <XCircle className="h-5 w-5 text-destructive" />;
   if (status === "needs_approval")
-    return <ShieldAlert className="h-5 w-5 text-amber-600" />;
+    return <ShieldAlert className="h-5 w-5 text-amber-400" />;
   return <Clock className="h-5 w-5 text-muted-foreground" />;
 }

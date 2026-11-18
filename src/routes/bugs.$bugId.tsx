@@ -193,7 +193,7 @@ function BugDetail() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Input
+            <Input aria-label="Assignee"
               className="max-w-xs"
               placeholder="Assignee"
               defaultValue={bug.assignee ?? ""}
@@ -266,7 +266,7 @@ function BugDetail() {
               <div className="mt-1 whitespace-pre-wrap">{c.body}</div>
             </div>
           ))}
-          <Textarea
+          <Textarea aria-label="Comment"
             rows={3}
             placeholder="Add a comment…"
             value={comment}

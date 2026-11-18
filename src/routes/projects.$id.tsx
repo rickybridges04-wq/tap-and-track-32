@@ -95,7 +95,7 @@ function ProjectDetail() {
           <Button onClick={triggerRun} disabled={running}>
             <Play className="mr-1 h-4 w-4" /> {running ? "Running…" : "Run now"}
           </Button>
-          <Button variant="outline" onClick={remove}>
+          <Button aria-label="Delete" variant="outline" onClick={remove}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -105,7 +105,7 @@ function ProjectDetail() {
         <p className="mt-3 text-sm text-muted-foreground">{project.notes}</p>
       )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Run history</CardTitle>
@@ -123,8 +123,8 @@ function ProjectDetail() {
                     </Link>
                     <div className="flex items-center gap-2 text-xs">
                       <Badge variant="outline">{r.trigger}</Badge>
-                      <span className="text-emerald-600">{r.stats.pass} pass</span>
-                      <span className="text-amber-600">{r.stats.warn} warn</span>
+                      <span className="text-emerald-400">{r.stats.pass} pass</span>
+                      <span className="text-amber-400">{r.stats.warn} warn</span>
                       <span className="text-destructive">{r.stats.fail} fail</span>
                     </div>
                   </li>

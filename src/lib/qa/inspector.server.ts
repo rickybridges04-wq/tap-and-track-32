@@ -132,8 +132,8 @@ const InspectInput = z.object({
 
 export async function inspectPage(input: z.input<typeof InspectInput>) {
     const data = InspectInput.parse(input);
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+    const key = process.env.AI_GATEWAY_API_KEY;
+    if (!key) throw new Error("AI_GATEWAY_API_KEY is not configured");
 
     const persona = PERSONAS[data.personaId as PersonaId];
     if (!persona) throw new Error(`Unknown persona: ${data.personaId}`);

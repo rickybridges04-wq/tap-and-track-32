@@ -57,7 +57,7 @@ export function ApiKeysCard() {
             if (name.trim()) create.mutate(name.trim());
           }}
         >
-          <Input
+          <Input aria-label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Key name, e.g. GitHub Actions"

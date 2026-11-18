@@ -221,7 +221,7 @@ function AutomatedRun() {
                   {DIFF_LABEL[d.state as DiffState]}
                 </span>
                 {d.flaky && (
-                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-400">
                     Flaky
                   </span>
                 )}
@@ -303,7 +303,7 @@ function AutomatedRun() {
                     {analysis ? (
                       <div className="rounded-md border border-border bg-muted/40 p-3">
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span className="rounded-full bg-violet-500/15 px-2 py-0.5 font-medium text-violet-600">
+                          <span className="rounded-full bg-violet-500/15 px-2 py-0.5 font-medium text-violet-400">
                             Suggestion — AI
                           </span>
                           <span>
