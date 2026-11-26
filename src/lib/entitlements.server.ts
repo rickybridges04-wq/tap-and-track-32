@@ -21,13 +21,36 @@ export async function getPlan(userId: string): Promise<Plan> {
     db.from("user_roles").select("role").eq("user_id", userId),
     db
       .from("subscriptions")
-      .select("status,current_period_end")
+      .select("status,current_period_end,stripe_subscription_id")
       .eq("user_id", userId)
       .maybeSingle(),
     db.from("usage_events").select("id", { count: "exact", head: true }).eq("user_id", userId),
   ]);
   const roles = (rolesRes.data ?? []).map((r) => r.role as string);
-  const sub = subRes.data;
+  let sub = subRes.data;
+  // Gateway plans renew lazily: once the stored period has passed, ask the gateway
+  // (which asks Stripe) before deciding the user lapsed. Never fails the request.
+  if (
+    sub &&
+    String((sub as { stripe_subscription_id?: string }).stripe_subscription_id ?? "").startsWith(
+      "gateway:",
+    ) &&
+    sub.current_period_end &&
+    new Date(sub.current_period_end) <= new Date()
+  ) {
+    try {
+      const { syncPlan } = await import("@/lib/billing.server");
+      await syncPlan(userId);
+      const fresh = await db
+        .from("subscriptions")
+        .select("status,current_period_end,stripe_subscription_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      sub = fresh.data;
+    } catch (e) {
+      console.error("plan sync failed:", (e as Error).message);
+    }
+  }
   const isSubscribed =
     !!sub &&
     ["active", "trialing", "past_due"].includes(sub.status) &&
@@ -46,7 +69,9 @@ export function canStartRun(p: Plan): boolean {
 
 export class PlanError extends Error {
   constructor() {
-    super(`${PLAN_ERROR_PREFIX} Free run limit reached (${FREE_RUN_LIMIT} runs). Upgrade to Pro for unlimited runs.`);
+    super(
+      `${PLAN_ERROR_PREFIX} Free run limit reached (${FREE_RUN_LIMIT} runs). Upgrade to a paid plan for unlimited runs.`,
+    );
   }
 }
 

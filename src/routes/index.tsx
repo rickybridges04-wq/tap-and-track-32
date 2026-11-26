@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { FREE_RUN_LIMIT, PRO_PRICE_KEY, savePlanIntent } from "@/lib/plan";
+import { FREE_RUN_LIMIT, formatPrice, savePlanIntent } from "@/lib/plan";
+import { getPlans } from "@/lib/billing.functions";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -145,14 +146,17 @@ function Landing() {
 
 function Pricing() {
   const navigate = useNavigate();
-  function choosePro() {
-    savePlanIntent(PRO_PRICE_KEY);
+  // Prices come from BAE HQ → Pricing through the gateway; nothing is hard-coded here.
+  const plansQ = useQuery({ queryKey: ["plans"], queryFn: () => getPlans(), staleTime: 60_000 });
+  const monthly = (plansQ.data ?? []).filter((p) => (p.billing_interval ?? "month") === "month");
+  function choose(planKey: string) {
+    savePlanIntent(planKey);
     navigate({ to: "/auth" }); // PlanIntentRedirect opens checkout after sign-in
   }
   return (
     <div id="pricing" className="mt-12">
       <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h2>
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card/60 p-6">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Free</div>
           <div className="mt-2 text-3xl font-bold">$0</div>
@@ -161,21 +165,24 @@ function Pricing() {
             Start free
           </Link>
         </div>
-        <div className="rounded-2xl border-2 border-fuchsia-500/60 bg-card/60 p-6">
-          <div className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">Pro</div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-3xl font-bold">$29</span>
-            <span className="text-sm text-foreground/70">/month</span>
+        {plansQ.isLoading && <div className="rounded-2xl border border-border bg-card/60 p-6 text-sm text-foreground/70">Loading plans…</div>}
+        {monthly.map((p, i) => (
+          <div key={p.plan_key} className={`rounded-2xl ${i === 0 ? "border-2 border-fuchsia-500/60" : "border border-border"} bg-card/60 p-6`}>
+            <div className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">{p.name}</div>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-3xl font-bold">{formatPrice(p.price_cents)}</span>
+              <span className="text-sm text-foreground/70">/month</span>
+            </div>
+            <p className="mt-1 text-sm text-foreground/70">Unlimited QA crawls and AI agent tasks (fair use). Cancel anytime. Yearly plans save more.</p>
+            <button
+              type="button"
+              onClick={() => choose(p.plan_key)}
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
+            >
+              <Sparkles className="h-4 w-4" /> Choose {p.name} · {formatPrice(p.price_cents)}/mo
+            </button>
           </div>
-          <p className="mt-1 text-sm text-foreground/70">Unlimited QA crawls and AI agent tasks (fair use). Cancel anytime.</p>
-          <button
-            type="button"
-            onClick={choosePro}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
-          >
-            <Sparkles className="h-4 w-4" /> Upgrade to Pro · $29/month
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );

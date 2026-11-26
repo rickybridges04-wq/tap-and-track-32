@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canStartRun, PlanError } from "@/lib/entitlements.server";
-import { FREE_RUN_LIMIT, PRO_PRICE_KEY, isPlanError } from "@/lib/plan";
+import { FREE_RUN_LIMIT, formatPrice, isPlanError } from "@/lib/plan";
 
 const base = { isOwner: false, isSubscribed: false, runsUsed: 0 };
 
@@ -15,5 +15,8 @@ describe("run limits", () => {
   it("owner role bypasses the limit", () =>
     expect(canStartRun({ ...base, isOwner: true, runsUsed: 500 })).toBe(true));
   it("limit refusal is a PLAN error", () => expect(isPlanError(new PlanError())).toBe(true));
-  it("Pro price key is wizard_pro_monthly", () => expect(PRO_PRICE_KEY).toBe("wizard_pro_monthly"));
+  it("prices format without trailing cents", () => {
+    expect(formatPrice(3900)).toBe("$39");
+    expect(formatPrice(1999)).toBe("$19.99");
+  });
 });

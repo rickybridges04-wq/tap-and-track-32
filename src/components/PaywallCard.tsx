@@ -14,14 +14,13 @@ export function PaywallCard({ what = "run" }: { what?: string }) {
         You've used {runsUsed} of {FREE_RUN_LIMIT} free {what}s
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        Upgrade to Pro for unlimited QA crawls and agent tasks.
+        Upgrade to a paid plan for unlimited QA crawls and agent tasks.
       </p>
       <Link
         to="/upgrade"
-        search={{ checkout: 1 }}
         className="mt-4 inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/30 hover:opacity-90"
       >
-        <Sparkles className="h-4 w-4" /> Upgrade to Pro · $29/month
+        <Sparkles className="h-4 w-4" /> See plans
       </Link>
     </div>
   );
@@ -32,7 +31,7 @@ export function TrialBadge() {
   if (active) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-        <Sparkles className="h-3 w-3" /> Pro
+        <Sparkles className="h-3 w-3" /> Paid
       </span>
     );
   }
