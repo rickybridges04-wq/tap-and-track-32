@@ -371,8 +371,8 @@ function FixesBubble({ findings, onClose }: { findings: QaFindingRow[]; onClose:
       });
       if ("planError" in result) {
         toast.error("Free runs used up", {
-          description: "Upgrade to Pro ($29/month) to keep analyzing.",
-          action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade?checkout=1") },
+          description: "Upgrade to a paid plan to keep analyzing.",
+          action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade") },
         });
         return;
       }

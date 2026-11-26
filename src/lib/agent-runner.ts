@@ -260,8 +260,8 @@ export function useStartAgentRun() {
         const msg = (e as Error).message;
         if (msg.includes("PLAN:")) {
           toast.error("Free runs used up", {
-            description: "Upgrade to Pro ($29/month) for unlimited agent tasks.",
-            action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade?checkout=1") },
+            description: "Upgrade to a paid plan for unlimited agent tasks.",
+            action: { label: "Upgrade", onClick: () => window.location.assign("/upgrade") },
           });
           throw e;
         }
